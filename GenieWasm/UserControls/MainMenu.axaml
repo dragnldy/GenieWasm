@@ -1,0 +1,141 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="22"
+             xmlns:vm="clr-namespace:GenieWasm.ViewModels"
+			 x:DataType="vm:MainMenuViewModel"
+			 x:CompileBindings="True"
+             x:Class="GenieWasm.UserControls.MainMenu">
+	<Design.DataContext>
+		<!-- This only sets the DataContext for the previewer in an IDE,
+         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+		<vm:MainMenuViewModel />
+	</Design.DataContext>
+	<Menu DockPanel.Dock="Top">
+		<MenuItem Header="File">
+			<MenuItem Header="_Connect" Command="{Binding ConnectCommand}"/>
+			<MenuItem Header="Connect _Using Profile" Command="{Binding ProfileConnectCommand}"/>
+			<Separator/>
+			<MenuItem Header="Open Directory...">
+				<MenuItem Header="Genie" Command="{Binding OpenGenieDirCommand}"/>
+				<MenuItem Header="Scripts" Command="{Binding OpenScriptsDirCommand}"/>
+				<MenuItem Header="Maps" Command="{Binding OpenMapsDirCommand}"/>
+				<MenuItem Header="Plugins" Command="{Binding OpenPluginsDirCommand}"/>
+				<MenuItem Header="Logs" Command="{Binding OpenLogsDirCommand}"/>
+				<MenuItem Header="Art" Command="{Binding OpenArtDirCommand}"/>
+			</MenuItem>
+			<Separator/>
+			<MenuItem Header="_Auto Log" ToggleType="CheckBox"
+					  IsChecked="{Binding AutoLogEnabled}"/>
+			<MenuItem Header="_Open Log in Editor" Command="{Binding OpenLogFileCommand}"/>
+			<Separator/>
+			<MenuItem Header="Auto _Reconnect"
+					  ToggleType="CheckBox" IsChecked="{Binding AutoReconnect}"/>
+			<MenuItem Header="Classic Connect Window"
+					  ToggleType="CheckBox" IsChecked="{Binding ClassicConnect}"/>
+			<MenuItem Header="_Ignores/Gags Enabled"
+ 					  ToggleType="CheckBox" IsChecked="{Binding IgnoresEnabled}"/>
+			<MenuItem Header="_Triggers Enabled" 
+   					  ToggleType="CheckBox" IsChecked="{Binding TriggersEnabled}"/>
+			<MenuItem Header="_Plugins Enabled"
+   					  ToggleType="CheckBox" IsChecked="{Binding PluginsEnabled}"/>
+			<MenuItem Header="Auto_Mapper Enabled"
+   					  ToggleType="CheckBox" IsChecked="{Binding AutoMapperEnabled}"/>
+			<MenuItem Header="Images Enabled"
+   					  ToggleType="CheckBox" IsChecked="{Binding ImagesEnabled}"/>
+			<MenuItem Header="Mute _Sounds"
+					  ToggleType="CheckBox" IsChecked="{Binding MuteSoundsEnabled}"/>
+			<Separator/>
+			<MenuItem Header="Show Raw Data"
+					  ToggleType="CheckBox" IsChecked="{Binding ShowRawDataEnabled}"/>
+			<Separator/>
+			<MenuItem Header="Exit" Command="{Binding ExitAppCommand}"/>
+		</MenuItem>
+		<MenuItem Header="Edit">
+			<MenuItem Header="_Paste Multi Line"
+					  Command="{Binding PasteMultiCommand}"/>
+			<Separator/>
+			<MenuItem Header="_Configuration"
+  					  Command="{Binding DoConfigurationCommand}"/>
+			<MenuItem Header="Update Images"
+  					  Command="{Binding UpdateImagesCommand}"/>
+		</MenuItem>
+		<MenuItem Header="Profile">
+			<MenuItem Header="_Load Profile" Command="{Binding LoadProfileCommand}"/>
+			<MenuItem Header="_Save Profile" Command="{Binding SaveProfileCommand}"/>
+			<Separator/>
+			<MenuItem Header="Include Password in _Profile" Command="{Binding SavePasswordCommand}"/>
+		</MenuItem>
+		<MenuItem Header="Layout">
+			<MenuItem Header="Load Layout" Command="{Binding LoadLayoutCommand}"/>
+			<MenuItem Header="Load Default Layout" Command="{Binding LoadDefaultLayoutCommand}"/>
+			<Separator/>
+			<MenuItem Header="Save Layout As..." Command="{Binding SaveLayoutCommand}"/>
+			<MenuItem Header="Save Default Layout" Command="{Binding SaveDefaultLayoutCommand}"/>
+			<MenuItem Header="Save Sized Default Layout" Command="{Binding SaveSizedLayoutCommand}"/>
+			<Separator/>
+			<MenuItem Header="Basic Layout" Command="{Binding BasicLayoutCommand}"/>
+			<Separator/>
+			<MenuItem Header="Icon Bar" ToggleType="CheckBox" IsChecked="{Binding IconBarEnabled}"/>
+			<MenuItem Header="Script Bar"  ToggleType="CheckBox" IsChecked="{Binding ScriptBarEnabled}"/>
+			<MenuItem Header="Health Bar" ToggleType="CheckBox" IsChecked="{Binding HealthBarEnabled}"/>
+			<MenuItem Header="Magic Panels" ToggleType="CheckBox" IsChecked="{Binding MagicPanelsEnabled}"/>
+			<MenuItem Header="Status Bar" ToggleType="CheckBox" IsChecked="{Binding StatusBarEnabled}"/>
+			<MenuItem Header="Align Input to Game Window" ToggleType="CheckBox" IsChecked="{Binding AlignInputEnabled}"/>
+			<MenuItem Header="Always On Top" ToggleType="CheckBox" IsChecked="{Binding AlwaysOnTopEnabled}"/>
+		</MenuItem>
+		<MenuItem Header="Windows">
+		</MenuItem>
+		<MenuItem Header="Script">
+			<MenuItem Header="Script Explorer" Command="{Binding ScriptExplorerCommand}"/>
+			<MenuItem Header ="Update Scripts" Command="{Binding UpdateScriptsCommand}"/>
+			<Separator/>
+			<MenuItem Header = "Show Active Scripts" Command="{Binding ShowActiveCommand}"/>
+			<MenuItem Header = "Trace Active Scripts" Command="{Binding TraceActiveCommand}"/>
+			<Separator/>
+			<MenuItem Header="Pause All Scripts" Command="{Binding PauseAllCommand}"/>
+			<MenuItem Header="Resume All Scripts" Command="{Binding ResumeAllCommand}"/>
+			<Separator/>
+			<MenuItem Header="Abort All Scripts" Command="{Binding AbortAllCommand}"/>
+		</MenuItem>
+		<MenuItem Header="AutoMapper">
+			<MenuItem Header="Show Window" Command="{Binding ShowAutoMapperCommand}"/>
+			<MenuItem Header="Update Maps" Command="{Binding UpdateMapsCommand}"/>
+			<MenuItem Header="Script Settings" Command="{Binding ScriptSettingsCommand}"/>
+			<Separator/>
+			<MenuItem Header="Update Scripts With Maps" 
+					  ToggleType="CheckBox" IsChecked="{Binding UpdateScriptsEnabled}"/>
+		</MenuItem>
+		<MenuItem Header="Plugins">
+			<MenuItem Header="No plugins loaded"
+					  ToggleType="CheckBox" IsChecked="{Binding NoPluginsLoaded}"/>
+			<MenuItem Header="Update Plugins" Command="{Binding UpdatePluginsCommand}"/>
+		</MenuItem>
+		<MenuItem Header="Help">
+			<MenuItem Header="Check for Updates" Command="{Binding CheckForUpdatesCommand}"/>
+			<MenuItem Header="Force Update" Command="{Binding ForceUpdateCommand}"/>
+			<MenuItem Header="Load Test Client" Command="{Binding LoadTestCommand}"/>
+			<Separator/>
+			<MenuItem Header="AutoUpdate"
+					  ToggleType="CheckBox" IsChecked="{Binding AutoUpdateEnabled}"/>
+			<MenuItem Header="AutoUpdate Lamp"
+					  ToggleType="CheckBox" IsChecked="{Binding AutoUpdateLampEnabled}"/>
+			<MenuItem Header="Check Updates on Startup"
+					  ToggleType="CheckBox" IsChecked="{Binding CheckUpdateEnabled}"/>
+			<MenuItem Header="Latest Release Page" Command="{Binding LatestReleaseCommand}"/>
+			<Separator/>
+			<MenuItem Header="Discord" Command="{Binding DiscordCommand}"/>
+			<MenuItem Header="GitHub" Command="{Binding GitHubCommand}"/>
+			<MenuItem Header="Wiki" Command="{Binding WikiCommand}"/>
+			<Separator/>
+			<MenuItem Header="Community Links">
+				<MenuItem Header="Play.net" Command="{Binding PlayNetCommand}"/>
+				<MenuItem Header="Elanthipedia" Command="{Binding ElanthipediaCommand}"/>
+				<MenuItem Header="DR Service" Command="{Binding DRServiceCommand}"/>
+				<MenuItem Header="Lich Discord" Command="{Binding LichDiscordCommand}"/>
+				<MenuItem Header="Isharon's Genie Settings" Command="{Binding IsharonCommand}"/>
+			</MenuItem>
+		</MenuItem>
+	</Menu>
+</UserControl>
