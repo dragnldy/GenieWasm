@@ -15,6 +15,19 @@
   </Design.DataContext>
 	<DockPanel Width="800" Height="450">
 		<uc:MainMenu DockPanel.Dock="Top"/>
+		<StackPanel DockPanel.Dock="Top">
+			<Button
+				Content="Play"
+				HorizontalAlignment="Center"
+				VerticalAlignment="Center"
+				Click="ClickHandler" />
+
+			<TextBlock
+				x:Name="PlaybackStatus"
+				HorizontalAlignment="Center"
+				VerticalAlignment="Center"
+				Text="-" />
+		</StackPanel>
 		<Grid DockPanel.Dock="Top" ColumnDefinitions="*, 4, 4*, 4, *" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 			<uc:GameWindow GameWindowName="Left Panel" BodyContent="Testing Left" Grid.Column="0" Background="Blue"/>
 			<GridSplitter Grid.Column="1" Background="Black" ResizeDirection="Columns"/>

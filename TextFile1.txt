@@ -1,0 +1,105 @@
+// Unsupported functionality: This file is not supported by the current version of the application.
+    private string ParsePluginText(string sText, string sWindow)
+    {
+        if (m_oGlobals.PluginsEnabled == false)
+            return sText;
+        foreach (object oPlugin in m_oGlobals.PluginList)
+        {
+            if(oPlugin is GeniePlugin.Interfaces.IPlugin)
+            {
+                if ((oPlugin as GeniePlugin.Interfaces.IPlugin).Enabled)
+                {
+                    try
+                    {
+                        sText = (oPlugin as GeniePlugin.Interfaces.IPlugin).ParseText(sText, sWindow);
+                    }
+                    /* TODO ERROR: Skipped IfDirectiveTrivia */
+                    catch (Exception ex)
+                    {
+                        GenieError.GeniePluginError((oPlugin as GeniePlugin.Interfaces.IPlugin), "ParseText", ex);
+                        (oPlugin as GeniePlugin.Interfaces.IPlugin).Enabled = false;
+                        /* TODO ERROR: Skipped ElseDirectiveTrivia *//* TODO ERROR: Skipped DisabledTextTrivia *//* TODO ERROR: Skipped EndIfDirectiveTrivia */
+                    }
+                }
+            }
+            else if(oPlugin is GeniePlugin.Plugins.IPlugin)
+            {
+                if ((oPlugin as GeniePlugin.Plugins.IPlugin).Enabled)
+                {
+                    try
+                    {
+                        sText = (oPlugin as GeniePlugin.Plugins.IPlugin).ParseText(sText, sWindow);
+                    }
+                    /* TODO ERROR: Skipped IfDirectiveTrivia */
+                    catch (Exception ex)
+                    {
+                        GenieError.GeniePluginError((oPlugin as GeniePlugin.Plugins.IPlugin), "ParseText", ex);
+                        (oPlugin as GeniePlugin.Plugins.IPlugin).Enabled = false;
+                        /* TODO ERROR: Skipped ElseDirectiveTrivia *//* TODO ERROR: Skipped DisabledTextTrivia *//* TODO ERROR: Skipped EndIfDirectiveTrivia */
+                    }
+                }
+            }
+        }
+
+        return sText;
+    }
+    public static Form FormResource(string resourceName, bool createifnotopen = false,bool show = false)
+    {
+        // To find a form by its name (assuming you set the Name property in the designer)
+        Form specificForm = Application.OpenForms[resourceName];
+        if (specificForm == null && createifnotopen)
+        {
+            // If the form is not open, create a new instance
+            specificForm = (Form)Activator.CreateInstance(Type.GetType("GenieClient." + resourceName));
+        }
+
+        if (specificForm != null && !specificForm.IsHandleCreated)
+        {
+            // If the form is already open but not created, ensure it is shown
+            if (show) specificForm.Show();
+        }
+        return specificForm;
+    }
+        public static object CreateForm(string formType)
+    {
+        // Create a new instance of the form if it is not already open
+        Form specificForm = Application.OpenForms[formType];
+        if (specificForm == null)
+        {
+            specificForm = (Form)Activator.CreateInstance(Type.GetType(formType));
+            specificForm.Show();
+        }
+        return specificForm;
+    }
+    public Font MonoFont
+    {
+        get
+        {
+            return m_oMonoFont;
+        }
+
+        set
+        {
+            m_oMonoFont = value;
+            ConfigChanged?.Invoke(ConfigFieldUpdated.MonoFont);
+        }
+    }
+
+    public Font InputFont
+    {
+        get
+        {
+            return m_oInputFont;
+        }
+
+        set
+        {
+            m_oInputFont = value;
+            ConfigChanged?.Invoke(ConfigFieldUpdated.InputFont);
+        }
+    }
+        public Font m_oMonoFont = new Font("Courier New", 9, FontStyle.Regular);
+    public Font m_oInputFont = new Font("Courier New", 9, FontStyle.Regular);
+
+
+

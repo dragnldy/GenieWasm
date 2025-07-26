@@ -10,10 +10,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia.Desktop" Version="$(AvaloniaVersion)" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.3.2" />
+    <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.21" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\GenieCoreLib\GenieCoreLib.csproj" />
     <ProjectReference Include="..\GenieWasm\GenieWasm.csproj" />
   </ItemGroup>
 </Project>

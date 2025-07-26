@@ -95,9 +95,9 @@ public class Connection
     private TcpClient _client;
     private const int MAX_PACKET_SIZE = 2048;
     private SslStream sslStream;
+    private IPEndPoint m_IPEndPoint;
 
     private Socket m_SocketClient;
-    private IPEndPoint m_IPEndPoint;
     private StringBuilder m_ParseBuffer = new StringBuilder();
     private StringBuilder m_RowBuffer = new StringBuilder();
     private DateTime m_oLastServerActivity = DateTime.Now;

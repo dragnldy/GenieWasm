@@ -1,6 +1,8 @@
 ﻿using Avalonia.Controls;
+using Avalonia.Interactivity;
+using Avalonia.Threading;
 using GenieWasm.UserControls;
-using GenieWasm.ViewModels;
+using GenieCoreLib;
 using System;
 
 namespace GenieWasm.Views;
@@ -25,4 +27,9 @@ public partial class MainView : UserControl
         }
         gameWindow.ClearTextBlock();
     }
+    public void ClickHandler(object sender, RoutedEventArgs args)
+    {
+        EventCallBacks.OnPlaySoundRequested("https://github.com/rafaelreis-hotmart/Audio-Sample-files/raw/refs/heads/master/sample.mp3");
+    }
+
 }

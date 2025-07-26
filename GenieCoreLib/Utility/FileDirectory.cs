@@ -1,15 +1,17 @@
-﻿using Avalonia;
+﻿namespace GenieCoreLib;
 
-namespace GenieCoreLib;
-
-    static class LocalDirectory
+    static class FileDirectory
     {
-        public static string Path = AppDomain.CurrentDomain.BaseDirectory;
-        public static bool IsLocal = true;
+    public static string Path => Globals.LocalDirectoryPath;
+        public static string ConfigPath => System.IO.Path.Combine(Path, "Config");
+        public static string MacrosFileName => System.IO.Path.Combine(ConfigPath, "macros.cfg");
+        public static string ClassesFileName => System.IO.Path.Combine(ConfigPath, "classes.cfg");
+        public static string SettingsFileName => System.IO.Path.Combine(ConfigPath, "settings.cfg");
+        public static string UserDataDirectory => Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 
         public static void CheckUserDirectory()
         {
-            string dir = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Config");
+            string dir = System.IO.Path.Combine(Globals.LocalDirectoryPath, "Config");
             if (!System.IO.Directory.Exists(dir))
             {
                 // No local settings, change to user data directory
@@ -20,14 +22,11 @@ namespace GenieCoreLib;
         public static void SetUserDataDirectory()
         {
             string dir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            dir = System.IO.Path.Combine(dir, Application.Current.Name);
+            dir = System.IO.Path.Combine(dir, Globals.LocalDirectoryPath);
             if (!System.IO.Directory.Exists(dir))
             {
                 System.IO.Directory.CreateDirectory(dir);
             }
-
-            Path = dir;
-            IsLocal = false;
         }
 
         public static string ValidateDirectory(string path)

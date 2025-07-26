@@ -1,37 +1,6 @@
 ﻿
-using MsBox.Avalonia;
-using MsBox.Avalonia.Enums;
-using System.Collections;
-
 namespace GenieCoreLib 
 {
-    public enum MsgBoxStyle
-    {
-        OK = 0,
-        OkOnly = 0,
-        OkCancel = 1,
-        AbortRetryIgnore = 2,
-        YesNoCancel = 3,
-        YesNo = 4,
-        RetryCancel = 5,
-        //CancelTryContinue = 6,
-        //Critical = 16,
-        //Question = 32,
-        //Exclamation = 48,
-        //Information = 64,
-        //DefaultButton1 = 0,
-        //DefaultButton2 = 256,
-        //DefaultButton3 = 512
-    }
-    public enum AppWinStyle
-    {
-        NormalFocus,
-        MinimizedFocus,
-        Hidden,
-        MaximizedFocus,
-        MinimizedNoFocus,
-        NormalNoFocus
-    }
     public static class Conversion
     {
         public static string Hex(byte value)
@@ -181,6 +150,16 @@ namespace GenieCoreLib
             //System.Media.SystemSounds.Beep.Play();
 //            Console.Beep();
         }
+        public enum AppWinStyle
+        {
+            NormalFocus,
+            MinimizedFocus,
+            Hidden,
+            MaximizedFocus,
+            MinimizedNoFocus,
+            NormalNoFocus
+        }
+
         public static void Shell(string commandPlusArgs, AppWinStyle style, bool hrmmm)
         {
             // This is a placeholder for a shell implementation.
@@ -195,54 +174,6 @@ namespace GenieCoreLib
             System.Diagnostics.Process.Start(command, args);
         }
 
-        public static MsgBoxResult MsgBox(string message, MsgBoxStyle buttons, string title = "Message")
-        {
-
-            ButtonEnum buttonEnum = buttons switch
-            {
-                MsgBoxStyle.OkOnly => ButtonEnum.Ok,
-                MsgBoxStyle.OkCancel => ButtonEnum.OkCancel,
-                MsgBoxStyle.AbortRetryIgnore => ButtonEnum.OkAbort,
-                MsgBoxStyle.YesNoCancel => ButtonEnum.YesNoCancel,
-                MsgBoxStyle.YesNo => ButtonEnum.YesNo,
-                MsgBoxStyle.RetryCancel => ButtonEnum.OkAbort, // No direct equivalent, using AbortRetryIgnore
-                _ => ButtonEnum.Ok // Default to Ok if no match
-            };
-
-            var msgBoxResult = MsgBoxResult.OK; // Default value
-            var box = MessageBoxManager
-                .GetMessageBoxStandard(title, message, buttonEnum);
-            Task.Run( async () =>
-            {
-                var result = await box.ShowAsync();
-                switch (result)
-                {
-                    case ButtonResult.Ok:
-                        msgBoxResult = MsgBoxResult.OK;
-                        break;
-                    case ButtonResult.Cancel:
-                        msgBoxResult = MsgBoxResult.Cancel;
-                        break;
-                    case ButtonResult.Abort:
-                        msgBoxResult = MsgBoxResult.Abort;
-                        break;
-                    case ButtonResult.Yes:
-                        msgBoxResult = MsgBoxResult.Yes;
-                        break;
-                    case ButtonResult.No:
-                        msgBoxResult = MsgBoxResult.No;
-                        break;
-                    case ButtonResult.None:
-                        msgBoxResult = MsgBoxResult.Cancel;
-                        break;
-                    default:
-                        msgBoxResult = MsgBoxResult.Cancel;
-                        break;
-                }
-            });
-
-            return msgBoxResult;
-        }
 
         public const string[] commandargs = null;
         public static string Command()
@@ -318,15 +249,6 @@ namespace GenieCoreLib
         {
             return left ^ right;
         }
-    }
-    public enum  MsgBoxResult
-    {
-        OK = ButtonResult.Ok,
-        Cancel = ButtonResult.Cancel,
-        Abort = ButtonResult.Abort,
-        Ignore = ButtonResult.Yes,
-        Yes = ButtonResult.Yes,
-        No = ButtonResult.No,
     }
     public static class Constants
     {

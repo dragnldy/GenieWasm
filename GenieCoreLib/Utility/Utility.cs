@@ -1,6 +1,4 @@
-﻿using Avalonia;
-using System.Collections;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Net.Security;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -651,7 +649,7 @@ public class Utility
     public static string AssemblyCompanyName()
     {
         // Todo: Implement a way to retrieve the company name from the assembly.
-        return Application.Current.Name;
+        return Globals.AppName;
     }
 
     public static DateTime AssemblyBuildDate(System.Reflection.Assembly a)
@@ -777,10 +775,10 @@ public class Utility
     {
         try
         {
-            IEnumerable<string> files = Directory.EnumerateFiles(LocalDirectory.Path + @"\Config");
+            IEnumerable<string> files = Directory.EnumerateFiles(Globals.LocalDirectoryPath + @"\Config");
             foreach (string file in files.Where(n => n.EndsWith(".layout")))
             {
-                MoveFile(file, LocalDirectory.Path + @"\Config\Layout\" + file);
+                MoveFile(file, Globals.LocalDirectoryPath + @"\Config\Layout\" + file);
             }
         }
         #pragma warning disable CS0168
