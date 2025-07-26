@@ -1,0 +1,29 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="100"
+			 xmlns:vm="clr-namespace:GenieWasm.ViewModels"
+			 xmlns:uc="clr-namespace:GenieWasm.UserControls"
+             x:Class="GenieWasm.UserControls.GameWindow"
+			 x:DataType="uc:GameWindow"
+			 >
+	<Design.DataContext>
+		<!-- This only sets the DataContext for the previewer in an IDE,
+            to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+		<uc:GameWindow/>
+	</Design.DataContext>
+	<Border BorderThickness="2" BorderBrush="Blue" CornerRadius="5">
+		<StackPanel>
+			<TextBlock Background="DarkGray" Text="{Binding GameWindowName}" FontSize="8" HorizontalAlignment="Stretch" Margin="2,0,0,0" Height="12" TextAlignment="Left"/>
+			<SelectableTextBlock Name="mainTextBlock" Text="{Binding BodyContent}" HorizontalAlignment="Stretch" TextAlignment="Left">
+				<SelectableTextBlock.ContextMenu>
+					<ContextMenu>
+						<MenuItem Header="Copy" Command="{Binding CopyCommand}"/>
+						<MenuItem Header="Select All" Command="{Binding SelectAllCommand}"/>
+					</ContextMenu>
+				</SelectableTextBlock.ContextMenu>
+			</SelectableTextBlock>
+		</StackPanel>
+	</Border>
+</UserControl>

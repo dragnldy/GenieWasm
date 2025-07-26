@@ -4,15 +4,23 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:GenieWasm.ViewModels"
              xmlns:uc="clr-namespace:GenieWasm.UserControls"
+             xmlns:local="clr-namespace:GenieWasm.Views"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="GenieWasm.Views.MainView"
-             x:DataType="vm:MainViewModel">
+             x:DataType="local:MainView">
   <Design.DataContext>
     <!-- This only sets the DataContext for the previewer in an IDE,
          to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
-    <vm:MainViewModel />
+    <local:MainView />
   </Design.DataContext>
-	<DockPanel>
-		<uc:MainMenu/>
+	<DockPanel Width="800" Height="450">
+		<uc:MainMenu DockPanel.Dock="Top"/>
+		<Grid DockPanel.Dock="Top" ColumnDefinitions="*, 4, 4*, 4, *" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+			<uc:GameWindow GameWindowName="Left Panel" BodyContent="Testing Left" Grid.Column="0" Background="Blue"/>
+			<GridSplitter Grid.Column="1" Background="Black" ResizeDirection="Columns"/>
+			<uc:GameWindow Name ="mainGame" GameWindowName="Game" BodyContent="Initializing layout" Grid.Column="2" Background="Red"/>
+			<GridSplitter Grid.Column="3" Background="Black" ResizeDirection="Columns"/>
+			<uc:GameWindow GameWindowName="Right Panel" BodyContent="Testing Right" Grid.Column="4" Background="Green"/>
+		</Grid>
 	</DockPanel>
 </UserControl>
