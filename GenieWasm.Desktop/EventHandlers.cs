@@ -1,5 +1,4 @@
-﻿using Avalonia.Interactivity;
-using GenieCoreLib;
+﻿using GenieCoreLib;
 using LibVLCSharp.Shared;
 using System;
 
@@ -23,8 +22,16 @@ public static class PlatformSpecificEventHandlers
     private static void OnPlaySoundRequested(object? sender, PlaySoundRequestedEventArgs e)
     {
         string sound = e.SoundName;
-        Media media = new(MainLibVLC, new Uri("https://github.com/rafaelreis-hotmart/Audio-Sample-files/raw/refs/heads/master/sample.mp3"));
-        MainMediaPlayer.Media = media;
-        MainMediaPlayer.Play();
+        if (string.IsNullOrEmpty(sound))
+        {
+            // stop the media player if no sound is specified
+            MainMediaPlayer.Stop();
+        }
+        else
+        {
+            Media media = new(MainLibVLC, new Uri("https://github.com/rafaelreis-hotmart/Audio-Sample-files/raw/refs/heads/master/sample.mp3"));
+            MainMediaPlayer.Media = media;
+            MainMediaPlayer.Play();
+        }
     }
 }

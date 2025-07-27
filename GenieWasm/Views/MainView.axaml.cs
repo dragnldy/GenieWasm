@@ -27,9 +27,20 @@ public partial class MainView : UserControl
         }
         gameWindow.ClearTextBlock();
     }
-    public void ClickHandler(object sender, RoutedEventArgs args)
+    private static bool SoundIsOn = false;
+    public bool PlaySoundCommand()
     {
-        EventCallBacks.OnPlaySoundRequested("https://github.com/rafaelreis-hotmart/Audio-Sample-files/raw/refs/heads/master/sample.mp3");
+        if (!SoundIsOn)
+        {
+            SoundIsOn = true;
+            EventCallBacks.OnPlaySoundRequested("https://github.com/rafaelreis-hotmart/Audio-Sample-files/raw/refs/heads/master/sample.mp3");
+        }
+        else
+        {
+            SoundIsOn = false;
+            EventCallBacks.OnPlaySoundRequested(string.Empty);
+        }
+        return SoundIsOn;
     }
 
 }

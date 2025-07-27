@@ -1,9 +1,5 @@
-﻿using Avalonia.Controls;
-using Avalonia.Platform.Storage;
-using System;
+﻿using System;
 using System.Diagnostics;
-using System.Runtime;
-using System.Windows.Input;
 
 namespace GenieWasm.ViewModels;
 
