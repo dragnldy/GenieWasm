@@ -38,7 +38,7 @@ public interface IConfigSettings
     int HistorySize { get; set; }
     int HistoryMinLength { get; set; }
 }
-public partial class ConfigSettings : INotifyPropertyChanged, IConfigSettings
+public partial class ConfigSettings : INotifyPropertyChanged, IConfigSettings, IDisposable
 {
     public static ConfigSettings GetInstance() => _m_oConfigSettings ?? new ConfigSettings();
     private static ConfigSettings _m_oConfigSettings;
@@ -537,22 +537,20 @@ public partial class ConfigSettings : INotifyPropertyChanged, IConfigSettings
     #region Events and Methods
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    public ConfigSettings LoadSettings(string fileName)
+    public ConfigSettings LoadSettings(string legacyFileName)
     {
-        if (File.Exists(fileName))
+        string jsonFile = legacyFileName + ".json";
+        if (File.Exists(jsonFile))
         {
             // Load settings from the file
-            string configData = File.ReadAllText(fileName);
-            if (configData.StartsWith("#config"))
-            {
-                // This is a legacy config file, handle it accordingly
-                return LoadLegacySettings(ConfigSettings.GetInstance(), configData);
-            }
+            string configData = File.ReadAllText(jsonFile);
             try
             {
                 ConfigSettings settings = JsonSerializer.Deserialize<ConfigSettings>(configData);
                 // Deserialize or parse the configData to populate ConfigSettings properties
-                return settings;
+                settings.CopyBackToSelf(this); // copy the file contents back on top of the current configuraton
+                settings.Dispose();
+                return this;
             }
             catch (Exception exc)
             {
@@ -562,10 +560,35 @@ public partial class ConfigSettings : INotifyPropertyChanged, IConfigSettings
         }
         else
         {
-            // If the file does not exist, return a new instance with default settings
+            // if no json file, look for a legacy config file
+            if (File.Exists(legacyFileName))
+            {
+                string configData = File.ReadAllText(legacyFileName);
+                if (configData.StartsWith("#config"))
+                {
+                    // This is a legacy config file, handle it accordingly
+                    return LoadLegacySettings(ConfigSettings.GetInstance(), configData);
+                }
+
+            }
         }
         return new ConfigSettings();
     }
+
+    private void CopyBackToSelf(ConfigSettings configSettings)
+    {
+        // copy the new settings back on top of the current settings and dispose of the new copy afterwards
+        List<PropertyInfo> propertyList = (configSettings.GetType()).GetProperties().ToList();
+        foreach (PropertyInfo property in propertyList)
+        {
+            if (property.CanWrite)
+            {
+                object? value = property.GetValue(configSettings);
+                property.SetValue(this, value);
+            }
+        }   
+    }
+
     public static ConfigSettings LoadLegacySettings(ConfigSettings settings, string ConfigData)
     {
         StringBuilder sbe = new();
@@ -614,9 +637,20 @@ public partial class ConfigSettings : INotifyPropertyChanged, IConfigSettings
         string result = $"Loaded {found} settings with {errors} errors.";
         return settings;
     }
-    public bool SaveSettings(string fileName)
+    public bool SaveSettings(string legacyFileName)
     {
-        return true;
+        try
+        {
+            string jsonFile = legacyFileName + ".json";
+            string json = JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(jsonFile, json);
+            return true;
+        }
+        catch (Exception exc)
+        {
+            // Handle exceptions, e.g., log them
+            return false;
+        }
     }
     public bool SetSetting(string key, string value = "")
     {
@@ -653,7 +687,7 @@ public partial class ConfigSettings : INotifyPropertyChanged, IConfigSettings
         }
         else
         {
-            sLocation = Globals.LocalDirectoryPath;
+            sLocation = AppGlobals.LocalDirectoryPath;
             if (folder.StartsWith(@"\") || sLocation.EndsWith(@"\"))
             {
                 sLocation += folder;
@@ -664,6 +698,26 @@ public partial class ConfigSettings : INotifyPropertyChanged, IConfigSettings
             }
             return sLocation;
         }
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this); // Prevent finalizer from running
+     
+    }
+    bool bDisposed = false;
+    public void Dispose(bool disposing)
+    {
+        if (bDisposed) return; // Prevent multiple disposals
+
+        if (disposing)
+        {
+            // Dispose of any resources if necessary
+            _m_oConfigSettings = null;
+            PropertyChanged = null;
+        }
+        // Free unmanaged resources here if any
     }
     #endregion Events and Private Methods
 }

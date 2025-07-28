@@ -65,8 +65,6 @@ public class Globals : IGlobals
         AppName = AppGlobals.AppName;
         AppVersion = AppGlobals.AppVersion;
         CompanyName = AppGlobals.CompanyName;
-        LocalDirectoryPath = AppGlobals.LocalDirectoryPath;
-        LocalUserPath = AppGlobals.LocalUserPath;
 
         // Initialize the static variables that are platform specific
         // Platform specific code will initialize the above static variables as needed.
@@ -454,7 +452,7 @@ public Events Events = new Events();
             {
                 if (sFileName.IndexOf(@"\") == -1)
                 {
-                    sFileName = Globals.LocalDirectoryPath + @"\Config\" + sFileName;
+                    sFileName = AppGlobals.LocalDirectoryPath + @"\Config\" + sFileName;
                 }
 
                 if (File.Exists(sFileName) == true)
@@ -503,7 +501,7 @@ public Events Events = new Events();
             {
                 if (sFileName.IndexOf(@"\") == -1)
                 {
-                    sFileName = Globals.LocalDirectoryPath + @"\Config\" + sFileName;
+                    sFileName = AppGlobals.LocalDirectoryPath + @"\Config\" + sFileName;
                 }
 
                 if (AcquireReaderLock())
@@ -757,7 +755,7 @@ public Events Events = new Events();
             }
         }
 
-        private string m_FileName = Globals.LocalDirectoryPath + @"\Config\" + "variables.cfg";
+        private string m_FileName = AppGlobals.LocalDirectoryPath + @"\Config\" + "variables.cfg";
 
         public bool Load(string sFileName = null)
         {
@@ -770,7 +768,7 @@ public Events Events = new Events();
 
                 if (sFileName.IndexOf(@"\") == -1)
                 {
-                    sFileName = Globals.LocalDirectoryPath + @"\Config\" + sFileName;
+                    sFileName = AppGlobals.LocalDirectoryPath + @"\Config\" + sFileName;
                 }
 
                 m_FileName = sFileName;
@@ -822,7 +820,7 @@ public Events Events = new Events();
 
                 if (sFileName.IndexOf(@"\") == -1)
                 {
-                    sFileName = Globals.LocalDirectoryPath + @"\Config\" + sFileName;
+                    sFileName = AppGlobals.LocalDirectoryPath + @"\Config\" + sFileName;
                 }
 
                 if (File.Exists(sFileName) == true)
@@ -1116,7 +1114,7 @@ public Events Events = new Events();
             {
                 if (sFileName.IndexOf(@"\") == -1)
                 {
-                    sFileName = Globals.LocalDirectoryPath + @"\Config\" + sFileName;
+                    sFileName = AppGlobals.LocalDirectoryPath + @"\Config\" + sFileName;
                 }
 
                 if (File.Exists(sFileName) == true)
@@ -1166,7 +1164,7 @@ public Events Events = new Events();
             {
                 if (sFileName.IndexOf(@"\") == -1)
                 {
-                    sFileName = Globals.LocalDirectoryPath + @"\Config\" + sFileName;
+                    sFileName = AppGlobals.LocalDirectoryPath + @"\Config\" + sFileName;
                 }
 
                 if (File.Exists(sFileName) == true)
@@ -1576,7 +1574,7 @@ public Events Events = new Events();
             {
                 if (sFileName.IndexOf(@"\") == -1)
                 {
-                    sFileName = Globals.LocalDirectoryPath + @"\Config\" + sFileName;
+                    sFileName = AppGlobals.LocalDirectoryPath + @"\Config\" + sFileName;
                 }
 
                 if (File.Exists(sFileName) == true)
@@ -1628,7 +1626,7 @@ public Events Events = new Events();
             {
                 if (sFileName.IndexOf(@"\") == -1)
                 {
-                    sFileName = Globals.LocalDirectoryPath + @"\Config\" + sFileName;
+                    sFileName = AppGlobals.LocalDirectoryPath + @"\Config\" + sFileName;
                 }
 
                 if (File.Exists(sFileName) == true)
@@ -1804,7 +1802,7 @@ public Events Events = new Events();
             {
                 if (sFileName.IndexOf(@"\") == -1)
                 {
-                    sFileName = Globals.LocalDirectoryPath + @"\Config\" + sFileName;
+                    sFileName = AppGlobals.LocalDirectoryPath + @"\Config\" + sFileName;
                 }
 
                 if (File.Exists(sFileName) == true)
@@ -1857,7 +1855,7 @@ public Events Events = new Events();
             {
                 if (sFileName.IndexOf(@"\") == -1)
                 {
-                    sFileName = Globals.LocalDirectoryPath + @"\Config\" + sFileName;
+                    sFileName = AppGlobals.LocalDirectoryPath + @"\Config\" + sFileName;
                 }
 
                 if (File.Exists(sFileName) == true)
@@ -1916,7 +1914,7 @@ public Events Events = new Events();
         // Try
         if (sFileName.IndexOf(@"\") == -1)
         {
-            sFileName = Globals.LocalDirectoryPath + @"\Config\" + sFileName;
+            sFileName = AppGlobals.LocalDirectoryPath + @"\Config\" + sFileName;
         }
 
         if (File.Exists(sFileName) == true)
@@ -2016,7 +2014,7 @@ public Events Events = new Events();
         {
             if (sFileName.IndexOf(@"\") == -1)
             {
-                sFileName = Globals.LocalDirectoryPath + @"\Config\" + sFileName;
+                sFileName = AppGlobals.LocalDirectoryPath + @"\Config\" + sFileName;
             }
 
             if (File.Exists(sFileName) == true)

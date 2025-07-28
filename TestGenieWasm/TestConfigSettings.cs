@@ -1,4 +1,6 @@
+using Avalonia.Styling;
 using GenieCoreLib;
+using System.Text.Json;
 
 namespace TestGenieWasm;
 
@@ -20,5 +22,21 @@ public class TestConfigSettings
 
         ConfigSettings.LoadLegacySettings(settings, configData);
         Assert.IsTrue(!settings.IgnoreMonsterList.Equals("JUNK"));
+    }
+    [TestMethod]
+    public void CanSaveSettings()
+    {
+
+        GenieWasm.Desktop.LocalSetup.InitLocalDirectory();
+        string path = AppGlobals.LocalDirectoryPath;
+        string configPath = System.IO.Path.Combine(path, "config", "settings.cfg");
+        ConfigSettings settings = ConfigSettings.GetInstance();
+        Assert.IsNotNull(settings);
+        settings.LoadSettings(configPath);
+        string jsonBeforeWrite = JsonSerializer.Serialize(settings, new JsonSerializerOptions{ WriteIndented = true });
+        settings.SaveSettings(configPath);
+        settings.LoadSettings(configPath);
+        string jsonAfterWrite = JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true });
+        Assert.IsTrue(jsonBeforeWrite.Equals(jsonAfterWrite), "Settings were not saved correctly.");
     }
 }
