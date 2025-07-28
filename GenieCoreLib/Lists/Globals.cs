@@ -7,6 +7,18 @@ using System.Text.RegularExpressions;
 
 namespace GenieCoreLib;
 
+public static class AppGlobals
+{
+    // Globals that need to be referenced before injection container is available
+    // These values are platform specific so they are initiliazed by the main module
+    public static OperatingPlatform Platform { get; set; } = OperatingPlatform.Windows;
+    public static string AppName { get; set; } = string.Empty;
+    public static string CompanyName { get; set; } = string.Empty;
+    public static string LocalDirectoryPath { get; set; } = string.Empty;
+    public static string LocalUserPath { get; set; } = string.Empty;
+    public static string AppVersion { get; set; } = string.Empty;
+}
+
 public enum OperatingPlatform
 {
     Windows,
@@ -16,46 +28,67 @@ public enum OperatingPlatform
     iOS,
     WebAssembly
 }
-public class Globals
+public interface IGlobals
+    {
+    event Globals.ConfigChangedEventHandler ConfigChanged;
+    void Config_ConfigChanged(Config.ConfigFieldUpdated oField);
+    string ParseGlobalVars(object sVar);
+    string ParseSpecialVariables(string sText);
+    string ParseVariable(string Line);
+    void UpdateMonsterListRegEx();
+}
+
+public class Globals : IGlobals
 {
-    public static OperatingPlatform Platform = OperatingPlatform.Windows;
+    public static Globals Instance => _m_oGlobals ??= new Globals();
+    private static Globals _m_oGlobals;
+
+    private static Game m_oGame = Game.GetInstance();
+    private static Command m_oCommand = Command.GetInstance();
+    private static AutoMapper m_oMapper = AutoMapper.GetInstance();
+    private static Config _m_oConfig = Config.GetInstance();
+    private static ConfigSettings m_oConfigSettings = ConfigSettings.GetInstance();
+
+    // These values are platform specific so they are initiliazed by the main module
+    public OperatingPlatform Platform = OperatingPlatform.Windows;
     public static string AppName = string.Empty;
     public static string CompanyName = string.Empty;
     public static string LocalDirectoryPath  = string.Empty;
     public static string LocalUserPath = string.Empty;
     public static string AppVersion = string.Empty;
 
-    private Config _Config = new Config();
-   
 
-    public Config Config
+    public Globals()
     {
+        _m_oGlobals = this;
+        Platform = AppGlobals.Platform;
+        AppName = AppGlobals.AppName;
+        AppVersion = AppGlobals.AppVersion;
+        CompanyName = AppGlobals.CompanyName;
+        LocalDirectoryPath = AppGlobals.LocalDirectoryPath;
+        LocalUserPath = AppGlobals.LocalUserPath;
 
-        [MethodImpl(MethodImplOptions.Synchronized)]
-        get
-        {
-            return _Config;
-        }
+        // Initialize the static variables that are platform specific
+        // Platform specific code will initialize the above static variables as needed.
+        // We will initialize the non-user specific config options here
+        //m_oOutputMain = new FormSkin("main", "Game", ref _m_oGlobals);
+        //m_oLegacyPluginHost = new LegacyPluginHost(this, ref _m_oGlobals);
+        //m_oPluginHost = new PluginHost(this, ref _m_oGlobals);
+        //m_PluginDialog = new FormPlugins(ref _m_oGlobals.PluginList);
+        // This call is required by the Windows Form Designer.
+        //InitializeComponent();
+        //RecolorUI();
+        //MapperSettings = new FormMapperSettings(ref _m_oGlobals) { MdiParent = this };
+        //MapperSettings.EventVariableChanged += ClassCommand_EventVariableChanged;
+        //MapperSettings.EventClassChange += Command_EventClassChange;
 
-        [MethodImpl(MethodImplOptions.Synchronized)]
-        set
-        {
+        // Add any initialization after the InitializeComponent() call.
+        FileDirectory.CheckUserDirectory();
+        bool bCustomConfigFile = false;
 
-            if (_Config != null)
-            {
-                _Config.ConfigChanged -= Config_ConfigChanged;
-            }
-
-            _Config = value;
-            if (_Config != null)
-            {
-                _Config.ConfigChanged += Config_ConfigChanged;
-            }
-        }
     }
 
     public event ConfigChangedEventHandler ConfigChanged;
-
     public delegate void ConfigChangedEventHandler(Config.ConfigFieldUpdated oField);
 
 public Events Events = new Events();
@@ -106,7 +139,7 @@ public Events Events = new Events();
 
     private void HandleGenieException(string section, string message, string description = null) // Pass it up
     {
-        Config.bAutoLog = false;
+        m_oConfigSettings.AutoLog = false;
         GenieError.Error(section, message, description);
     }
 
@@ -114,7 +147,7 @@ public Events Events = new Events();
     {
         if (oField == Config.ConfigFieldUpdated.LogDir)
         {
-            Log.LogDirectory = Config.sLogDir;
+            Log.LogDirectory = m_oConfigSettings.LogDir;
         }
         else
         {
@@ -1876,11 +1909,6 @@ public Events Events = new Events();
                 return false;
             }
         }
-    }
-
-    public Globals()
-    {
-        VariableList.SetDefaultGlobalVars();
     }
 
     public bool SaveHighlights(string sFileName = "highlights.cfg")

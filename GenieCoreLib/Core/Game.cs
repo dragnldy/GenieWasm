@@ -8,17 +8,32 @@ using System.Xml;
 
 namespace GenieCoreLib;
 
-public class Game
+public interface IGame
 {
+    Globals m_oGlobals { get; }
+    Config m_oConfig { get; }
+    ConfigSettings m_oConfigSettings { get; }
+    void Connect(string sGenieKey, string sAccountName, string sPassword, string sCharacter, string sGame);
+    void DirectConnect(string Character, string Game, string Host, int Port, string Key);
+    void Disconnect(bool ExitOnDisconnect = false);
+    void SendText(string sText, bool bUserInput = false, string sOrigin = "");
+    void SendRaw(string text);
+    void ParseGameRow(string sText);
+    void SetBufferEnd();
+}
+public class Game : IGame
+{
+    public static Game GetInstance() => _m_oGame ?? new Game();
+    private static Game _m_oGame;
+
+    public Globals m_oGlobals => Globals.Instance;
+    public Config m_oConfig => Config.GetInstance();
+    public ConfigSettings m_oConfigSettings => ConfigSettings.GetInstance();
+
     public Game()
     {
+        _m_oGame = this;
         m_oSocket = new Connection();
-    }
-
-    public Game(ref Globals cl)
-    {
-        m_oSocket = new Connection();
-        m_oGlobals = cl;
     }
 
     public event EventAddImageEventHandler EventAddImage;
@@ -121,32 +136,6 @@ public class Game
                 _m_oSocket.EventDataRecieveEnd += GameSocket_EventDataRecieveEnd;
                 _m_oSocket.EventPrintText += GameSocket_EventPrintText;
                 _m_oSocket.EventPrintError += GameSocket_EventPrintError;
-            }
-        }
-    }
-
-    private Globals _m_oGlobals;
-
-    private Globals m_oGlobals
-    {
-        [MethodImpl(MethodImplOptions.Synchronized)]
-        get
-        {
-            return _m_oGlobals;
-        }
-
-        [MethodImpl(MethodImplOptions.Synchronized)]
-        set
-        {
-            if (_m_oGlobals != null)
-            {
-                GenieError.EventGenieError -= HandleGenieException;
-            }
-
-            _m_oGlobals = value;
-            if (_m_oGlobals != null)
-            {
-                GenieError.EventGenieError += HandleGenieException;
             }
         }
     }
@@ -426,7 +415,7 @@ public class Game
         string sShowText = sText;
         if (!m_oSocket.IsConnected)
         {
-            if (!sText.StartsWith(Conversions.ToString(m_oGlobals.Config.cMyCommandChar)))
+            if (!sText.StartsWith(Conversions.ToString(m_oConfigSettings.MyCommandChar)))
             {
                 sShowText = "(" + sShowText + ")";
             }
@@ -486,7 +475,7 @@ public class Game
             {
                 color = m_oGlobals.PresetList["inputuser"].FgColor;
                 bgcolor = m_oGlobals.PresetList["inputuser"].BgColor;
-                if (!sText.StartsWith(Conversions.ToString(m_oGlobals.Config.cMyCommandChar))) // Skip user commands
+                if (!sText.StartsWith(Conversions.ToString(m_oConfigSettings.MyCommandChar))) // Skip user commands
                 {
                     m_oGlobals.VariableList["lastinput"] = sText;
                     var lastinputVar = "lastinput";
@@ -504,7 +493,7 @@ public class Game
             PrintInputText(argsText, color, bgcolor);
         }
 
-        if (!sText.StartsWith(Conversions.ToString(m_oGlobals.Config.cMyCommandChar))) // Skip user commands
+        if (!sText.StartsWith(Conversions.ToString(m_oConfigSettings.MyCommandChar))) // Skip user commands
         {
             m_oLastUserActivity = DateTime.Now;
             m_oSocket.Send(sText + Constants.vbCrLf);
@@ -513,7 +502,7 @@ public class Game
             EventVariableChanged?.Invoke(lastCommandVar);
         }
 
-        if (m_oGlobals.Config.bAutoLog == true)
+        if (m_oConfigSettings.AutoLog == true)
         {
             m_oGlobals.Log?.LogText(sShowText + System.Environment.NewLine, Conversions.ToString(m_oGlobals.VariableList["charactername"]), Conversions.ToString(m_oGlobals.VariableList["game"]));
         }
@@ -626,7 +615,7 @@ public class Game
                                     m_oGlobals.VolatileHighlights.Add(new VolatileHighlight(sBoldBuffer, "creatures", iBoldIndex));
                                 }
                             }
-                            if (m_bBold & !m_oGlobals.Config.Condensed)
+                            if (m_bBold & !m_oConfigSettings.Condensed)
                             {
                                 if (sTextBuffer.StartsWith("< ") | sTextBuffer.StartsWith("> ") | sTextBuffer.StartsWith("* "))
                                 {
@@ -1205,12 +1194,12 @@ public class Game
                             {
                                 if (strRow.IndexOf("GAMEHOST=") > -1)
                                 {
-                                        m_sConnectHost = IsLich ? m_oGlobals.Config.LichServer : strRow.Substring(9);
+                                        m_sConnectHost = IsLich ? m_oConfigSettings.LichServer : strRow.Substring(9);
 
                                     }
                                 else if (strRow.IndexOf("GAMEPORT=") > -1)
                                 {
-                                        m_sConnectPort = IsLich ? m_oGlobals.Config.LichPort : int.Parse(strRow.Substring(9));
+                                        m_sConnectPort = IsLich ? m_oConfigSettings.LichPort : int.Parse(strRow.Substring(9));
                                     }
                                 else if (strRow.IndexOf("KEY=") > -1)
                                 {
@@ -1274,7 +1263,7 @@ public class Game
                         if ((oXmlNode.ParentNode.Name ?? "") != "component")
                         {
                             string sText = GetTextFromXML(oXmlNode);
-                            if (m_oGlobals.Config.bShowLinks)
+                            if (m_oConfigSettings.ShowLinks)
                             {
                                 string argstrAttributeName = "cmd";
                                 string sCmd = GetAttributeData(oXmlNode, argstrAttributeName);
@@ -1334,7 +1323,7 @@ public class Game
                     }
                 case "resource":
                     {
-                        if (!m_oGlobals.Config.bShowImages) break;
+                        if (!m_oConfigSettings.ShowImages) break;
                         var attribute = GetAttributeData(oXmlNode, "picture");
                         if (!string.IsNullOrEmpty(attribute) && attribute != "0") 
                         {
@@ -1342,7 +1331,7 @@ public class Game
                             string gamecode = "DR"; //default DR
                             if (AccountGame.StartsWith("GS")) gamecode = "GS";
                             // ToDo: Check if the image exists in the art directory
-                            // if (FileHandler.FetchImage(attribute, m_oGlobals.Config.ArtDir, gamecode).Result) AddImage(Path.Combine(gamecode, attribute), "portrait");
+                            // if (FileHandler.FetchImage(attribute, m_oConfigSettings.ArtDir, gamecode).Result) AddImage(Path.Combine(gamecode, attribute), "portrait");
                         }
                         break;
                     }
@@ -2190,7 +2179,7 @@ public class Game
                             {
                                 strBuffer += "DEAD";
                             }
-                            else if (m_oGlobals.Config.PromptForce == true)
+                            else if (m_oConfigSettings.PromptForce == true)
                             {
                                 if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(m_oIndicatorHash[Indicator.Kneeling], true, false)))
                                 {
@@ -2280,9 +2269,9 @@ public class Game
                             if (rt > 0)
                             {
                                 SetRoundTime(rt);
-                                if (m_bStatusPromptEnabled == false && (m_oGlobals.Config.PromptForce == true))
+                                if (m_bStatusPromptEnabled == false && (m_oConfigSettings.PromptForce == true))
                                     strBuffer += "R";
-                                rt += Convert.ToInt32(m_oGlobals.Config.dRTOffset);
+                                rt += Convert.ToInt32(m_oConfigSettings.RTOffset);
                                 var rtString = rt.ToString();
                                 string argkey42 = "roundtime";
                                 m_oGlobals.VariableList.Add(argkey42, rtString, Globals.Variables.VariableType.Reserved);
@@ -2303,10 +2292,10 @@ public class Game
                                 m_iCastTime = 0;
                             }
 
-                            if (m_oGlobals.Config.sPrompt.Length > 0 && !m_bLastRowWasPrompt)
+                            if (m_oConfigSettings.Prompt.Length > 0 && !m_bLastRowWasPrompt)
                             {
-                                strBuffer = strBuffer.Replace(m_oGlobals.Config.sPrompt.Trim(), "");
-                                strBuffer += m_oGlobals.Config.sPrompt;
+                                strBuffer = strBuffer.Replace(m_oConfigSettings.Prompt.Trim(), "");
+                                strBuffer += m_oConfigSettings.Prompt;
                                 bool argbIsPrompt = true;
                                 WindowTarget argoWindowTarget = 0;
                                 //Status prompt set from the XML printing to main/game 
@@ -2577,7 +2566,7 @@ public class Game
             // PrintText(sValue & vbNewLine)
 
             bool bIgnore = false;
-            foreach (string sIgnore in m_oGlobals.Config.sIgnoreMonsterList.Split('|'))
+            foreach (string sIgnore in m_oConfigSettings.IgnoreMonsterList.Split('|'))
             {
                 if (Conversions.ToBoolean(sValue.Contains(sIgnore)))
                 {
@@ -2766,7 +2755,7 @@ public class Game
                                 bgcolor = o.BgColor;
                                 m_oLastFgColor = color;
                                 // ToDo: Figure out way to call back to platform specific sound player
-                                //if (o.SoundFile.Length > 0 && m_oGlobals.Config.bPlaySounds)
+                                //if (o.SoundFile.Length > 0 && m_oConfigSettings.PlaySounds)
                                 //    Sound.PlayWaveFile(o.SoundFile);
                             }
                         }
@@ -2796,7 +2785,7 @@ public class Game
                         bgcolor = oHighlightString.BgColor;
                         m_oLastFgColor = color;
                         // ToDo: Figure out way to call back to platform specific sound player
-                        //if (oHighlightString.SoundFile.Length > 0 && m_oGlobals.Config.bPlaySounds)
+                        //if (oHighlightString.SoundFile.Length > 0 && m_oConfigSettings.PlaySounds)
                         //    Sound.PlayWaveFile(oHighlightString.SoundFile);
                     }
                 }
@@ -2816,7 +2805,7 @@ public class Game
 
     private void PrintTextToWindow(string text, Color color, Color bgcolor, WindowTarget targetwindow = WindowTarget.Main, bool isprompt = false, bool isroomoutput = false)
     {
-        if (text.Length == 0 || (!isroomoutput && m_oGlobals.Config.Condensed && text.Trim().Length == 0))
+        if (text.Length == 0 || (!isroomoutput && m_oConfigSettings.Condensed && text.Trim().Length == 0))
         {
             return;
         }
@@ -2918,7 +2907,7 @@ public class Game
 
         if (targetwindow != WindowTarget.Room & targetwindow != WindowTarget.Inv & targetwindow != WindowTarget.Log & text.Trim().Length > 0)
         {
-            if (m_oGlobals.Config.bParseGameOnly == false | targetwindow == WindowTarget.Main)
+            if (m_oConfigSettings.ParseGameOnly == false | targetwindow == WindowTarget.Main)
             {
                 string argsText = Utility.Trim(text);
                 TriggerParse(argsText);
@@ -2930,7 +2919,7 @@ public class Game
             return;
         }
 
-        if (m_oGlobals.Config.bGagsEnabled == true && targetwindow != WindowTarget.Thoughts)
+        if (m_oConfigSettings.GagsEnabled == true && targetwindow != WindowTarget.Thoughts)
         {
             // Gag List
             if (m_oGlobals.GagList.AcquireReaderLock())
@@ -3019,7 +3008,7 @@ public class Game
 
         if (targetwindow == WindowTarget.Main | targetwindow == WindowTarget.Thoughts | targetwindow == WindowTarget.Combat)
         {
-            if (m_oGlobals.Config.bAutoLog == true)
+            if (m_oConfigSettings.AutoLog == true)
             {
                 m_oGlobals.Log?.LogText(text, Conversions.ToString(m_oGlobals.VariableList["charactername"]), Conversions.ToString(m_oGlobals.VariableList["game"]));
                 //if (m_bLastRowWasPrompt == true)
@@ -3308,7 +3297,7 @@ public class Game
 
     private void GameSocket_EventConnectionLost()
     {
-        if (m_oGlobals.Config.bReconnect == true & m_bManualDisconnect == false)
+        if (m_oConfigSettings.Reconnect == true & m_bManualDisconnect == false)
         {
             if (m_iConnectAttempts == 0) // Attempt to connect right away
             {

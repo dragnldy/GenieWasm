@@ -1,14 +1,37 @@
 ﻿using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using GenieCoreLib;
 using GenieWasm.ViewModels;
 using GenieWasm.Views;
-using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using System;
 
 namespace GenieWasm;
 
 public partial class App : Application
 {
+    public static IServiceProvider ServiceProvider { get; private set; }
+
+    public App()
+    {
+        ConfigureServices();
+    }
+    private void ConfigureServices()
+    {
+        ServiceProvider = new ServiceCollection()
+            .AddSingleton<IGlobals, Globals>()
+            .AddSingleton<IConfig, Config>()
+            .AddSingleton<IConfigSettings, ConfigSettings>()
+            .AddSingleton<IGame, Game>()
+            .AddTransient<MainViewModel>()
+            .BuildServiceProvider();
+
+        (ActivatorUtilities
+            .CreateInstance<ConfigSettings>(ServiceProvider) as ConfigSettings)
+            ?.LoadSettings(AppGlobals.LocalDirectoryPath + "/config/settings.cfg"); // Load configuration settings on startup
+
+    }
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
@@ -18,20 +41,21 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            desktop.MainWindow = new MainWindow
-            {
-                DataContext = new MainViewModel()
-            };
+            // Resolve your main window or main view model here
+            desktop.MainWindow = new MainWindow { DataContext = ServiceProvider.GetService<MainViewModel>() };
+
         }
         else if (ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
         {
             singleViewPlatform.MainView = new MainView
             {
-                DataContext = new MainViewModel()
-            };
+                DataContext = new MainViewModel(ActivatorUtilities
+            .CreateInstance<IConfigSettings>(ServiceProvider))};
         }
 
+        // Start the concurrent message pump 
         base.OnFrameworkInitializationCompleted();
+        ProcessQueuedMessages.ProcessMessagesAsync().ConfigureAwait(false);
     }
 
     //public enum MsgBoxStyle

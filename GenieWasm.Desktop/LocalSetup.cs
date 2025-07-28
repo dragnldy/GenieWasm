@@ -15,9 +15,9 @@ public static class LocalSetup
     {
         InitLocalDirectory();
         PlatformSpecificEventHandlers.Register();
-        Globals.Platform = OperatingPlatform.Windows;
-        Globals.AppName = Assembly.GetExecutingAssembly()?.GetName().Name;
-        Globals.AppVersion = Assembly.GetExecutingAssembly()?.GetName().Version.ToString();
+        AppGlobals.Platform = OperatingPlatform.Windows;
+        AppGlobals.AppName = Assembly.GetExecutingAssembly()?.GetName().Name;
+        AppGlobals.AppVersion = Assembly.GetExecutingAssembly()?.GetName().Version.ToString();
     }
 
     public static void InitLocalDirectory()
@@ -26,6 +26,7 @@ public static class LocalSetup
         CheckUserDirectory();
         if (IsLocal)
         {
+            AppGlobals.LocalDirectoryPath = Path;
             // Local directory is set, no need to change
             return;
         }
@@ -34,7 +35,7 @@ public static class LocalSetup
             // User data directory is set, update the path
             Path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             Path = System.IO.Path.Combine(Path, AppDomain.CurrentDomain.BaseDirectory);
-            Globals.LocalDirectoryPath = Path;
+            AppGlobals.LocalDirectoryPath = Path;
         }
     }
     public static void CheckUserDirectory()
@@ -49,15 +50,16 @@ public static class LocalSetup
 
     public static void SetUserDataDirectory()
     {
+        string dataDirectory = $"Genie Client 4";
         string dir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        dir = System.IO.Path.Combine(dir, (AppDomain.CurrentDomain.BaseDirectory));
+        dir = System.IO.Path.Combine(dir, dataDirectory );
         if (!System.IO.Directory.Exists(dir))
         {
             System.IO.Directory.CreateDirectory(dir);
         }
 
         Path = dir;
-        IsLocal = false;
+        IsLocal = true;
     }
 
     public static string ValidateDirectory(string path)

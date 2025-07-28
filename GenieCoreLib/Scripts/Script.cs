@@ -8,6 +8,13 @@ namespace GenieCoreLib;
 
 public class Script
 {
+    public static Script GetInstance() => _m_oScript ?? new Script();
+    private static Script _m_oScript;
+    private Globals m_oGlobals = Globals.Instance;
+    private Config m_oConfig = Config.GetInstance();
+    private ConfigSettings m_oConfigSettings = ConfigSettings.GetInstance();
+
+
     private const int m_iDefaultTimeout = 3500;
     private const string GENIE_INTERNAL_ACTION_DO = "550276ca-49f0-4067-aa5b-b3cba4869564";
     private const string PARAMETER_REGEX = @"\{.*?\}";
@@ -634,7 +641,7 @@ public class Script
 
     public delegate void EventStatusChangedEventHandler(Script sender, ScriptState state);
 
-    private Eval m_oEval = new Eval();
+    private Evaluator m_oEval = new Evaluator();
     private MathEval m_oEvalMath = new MathEval();
     private ArrayList m_oScript = new ArrayList();
     private ArrayList m_oScriptFiles = new ArrayList();
@@ -674,7 +681,6 @@ public class Script
     private bool m_bStopRunning = false;
     private bool m_bScriptDone = false;
     private bool m_bScriptPaused = false;
-    private Globals m_oGlobals; // Global Values
     private object m_oThreadLock = new object(); // Thread safety
     private Trace m_oTraceList = new Trace();
     private DateTime m_oRoundTimeEnd = default;
@@ -969,9 +975,9 @@ public class Script
 
     private string m_sScriptID = string.Empty;
 
-    public Script(Globals cl)
+    public Script()
     {
-        m_oGlobals = cl;
+        _m_oScript = this;
         ScriptID = Guid.NewGuid().ToString();
 
         ScriptInternalLabels = new Dictionary<string, Func<bool>>();
@@ -1007,7 +1013,7 @@ public class Script
             {
                 if (iTime > 0)
                 {
-                    m_oRoundTimeEnd = DateTime.Now.AddMilliseconds(iTime * 1000 + m_oGlobals.Config.dRTOffset * 1000);
+                    m_oRoundTimeEnd = DateTime.Now.AddMilliseconds(iTime * 1000 + m_oConfigSettings.RTOffset * 1000);
                 }
             }
             finally
@@ -1346,7 +1352,7 @@ public class Script
 
     private string EvalString(string sText, Globals oGlobals, [Optional, DefaultParameterValue(0)] int iFileId, [Optional, DefaultParameterValue(0)] int iFileRow)
     {
-        if (DebugLevel > 0 & m_oGlobals.Config.bIgnoreScriptWarnings == false)
+        if (DebugLevel > 0 & m_oConfigSettings.IgnoreScriptWarnings == false)
         {
             if (sText.Contains("%"))
             {
@@ -1363,7 +1369,7 @@ public class Script
 
     private bool Eval(string sText, Globals oGlobals, [Optional, DefaultParameterValue(0)] int iFileId, [Optional, DefaultParameterValue(0)] int iFileRow)
     {
-        if (DebugLevel > 0 & m_oGlobals.Config.bIgnoreScriptWarnings == false)
+        if (DebugLevel > 0 & m_oConfigSettings.IgnoreScriptWarnings == false)
         {
             if (sText.Contains("%"))
             {
@@ -1841,7 +1847,7 @@ public class Script
                     if (oLine.oFunction != ScriptFunctions.jsblock)
                     {
                         var argoDateEnd = DateTime.Now;
-                        if (Utility.GetTimeDiffInMilliseconds(oTimerStart, argoDateEnd) > m_oGlobals.Config.iScriptTimeout)
+                        if (Utility.GetTimeDiffInMilliseconds(oTimerStart, argoDateEnd) > m_oConfigSettings.ScriptTimeout)
                         {
                             PrintText("[Script timeout in " + GetFileAndRow(oLine.iFileId, oLine.iFileRow) + ": Possible infinite loop.]");
                             PrintTrace();
@@ -2006,9 +2012,9 @@ public class Script
                 if (AppendFile(sFile))
                 {
                     m_sFileName = sFile;
-                    if (m_sFileName.ToLower().EndsWith($".{m_oGlobals.Config.ScriptExtension}"))
+                    if (m_sFileName.ToLower().EndsWith($".{m_oConfigSettings.ScriptExtension}"))
                     {
-                        m_oLocalVarList["scriptname"] = m_sFileName.Substring(0, m_sFileName.Length - 1 - m_oGlobals.Config.ScriptExtension.Length);
+                        m_oLocalVarList["scriptname"] = m_sFileName.Substring(0, m_sFileName.Length - 1 - m_oConfigSettings.ScriptExtension.Length);
                     }
                     else
                     {
@@ -2053,9 +2059,9 @@ public class Script
                 if (AppendFile(sFile))
                 {
                     m_sFileName = sFile;
-                    if (m_sFileName.ToLower().EndsWith($".{m_oGlobals.Config.ScriptExtension}"))
+                    if (m_sFileName.ToLower().EndsWith($".{m_oConfigSettings    .ScriptExtension}"))
                     {
-                        m_oLocalVarList["scriptname"] = m_sFileName.Substring(0, m_sFileName.Length - 1 - m_oGlobals.Config.ScriptExtension.Length);
+                        m_oLocalVarList["scriptname"] = m_sFileName.Substring(0, m_sFileName.Length - 1 - m_oConfigSettings.ScriptExtension.Length);
                     }
                     else
                     {
@@ -2155,7 +2161,7 @@ public class Script
         int argiLevel1 = 5;
         string argsText1 = "action commands: " + ((ClassActionList.Action)m_oActions[sKey]).action.ToString();
         PrintDebug(argiLevel1, argsText1, iFileId, iFileRow);
-        foreach (string row in Utility.SafeSplit(((ClassActionList.Action)m_oActions[sKey]).action, m_oGlobals.Config.cSeparatorChar))
+        foreach (string row in Utility.SafeSplit(((ClassActionList.Action)m_oActions[sKey]).action, m_oConfigSettings.SeparatorChar))
         {
             var sRow = row;
             if (sRow.StartsWith("%"))
@@ -2179,7 +2185,7 @@ public class Script
             if (sRow.Contains("$"))
             {
                 sRow = sRow.Replace(@"\$", @"\¤");
-                for (int i = 0, loopTo = m_oGlobals.Config.iArgumentCount - 1; i <= loopTo; i++)
+                for (int i = 0, loopTo = m_oConfigSettings.ArgumentCount - 1; i <= loopTo; i++)
                 {
                     if (i > oArgs.Count - 1)
                     {
@@ -2307,7 +2313,7 @@ public class Script
         if (sText.Contains("$"))
         {
             sText = sText.Replace(@"\$", @"\¤");
-            for (int i = 0, loopTo = m_oGlobals.Config.iArgumentCount - 1; i <= loopTo; i++)
+            for (int i = 0, loopTo = m_oConfigSettings.ArgumentCount - 1; i <= loopTo; i++)
             {
                 if (i >= m_oCurrentLine.ArgList.Count)
                 {
@@ -2517,9 +2523,9 @@ public class Script
                         int argiLevel3 = 40;
                         string argsText3 = "Add jump (count = " + m_oCurrentLine.Count + ")";
                         PrintDebug(argiLevel3, argsText3, oLine.iFileId, oLine.iFileRow);
-                        if (m_oCurrentLine.Count > m_oGlobals.Config.iMaxGoSubDepth)
+                        if (m_oCurrentLine.Count > m_oConfigSettings.MaxGoSubDepth)
                         {
-                            PrintError("Maximum GOSUB depth (" + m_oGlobals.Config.iMaxGoSubDepth.ToString() + ") on: " + strLabel, oLine.iFileId, oLine.iFileRow);
+                            PrintError("Maximum GOSUB depth (" + m_oConfigSettings.MaxGoSubDepth.ToString() + ") on: " + strLabel, oLine.iFileId, oLine.iFileRow);
                             PrintTrace();
                             AbortOnScriptError();
                             return default;
@@ -3556,7 +3562,7 @@ public class Script
         string sFriendlyName = sFile;
         if (sFile.IndexOf(@"\") == -1)
         {
-            string sLocation = m_oGlobals.Config.ScriptDir;
+            string sLocation = m_oConfigSettings.ScriptDir;
             if (sLocation.EndsWith(@"\"))
             {
                 sFile = sLocation + sFile;
@@ -3618,7 +3624,7 @@ public class Script
         string sFriendlyName = sFile;
         if (sFile.IndexOf(@"\") == -1)
         {
-            string sLocation = m_oGlobals.Config.ScriptDir;
+            string sLocation = m_oConfigSettings.ScriptDir;
             if (sLocation.EndsWith(@"\"))
             {
                 sFile = sLocation + sFile;
@@ -4003,7 +4009,7 @@ public class Script
 
                     case ScriptFunctions.empty:
                         {
-                            if (m_oGlobals.Config.bIgnoreScriptWarnings == false)
+                            if (m_oConfigSettings.IgnoreScriptWarnings == false)
                             {
                                 PrintError("Unknown script command: " + sRow, iFileId, iFileRow);
                                 return false;
@@ -4257,7 +4263,7 @@ public class Script
         strLabel = strLabel.ToLower().Trim();
         if (m_oScriptLabels.ContainsKey(strLabel))
         {
-            if (m_oGlobals.Config.bIgnoreScriptWarnings == false)
+            if (m_oConfigSettings.IgnoreScriptWarnings == false)
             {
                 PrintError("Replacing duplicate label: " + strLabel, iFileId, iFileRow);
             }

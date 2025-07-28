@@ -27,6 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\GenieWasm.Desktop\GenieWasm.Desktop.csproj" />
     <ProjectReference Include="..\GenieWasm\GenieWasm.csproj" />
   </ItemGroup>
 

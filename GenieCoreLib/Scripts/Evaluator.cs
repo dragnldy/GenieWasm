@@ -1,10 +1,17 @@
 ﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
 namespace GenieCoreLib;
 
-public class Eval
+public class Evaluator
 {
+    private static Evaluator _m_oEvaluator;
+    public static Evaluator GetInstance()=> _m_oEvaluator ??= new Evaluator();
+    private Globals m_oGlobals;
+
+
+
     private const string SEPARATORS = "!=<>,&|";
 
     // LINUS: Hade nog gjort såhär (String funkar också)
@@ -36,7 +43,6 @@ public class Eval
         }
     }
 
-    private Globals m_oGlobals = null;
 
     public string EvalString(string sText, Globals oGlobals)
     {

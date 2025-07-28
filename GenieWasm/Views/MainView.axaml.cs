@@ -1,8 +1,6 @@
 ﻿using Avalonia.Controls;
-using Avalonia.Interactivity;
-using Avalonia.Threading;
-using GenieWasm.UserControls;
 using GenieCoreLib;
+using GenieWasm.UserControls;
 using System;
 
 namespace GenieWasm.Views;
