@@ -40,8 +40,12 @@ public interface IConfigSettings
 }
 public partial class ConfigSettings : INotifyPropertyChanged, IConfigSettings, IDisposable
 {
+    public static ConfigSettings Instance => GetInstance();
     public static ConfigSettings GetInstance() => _m_oConfigSettings ?? new ConfigSettings();
     private static ConfigSettings _m_oConfigSettings;
+
+    // We don't want to do property changed notifications for every property initialization
+    public static bool bLoading = false;
 
     public ConfigSettings()
     {
@@ -537,8 +541,13 @@ public partial class ConfigSettings : INotifyPropertyChanged, IConfigSettings, I
     #region Events and Methods
     public event PropertyChangedEventHandler? PropertyChanged;
 
+    public ConfigSettings LoadSettings()
+    {
+        return LoadSettings("settings.cfg");
+    }
     public ConfigSettings LoadSettings(string legacyFileName)
     {
+        bLoading = true;
         string jsonFile = legacyFileName + ".json";
         if (File.Exists(jsonFile))
         {
@@ -550,6 +559,7 @@ public partial class ConfigSettings : INotifyPropertyChanged, IConfigSettings, I
                 // Deserialize or parse the configData to populate ConfigSettings properties
                 settings.CopyBackToSelf(this); // copy the file contents back on top of the current configuraton
                 settings.Dispose();
+                bLoading = false;
                 return this;
             }
             catch (Exception exc)
@@ -567,12 +577,15 @@ public partial class ConfigSettings : INotifyPropertyChanged, IConfigSettings, I
                 if (configData.StartsWith("#config"))
                 {
                     // This is a legacy config file, handle it accordingly
-                    return LoadLegacySettings(ConfigSettings.GetInstance(), configData);
+                    LoadLegacySettings(this, configData);
+                    bLoading = false;
+                    return this;
                 }
 
             }
         }
-        return new ConfigSettings();
+        bLoading = false;
+        return this;
     }
 
     private void CopyBackToSelf(ConfigSettings configSettings)
@@ -637,6 +650,11 @@ public partial class ConfigSettings : INotifyPropertyChanged, IConfigSettings, I
         string result = $"Loaded {found} settings with {errors} errors.";
         return settings;
     }
+
+    public bool SaveSettings()
+    {
+        return SaveSettings(Path.Combine(ConfigSettings.Instance.ConfigDir, "settings.cfg"));
+    }
     public bool SaveSettings(string legacyFileName)
     {
         try
@@ -667,7 +685,8 @@ public partial class ConfigSettings : INotifyPropertyChanged, IConfigSettings, I
     }
     private void OnPropertyChanged(string name, object value)
     {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        if (!bLoading)
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
     private string FixSetDirectory(string folder, string oldFolder)
     {

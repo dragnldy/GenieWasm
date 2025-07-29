@@ -17,6 +17,7 @@ public partial class MainView : UserControl
     public MainView()
     {
         InitializeComponent();
+        SetCustomStyles();
         DataContext = this;
         GameWindow gameWindow = this.FindControl<GameWindow>("mainGame");
         if (gameWindow is null)
@@ -25,6 +26,16 @@ public partial class MainView : UserControl
         }
         gameWindow.ClearTextBlock();
     }
+    private void SetCustomStyles()
+    {
+        //// Set custom styles for the GameWindow text block
+        //GameWindow gameWindow = this.FindControl<GameWindow>("mainGame");
+        //if (gameWindow is not null)
+        //{
+        //    gameWindow.SetTextBlockStyle("GameWindowTextBlock", "Courier New", 16, "WhiteSmoke");
+        //}
+    }   
+
     private static bool SoundIsOn = false;
     public bool PlaySoundCommand()
     {

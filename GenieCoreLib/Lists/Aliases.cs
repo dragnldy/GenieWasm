@@ -1,10 +1,17 @@
-﻿using System;
-using System.IO;
+﻿using System.Text;
 
 namespace GenieCoreLib;
 
 public class Aliases : SortedList
 {
+    public static Aliases Instance => m_Aliases ??= new Aliases();
+    private static Aliases m_Aliases;
+
+    public Aliases()
+    {
+        m_Aliases = this;
+    }
+
     public bool Add(string sKey, string sAlias)
     {
         if (base.ContainsKey(sKey) == true)
@@ -33,34 +40,29 @@ public class Aliases : SortedList
         }
     }
 
-    private string m_FileName = Globals.LocalDirectoryPath + @"\Config\" + "aliases.cfg";
-
-    public bool Load(string sFileName = null)
+    public bool Load()
+    {
+        return Load(Path.Combine(ConfigSettings.Instance.ConfigDir, "aliases.cfg"));
+    }
+    public bool Load(string sFileName)
     {
         try
         {
-            if (Information.IsNothing(sFileName))
-            {
-                sFileName = m_FileName;
-            }
-
             if (sFileName.IndexOf(@"\") == -1)
             {
-                sFileName = Globals.LocalDirectoryPath + @"\Config\" + sFileName;
+                sFileName = Path.Combine(ConfigSettings.Instance.ConfigDir, sFileName);
             }
 
-            m_FileName = sFileName;
             if (File.Exists(sFileName) == true)
             {
-                var oStreamReader = new StreamReader(sFileName);
-                string strLine = oStreamReader.ReadLine();
-                while (!Information.IsNothing(strLine))
+                string[] lines = File.ReadAllLines(sFileName);
+                foreach (string strLine in lines)
                 {
-                    LoadRow(strLine);
-                    strLine = oStreamReader.ReadLine();
+                    if (strLine.StartsWith("#alias {") && strLine.EndsWith("}"))
+                    {
+                        LoadRow(strLine);
+                    }
                 }
-
-                oStreamReader.Close();
                 return true;
             }
             else
@@ -68,9 +70,9 @@ public class Aliases : SortedList
                 return false;
             }
         }
-        #pragma warning disable CS0168
+#pragma warning disable CS0168
         catch (Exception Err)
-        #pragma warning restore CS0168
+#pragma warning restore CS0168
         {
             return false;
         }
@@ -85,49 +87,27 @@ public class Aliases : SortedList
         }
     }
 
-    public bool Save(string sFileName = null)
+    public bool Save()
+    {
+        return Save(Path.Combine(ConfigSettings.Instance.ConfigDir, "aliases.cfg"));
+    }
+    public bool Save(string sFileName)
     {
         try
         {
-            if (Information.IsNothing(sFileName))
+            if (sFileName.IndexOf(@"\") == -1 && sFileName.IndexOf(@"/") == -1)
             {
-                sFileName = m_FileName;
+                sFileName = Path.Combine(ConfigSettings.Instance.ConfigDir, sFileName);
             }
-
-            if (sFileName.IndexOf(@"\") == -1)
+            StringBuilder sb = new();
+            foreach (object key in base.Keys)
             {
-                sFileName = Globals.LocalDirectoryPath + @"\Config\" + sFileName;
+                sb.AppendLine("#alias {" + Conversions.ToString(key).ToString() + "} {" + base[key].ToString() + "}");
             }
-
-            if (File.Exists(sFileName) == true)
-            {
-                Utility.DeleteFile(sFileName);
-            }
-
-            if (AcquireReaderLock())
-            {
-                try
-                {
-                    var oStreamWriter = new StreamWriter(sFileName, false);
-                    foreach (object key in base.Keys)
-                        oStreamWriter.WriteLine("#alias {" + Conversions.ToString(key).ToString() + "} {" + base[key].ToString() + "}");
-                    oStreamWriter.Close();
-                }
-                finally
-                {
-                    ReleaseReaderLock();
-                }
-            }
-            else
-            {
-                throw new Exception("Unable to aquire reader lock.");
-            }
-
+            File.WriteAllText(sFileName, sb.ToString());
             return true;
         }
-        #pragma warning disable CS0168
         catch (Exception ex)
-        #pragma warning restore CS0168
         {
             return false;
         }

@@ -128,19 +128,6 @@ public bool AcquireWriterLock()
         }
     }
 
-    // If m_oRWLock.IsReaderLockHeld Then
-    // Dim cookie As LockCookie = UpgradeToWriterLock(m_iDefaultTimeout)
-    // If Not IsNothing(cookie) Then
-    // Try
-    // MyBase.RemoveAt(index)
-    // Finally
-    // DowngradeToReaderLock(cookie)
-    // End Try
-    // Else
-    // Throw New Exception("Unable to upgrade to writer lock.")
-    // End If
-    // Else
-
     public new void RemoveAt(int index)
     {
         if (AcquireWriterLock())

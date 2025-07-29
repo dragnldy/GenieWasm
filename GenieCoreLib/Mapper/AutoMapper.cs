@@ -892,7 +892,7 @@ public class AutoMapper
     //        set_GlobalVariable("roomid", oNode.ID.ToString());
     //        set_GlobalVariable("roomnote", oNode.Note.ToString());
     //        string roomColor = oNode.Color.Name;
-    //        if (roomColor.ToUpper() == "TRANSPARENT") roomColor = m_oGlobals.PresetList["automapper.node"].BgColor.Name;
+    //        if (roomColor.ToUpper() == "TRANSPARENT") roomColor = Presets.Instance["automapper.node"].BgColor.Name;
     //        else if (roomColor.ToUpper().StartsWith("FF")) roomColor = $"#{roomColor.Substring(2)}";
     //        set_GlobalVariable("roomcolor", roomColor);
     //        if (oNode.ContainsArc(Direction.North))
@@ -2044,9 +2044,9 @@ public class AutoMapper
     //{
     //    if (!Information.IsNothing(m_oGlobals))
     //    {
-    //        if (!Information.IsNothing(m_oGlobals.VariableList[Var]))
+    //        if (!Information.IsNothing(Variables.Instance[Var]))
     //        {
-    //            return Conversions.ToString(m_oGlobals.VariableList[Var]);
+    //            return Conversions.ToString(Variables.Instance[Var]);
     //        }
     //        else
     //        {
@@ -2063,7 +2063,7 @@ public class AutoMapper
     //{
     //    if (!Information.IsNothing(m_oGlobals))
     //    {
-    //        m_oGlobals.VariableList[Var] = value;
+    //        Variables.Instance[Var] = value;
     //        EventVariableChanged?.Invoke("$" + Var);
     //    }
     //}

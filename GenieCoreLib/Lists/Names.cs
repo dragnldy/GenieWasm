@@ -1,12 +1,20 @@
 ﻿using System.Drawing;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace GenieCoreLib;
 
 public class Names : SortedList
 {
-    private Regex m_oRegexNames = null;
+    public static Names Instance => m_Names ??= new Names();
+    private static Names m_Names;
 
+    public Names()
+    {
+        m_Names = this;
+    }
+
+    private Regex m_oRegexNames = null;
     public Regex RegexNames
     {
         get
@@ -84,7 +92,7 @@ public class Names : SortedList
         }
     }
 
-    public void RebuildIndex()
+    public void RebuildRegExIndex()
     {
         var al = new ArrayList();
         foreach (string s in base.Keys)
@@ -108,34 +116,42 @@ public class Names : SortedList
 
         m_oRegexNames = new Regex(sList, MyRegexOptions.options);
     }
-
-    public bool Load(string sFileName = "names.cfg")
+    public bool Load()
     {
-        if (sFileName.IndexOf(@"\") == -1)
+        return Load(Path.Combine(ConfigSettings.Instance.ConfigDir, "names.cfg"));
+    }
+    public bool Load(string sFileName)
+    {
+        try
         {
-            sFileName = Globals.LocalDirectoryPath + @"\Config\" + sFileName;
-        }
-
-        if (File.Exists(sFileName) == true)
-        {
-            var oStreamReader = new StreamReader(sFileName);
-            string strLine = oStreamReader.ReadLine();
-            while (!Information.IsNothing(strLine))
+            if (sFileName.IndexOf(@"\") == -1 && sFileName.IndexOf(@"/") == -1)
             {
-                LoadRow(strLine);
-                strLine = oStreamReader.ReadLine();
+                sFileName = Path.Combine(ConfigSettings.Instance.ConfigDir, sFileName);
             }
 
-            oStreamReader.Close();
-            RebuildIndex();
-            return true;
+            if (File.Exists(sFileName) == true)
+            {
+                string[] lines = File.ReadAllLines(sFileName);
+                foreach (string strLine in lines)
+                {
+                    if (strLine.StartsWith("#name {") && strLine.EndsWith("}"))
+                    {
+                        LoadRow(strLine);
+                    }
+                }
+                RebuildRegExIndex();
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
-        else
+        catch (Exception Err)
         {
             return false;
         }
     }
-
     private void LoadRow(string sText)
     {
         var oArgs = Utility.ParseArgs(sText);
@@ -145,53 +161,33 @@ public class Names : SortedList
         }
     }
 
-    public bool Save(string sFileName = "names.cfg")
+    public bool Save()
+    {
+        return Save(Path.Combine(ConfigSettings.Instance.ConfigDir, "names.cfg"));
+    }
+    public bool Save(string sFileName)
     {
         try
         {
-            if (sFileName.IndexOf(@"\") == -1)
+            if (sFileName.IndexOf(@"\") == -1 && sFileName.IndexOf(@"/") == -1)
             {
-                sFileName = Globals.LocalDirectoryPath + @"\Config\" + sFileName;
+                sFileName = Path.Combine(ConfigSettings.Instance.ConfigDir, sFileName);
             }
-
-            if (File.Exists(sFileName) == true)
+            StringBuilder sb = new();
+            foreach (string key in base.Keys)
             {
-                Utility.DeleteFile(sFileName);
-            }
-
-            if (AcquireReaderLock())
-            {
-                try
+                string sColorName = ((Name)base[key]).ColorName;
+                if (sColorName.Length == 0)
                 {
-                    var oStreamWriter = new StreamWriter(sFileName, false);
-                    foreach (string key in base.Keys)
-                    {
-                        string sColorName = ((Name)base[key]).ColorName;
-                        if (sColorName.Length == 0)
-                        {
-                            sColorName = ColorCode.ColorToHex(((Name)base[key]).FgColor) + "," + ColorCode.ColorToHex(((Name)base[key]).BgColor);
-                        }
-
-                        oStreamWriter.WriteLine("#name {" + sColorName + "} {" + key + "}");
-                    }
-
-                    oStreamWriter.Close();
+                    sColorName = ColorCode.ColorToHex(((Name)base[key]).FgColor) + "," + ColorCode.ColorToHex(((Name)base[key]).BgColor);
                 }
-                finally
-                {
-                    ReleaseReaderLock();
-                }
-            }
-            else
-            {
-                throw new Exception("Unable to aquire reader lock.");
+                sb.AppendLine("#name {" + sColorName + "} {" + key + "}");
             }
 
+            File.WriteAllText(sFileName, sb.ToString());
             return true;
         }
-        #pragma warning disable CS0168
         catch (Exception ex)
-        #pragma warning restore CS0168
         {
             return false;
         }

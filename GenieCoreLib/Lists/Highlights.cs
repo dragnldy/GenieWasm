@@ -1,12 +1,21 @@
-﻿using System;
-using System.Collections;
+﻿using GenieCoreLib;
 using System.Drawing;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace GenieCoreLib;
 
-public class Highlights : SortedList
+
+public class HighlightsList : SortedList
 {
+    public static HighlightsList Instance => m_Highlights ??= new HighlightsList();
+    private static HighlightsList m_Highlights;
+
+    public HighlightsList()
+    {
+        m_Highlights = this;
+    }
+
     private Regex m_oRegexString = null;
     private Regex m_oRegexLine = null;
 
@@ -65,17 +74,8 @@ public class Highlights : SortedList
         }
     }
 
-    public class Highlight
+    public class Highlight : HighlightBase
     {
-        public Color FgColor;
-        public Color BgColor;
-        public string ColorName = string.Empty;
-        public bool HighlightWholeRow = false;
-        public bool CaseSensitive = true;
-        public string ClassName = string.Empty;
-        public bool IsActive = true;
-        public string SoundFile = string.Empty;
-
         public Highlight(Color oColor, string sColorName, Color oBgColor, bool bHighlightWholeRow, bool CaseSensitive = true, string SoundFile = "", string ClassName = "", bool IsActive = true)
         {
             FgColor = oColor;

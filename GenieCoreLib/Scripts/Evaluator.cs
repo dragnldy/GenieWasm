@@ -1240,7 +1240,7 @@ public class Evaluator
                     if (args.Count == 1)
                     {
                         string MyArg = ((Sections)args[0]).sBlock;
-                        ((Sections)oSections[iStart]).sBlock = Conversions.ToString(Interaction.IIf(m_oGlobals.VariableList.ContainsKey(MyArg), "1", "0"));
+                        ((Sections)oSections[iStart]).sBlock = Conversions.ToString(Interaction.IIf(Variables.Instance.ContainsKey(MyArg), "1", "0"));
                         ((Sections)oSections[iStart]).BlockType = ParseType.NumberType; // Result
                         ((Sections)oSections[iStart]).bParsed = false;
                     }

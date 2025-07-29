@@ -1,93 +1,101 @@
-﻿namespace GenieCoreLib;
+﻿using System.Text;
+
+namespace GenieCoreLib;
 
 public class Log
 {
-    private object m_oThreadLock = new object(); // Thread safety. Only write from one thread at a time.
-    public string LogDirectory = "Logs";
+    public static Log Instance => m_Log ?? new Log();
+    private static Log m_Log;
+    public static bool IsTesting = false;
+    public static StringBuilder LogBuffer = new();
 
-    public bool LogText(string sText, string sCharacterName, string sInstanceName)
+    private static bool m_bIsLogging = true;
+
+    public Log()
     {
-        if (Monitor.TryEnter(m_oThreadLock, 100))
+        m_Log = this;
+        Task.Run(() =>
         {
-            try
+            m_bIsLogging = true;
+            StringBuilder sb = new();
+            string targetPanel = string.Empty;
+            Thread.Sleep(1000); // Give the app time to start up before logging
+            while (m_bIsLogging)
             {
-                if (sCharacterName.Length == 0)
+                while (AppGlobals.LogQueue.Count > 0)
                 {
-                    return default;
-                }
-
-                string sDirectory = LogDirectory;
-                if (!LogDirectory.Contains(@"\"))
-                {
-                    sDirectory = Path.Combine(Globals.LocalDirectoryPath, LogDirectory);
-                }
-
-                string sFileName = Path.Combine(sDirectory, sCharacterName + sInstanceName + "_" + DateTime.Now.ToString("yyyy-MM-dd") + ".log");
-                if (File.Exists(sFileName) == false)
-                {
-                    sText = "*** LOG CREATED AT " + DateTime.Now.ToString() + " ***" + System.Environment.NewLine + System.Environment.NewLine + sText;
-                }
-
-                var oStreamWriter = new StreamWriter(sFileName, true);
-                oStreamWriter.Write(sText);
-                oStreamWriter.Close();
-                return true;
-            }
-            catch (Exception ex)
-            {
-                GenieError.Error("LogText", ex.Message, ex.ToString());
-                return false;
-            }
-            finally
-            {
-                Monitor.Exit(m_oThreadLock);
-            }
-        }
-        else
-        {
-            // Throw New Exception("Unable to aquire log thread lock.")
-        }
-
-        return default;
-    }
-
-    public bool LogLine(string sText, string sFileName = "default.log")
-    {
-        if (Monitor.TryEnter(m_oThreadLock, 100))
-        {
-            try
-            {
-                if (!sFileName.Contains(@"\"))
-                {
-                    string sDirectory = LogDirectory;
-                    if (!LogDirectory.Contains(@"\"))
+                    if (AppGlobals.LogQueue.TryDequeue(out TextMessage textMessage))
                     {
-                        sDirectory = Path.Combine(Globals.LocalDirectoryPath, LogDirectory);
+                        if (textMessage.Text is null) continue;
+                        if (string.IsNullOrEmpty(targetPanel) || textMessage.TargetPanel == targetPanel)
+                        {
+                            targetPanel = textMessage.TargetPanel;
+                            sb.Append(textMessage.Text);
+                        }
+                        else
+                        {
+                            SendText(sb.ToString(), targetPanel);
+                            sb.Clear();
+                            targetPanel = textMessage.TargetPanel;
+                            sb.Append(textMessage.Text);
+                        }
                     }
-
-                    sFileName = Path.Combine(sDirectory, sFileName);
                 }
-
-                var oStreamWriter = new StreamWriter(sFileName, true);
-                oStreamWriter.WriteLine(sText);
-                oStreamWriter.Close();
-                return true;
+                if (sb.Length > 0)
+                {
+                    SendText(sb.ToString(), targetPanel);
+                    sb.Clear();
+                }
+                Thread.Sleep(1000); // Wait a second before checking the queue again
             }
-            catch (Exception ex)
-            {
-                GenieError.Error("LogLine", ex.Message, ex.ToString());
-                return false;
-            }
-            finally
-            {
-                Monitor.Exit(m_oThreadLock);
-            }
-        }
-        else
+        });
+    }
+    private void SendText(string text, string targetFile)
+    {
+        if (text.Length > 0)
         {
-            // Throw New Exception("Unable to aquire log thread lock.")
+            if (IsTesting)
+            {
+                LogBuffer.Append(text);
+            }
+            else
+            {
+                File.AppendAllText(targetFile, text);
+            }
         }
-
-        return default;
+    }
+    public static void StopLogging()
+    {
+        m_bIsLogging = false;
+    }
+    public static string GetFileName(string sCharacterName, string sInstanceName)
+    {
+        string fileBase = Path.Combine(AppGlobals.LocalDirectoryPath, ConfigSettings.GetInstance().LogDir);
+        fileBase = Path.Combine(fileBase, string.IsNullOrEmpty(sCharacterName) ? "Unknown" : sCharacterName);
+        return fileBase + sInstanceName + "_" + DateTime.Now.ToString("yyyy-MM-dd") + ".log";
+    }
+    public static bool LogText(string sText, string sCharacterName, string sInstanceName)
+    {
+        // Send text to file with no additional newline
+        if (string.IsNullOrEmpty(sText))
+        {
+            return false;
+        }
+        Log logger = Log.Instance; // Make sure logger is open
+        string fileName = GetFileName(sCharacterName, sInstanceName);
+        AppGlobals.LogQueue.Enqueue(new TextMessage(sText, fileName));
+        return true;
+    }
+    public static bool LogLine(string sText, string sCharacterName, string sInstanceName)
+    {
+        // Send text to file followed by a newline
+        return LogLine(sText, GetFileName(sCharacterName, sInstanceName));
+    }
+    public static bool LogLine(string sText, string sFileName = "default.log")
+    {
+        // Send text to file followed by a newline
+        Log logger = Log.Instance; // Make sure logger is open
+        AppGlobals.LogQueue.Enqueue(new TextMessage(sText + Environment.NewLine, sFileName));
+        return true;
     }
 }

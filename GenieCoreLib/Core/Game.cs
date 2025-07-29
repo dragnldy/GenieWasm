@@ -378,9 +378,9 @@ public class Game : IGame
         m_oLastUserActivity = DateTime.Now;
         var accountName = m_sAccountName.ToUpper();
 
-        m_oGlobals.VariableList["charactername"] = sCharacter;
-        m_oGlobals.VariableList["game"] = sGame;
-        m_oGlobals.VariableList["account"] = sAccountName;
+        Variables.Instance["charactername"] = sCharacter;
+        Variables.Instance["game"] = sGame;
+        Variables.Instance["account"] = sAccountName;
 
         DoConnect("eaccess.play.net", 7910);
     }
@@ -393,9 +393,9 @@ public class Game : IGame
     public void DirectConnect(string Character, string Game, string Host, int Port)
     {
         m_oLastUserActivity = DateTime.Now;
-        m_oGlobals.VariableList["charactername"] = Character;
-        m_oGlobals.VariableList["game"] = Game;
-        m_oGlobals.VariableList["account"] = "Unknown";
+        Variables.Instance["charactername"] = Character;
+        Variables.Instance["game"] = Game;
+        Variables.Instance["account"] = "Unknown";
 
         m_sEncryptionKey = string.Empty;
         m_oConnectState = ConnectStates.ConnectingGameServer;
@@ -434,11 +434,11 @@ public class Game : IGame
         if (sOrigin.Length > 0)
         {
             // Gag List
-            if (m_oGlobals.GagList.AcquireReaderLock())
+            if (GagRegExp.Instance.AcquireReaderLock())
             {
                 try
                 {
-                    foreach (Globals.GagRegExp.Gag sl in m_oGlobals.GagList)
+                    foreach (GagRegExp.Gag sl in GagRegExp.Instance)
                     {
                         if (!Information.IsNothing(sl.RegexGag))
                         {
@@ -452,7 +452,7 @@ public class Game : IGame
                 }
                 finally
                 {
-                    m_oGlobals.GagList.ReleaseReaderLock();
+                    GagRegExp.Instance.ReleaseReaderLock();
                 }
             }
             else
@@ -473,11 +473,11 @@ public class Game : IGame
             Color bgcolor;
             if (bUserInput == true)
             {
-                color = m_oGlobals.PresetList["inputuser"].FgColor;
-                bgcolor = m_oGlobals.PresetList["inputuser"].BgColor;
+                color = Presets.Instance["inputuser"].FgColor;
+                bgcolor = Presets.Instance["inputuser"].BgColor;
                 if (!sText.StartsWith(Conversions.ToString(m_oConfigSettings.MyCommandChar))) // Skip user commands
                 {
-                    m_oGlobals.VariableList["lastinput"] = sText;
+                    Variables.Instance["lastinput"] = sText;
                     var lastinputVar = "lastinput";
                     EventVariableChanged?.Invoke(lastinputVar);
                 }
@@ -485,8 +485,8 @@ public class Game : IGame
             }
             else
             {
-                color = m_oGlobals.PresetList["inputother"].FgColor;
-                bgcolor = m_oGlobals.PresetList["inputother"].BgColor;
+                color = Presets.Instance["inputother"].FgColor;
+                bgcolor = Presets.Instance["inputother"].BgColor;
             }
 
             string argsText = sShowText + System.Environment.NewLine;
@@ -497,14 +497,14 @@ public class Game : IGame
         {
             m_oLastUserActivity = DateTime.Now;
             m_oSocket.Send(sText + Constants.vbCrLf);
-            m_oGlobals.VariableList["lastcommand"] = sText;
+            Variables.Instance["lastcommand"] = sText;
             var lastCommandVar = "lastcommand";
             EventVariableChanged?.Invoke(lastCommandVar);
         }
 
         if (m_oConfigSettings.AutoLog == true)
         {
-            m_oGlobals.Log?.LogText(sShowText + System.Environment.NewLine, Conversions.ToString(m_oGlobals.VariableList["charactername"]), Conversions.ToString(m_oGlobals.VariableList["game"]));
+            Log.LogText(sShowText + System.Environment.NewLine, Conversions.ToString(Variables.Instance["charactername"]), Conversions.ToString(Variables.Instance["game"]));
         }
     }
 
@@ -916,20 +916,20 @@ public class Game : IGame
                     {
                         string argsText = "[" + m_sRoomTitle + "]" + Constants.vbCrLf;
                         bool argbIsRoomOutput = true;
-                        PrintTextWithParse(argsText, m_oGlobals.PresetList["roomname"].FgColor, m_oGlobals.PresetList["roomname"].BgColor, false, targetRoom, argbIsRoomOutput);
+                        PrintTextWithParse(argsText, Presets.Instance["roomname"].FgColor, Presets.Instance["roomname"].BgColor, false, targetRoom, argbIsRoomOutput);
                     }
                     else
                     {
                         string argsText1 = "[Unknown Room]" + Constants.vbCrLf;
                         bool argbIsRoomOutput1 = true;
-                        PrintTextWithParse(argsText1, m_oGlobals.PresetList["roomname"].FgColor, m_oGlobals.PresetList["roomname"].BgColor, false, targetRoom, argbIsRoomOutput1);
+                        PrintTextWithParse(argsText1, Presets.Instance["roomname"].FgColor, Presets.Instance["roomname"].BgColor, false, targetRoom, argbIsRoomOutput1);
                     }
 
                     if (Strings.Len(m_sRoomDesc) > 0)
                     {
                         string argsText2 = m_sRoomDesc + System.Environment.NewLine;
                         bool argbIsRoomOutput2 = true;
-                        PrintTextWithParse(argsText2, m_oGlobals.PresetList["roomdesc"].FgColor, m_oGlobals.PresetList["roomdesc"].BgColor, false, WindowTarget.Room, argbIsRoomOutput2);
+                        PrintTextWithParse(argsText2, Presets.Instance["roomdesc"].FgColor, Presets.Instance["roomdesc"].BgColor, false, WindowTarget.Room, argbIsRoomOutput2);
                     }
 
                     if (Strings.Len(m_sRoomObjs) > 0)
@@ -1290,7 +1290,7 @@ public class Game : IGame
                             string sVal = GetAttributeData(oXmlNode, argstrAttributeName2);
                             if (sName.Length > 0)
                             {
-                                m_oGlobals.VariableList.Add(sName, sVal, Globals.Variables.VariableType.Server);
+                                Variables.Instance.Add(sName, sVal, Variables.VariablesType.Server);
                                 string argsVariable = "$" + sName;
                                 VariableChanged(argsVariable);
                                 /* TODO ERROR: Skipped IfDirectiveTrivia *//* TODO ERROR: Skipped DisabledTextTrivia *//* TODO ERROR: Skipped EndIfDirectiveTrivia */
@@ -1416,12 +1416,12 @@ public class Game : IGame
                                         m_sRoomTitle = m_sRoomTitle.Trim();
                                     }
                                     string argkey1 = "roomname";
-                                    m_oGlobals.VariableList.Add(argkey1, m_sRoomTitle, Globals.Variables.VariableType.Reserved);
+                                    Variables.Instance.Add(argkey1, m_sRoomTitle, Variables.VariablesType.Reserved);
                                     string argsVariable1 = "$roomname";
                                     VariableChanged(argsVariable1);
 
                                     string argkey2 = "uid";
-                                    m_oGlobals.VariableList.Add(argkey2, m_sRoomUid, Globals.Variables.VariableType.Reserved);
+                                    Variables.Instance.Add(argkey2, m_sRoomUid, Variables.VariablesType.Reserved);
                                     string argsVariable2 = "$uid";
                                     VariableChanged(argsVariable2);
 
@@ -1582,7 +1582,7 @@ public class Game : IGame
                                     string argsText = GetTextFromXML(oXmlNode) + System.Environment.NewLine;
                                     bool argbIsRoomOutput = false;
                                     WindowTarget windowTarget = WindowTarget.Thoughts;
-                                    PrintTextWithParse(argsText, m_oGlobals.PresetList["thoughts"].FgColor, m_oGlobals.PresetList["thoughts"].BgColor, false, windowTarget, bIsRoomOutput: argbIsRoomOutput);
+                                    PrintTextWithParse(argsText, Presets.Instance["thoughts"].FgColor, Presets.Instance["thoughts"].BgColor, false, windowTarget, bIsRoomOutput: argbIsRoomOutput);
                                     break;
                                 }
 
@@ -1668,18 +1668,18 @@ public class Game : IGame
                                     m_sRoomDesc = GetTextFromXML(oXmlNode);
                                     string argkey1 = "roomdesc";
                                     string argvalue = m_sRoomDesc.Replace(Conversions.ToString('"'), "");
-                                    m_oGlobals.VariableList.Add(argkey1, argvalue, Globals.Variables.VariableType.Reserved);
+                                    Variables.Instance.Add(argkey1, argvalue, Variables.VariablesType.Reserved);
                                     string argsVariable2 = "$roomdesc";
                                     VariableChanged(argsVariable2);
                                     string argkey2 = "roomobjs";
                                     string argvalue1 = "";
-                                    m_oGlobals.VariableList.Add(argkey2, argvalue1, Globals.Variables.VariableType.Reserved);
+                                    Variables.Instance.Add(argkey2, argvalue1, Variables.VariablesType.Reserved);
                                     string argkey3 = "roomplayers";
                                     string argvalue2 = "";
-                                    m_oGlobals.VariableList.Add(argkey3, argvalue2, Globals.Variables.VariableType.Reserved);
+                                    Variables.Instance.Add(argkey3, argvalue2, Variables.VariablesType.Reserved);
                                     string argkey4 = "roomexits";
                                     string argvalue3 = "";
-                                    m_oGlobals.VariableList.Add(argkey4, argvalue3, Globals.Variables.VariableType.Reserved);
+                                    Variables.Instance.Add(argkey4, argvalue3, Variables.VariablesType.Reserved);
                                     UpdateRoom();
                                     break;
                                 }
@@ -1690,12 +1690,12 @@ public class Game : IGame
                                     SetRoomObjects(oXmlNode);
                                     string argkey5 = "monstercount";
                                     string argvalue4 = CountMonsters(oXmlNode).ToString();
-                                    m_oGlobals.VariableList.Add(argkey5, argvalue4, Globals.Variables.VariableType.Reserved); // $monstercount
+                                    Variables.Instance.Add(argkey5, argvalue4, Variables.VariablesType.Reserved); // $monstercount
                                     string argsVariable3 = "$monstercount";
                                     VariableChanged(argsVariable3);
                                     string argkey6 = "roomobjs";
                                     var roomobjs = m_sRoomObjs.Replace(Conversions.ToString('"'), "").TrimStart();
-                                    m_oGlobals.VariableList.Add(argkey6, roomobjs, Globals.Variables.VariableType.Reserved);
+                                    Variables.Instance.Add(argkey6, roomobjs, Variables.VariablesType.Reserved);
                                     string argsVariable4 = "$roomobjs";
                                     VariableChanged(argsVariable4);
                                     UpdateRoom();
@@ -1707,7 +1707,7 @@ public class Game : IGame
                                     m_sRoomPlayers = GetTextFromXML(oXmlNode);
                                     string argkey7 = "roomplayers";
                                     string argvalue5 = m_sRoomPlayers.Replace(Conversions.ToString('"'), "");
-                                    m_oGlobals.VariableList.Add(argkey7, argvalue5, Globals.Variables.VariableType.Reserved);
+                                    Variables.Instance.Add(argkey7, argvalue5, Variables.VariablesType.Reserved);
                                     string argsVariable5 = "$roomplayers";
                                     VariableChanged(argsVariable5);
                                     UpdateRoom();
@@ -1719,7 +1719,7 @@ public class Game : IGame
                                     m_sRoomExits = GetTextFromXML(oXmlNode);
                                     string argkey8 = "roomexits";
                                     string argvalue6 = m_sRoomExits.Replace(Conversions.ToString('"'), "");
-                                    m_oGlobals.VariableList.Add(argkey8, argvalue6, Globals.Variables.VariableType.Reserved);
+                                    Variables.Instance.Add(argkey8, argvalue6, Variables.VariablesType.Reserved);
                                     string argsVariable6 = "$roomexits";
                                     VariableChanged(argsVariable6);
                                     UpdateRoom();
@@ -1753,32 +1753,32 @@ public class Game : IGame
                         {
                             case "health":
                                 {
-                                    m_oGlobals.VariableList.Add("health", barValue.ToString(), Globals.Variables.VariableType.Reserved);
-                                    m_oGlobals.VariableList.Add("healthBarText", barText, Globals.Variables.VariableType.Reserved);
+                                    Variables.Instance.Add("health", barValue.ToString(), Variables.VariablesType.Reserved);
+                                    Variables.Instance.Add("healthBarText", barText, Variables.VariablesType.Reserved);
                                     VariableChanged("$health");
                                     break;
                                 }
 
                             case "mana":
                                 {
-                                    m_oGlobals.VariableList.Add("mana", barValue.ToString(), Globals.Variables.VariableType.Reserved);
-                                    m_oGlobals.VariableList.Add("manaBarText", barText, Globals.Variables.VariableType.Reserved);
+                                    Variables.Instance.Add("mana", barValue.ToString(), Variables.VariablesType.Reserved);
+                                    Variables.Instance.Add("manaBarText", barText, Variables.VariablesType.Reserved);
                                     VariableChanged("$mana");
                                     break;
                                 }
 
                             case "spirit":
                                 {
-                                    m_oGlobals.VariableList.Add("spirit", barValue.ToString(), Globals.Variables.VariableType.Reserved);
-                                    m_oGlobals.VariableList.Add("spiritBarText", barText, Globals.Variables.VariableType.Reserved);
+                                    Variables.Instance.Add("spirit", barValue.ToString(), Variables.VariablesType.Reserved);
+                                    Variables.Instance.Add("spiritBarText", barText, Variables.VariablesType.Reserved);
                                     VariableChanged("$spirit");
                                     break;
                                 }
 
                             case "stamina":
                                 {
-                                    m_oGlobals.VariableList.Add("stamina", barValue.ToString(), Globals.Variables.VariableType.Reserved);
-                                    m_oGlobals.VariableList.Add("staminaBarText", barText, Globals.Variables.VariableType.Reserved);
+                                    Variables.Instance.Add("stamina", barValue.ToString(), Variables.VariablesType.Reserved);
+                                    Variables.Instance.Add("staminaBarText", barText, Variables.VariablesType.Reserved);
                                     VariableChanged("$stamina");
                                     break;
                                 }
@@ -1786,8 +1786,8 @@ public class Game : IGame
                             case "conclevel":
                             case "concentration":
                                 {
-                                    m_oGlobals.VariableList.Add("concentration", barValue.ToString(), Globals.Variables.VariableType.Reserved);
-                                    m_oGlobals.VariableList.Add("concentrationBarText", barText, Globals.Variables.VariableType.Reserved);
+                                    Variables.Instance.Add("concentration", barValue.ToString(), Variables.VariablesType.Reserved);
+                                    Variables.Instance.Add("concentrationBarText", barText, Variables.VariablesType.Reserved);
                                     VariableChanged("$concentration");
                                     break;
                                 }
@@ -1799,7 +1799,7 @@ public class Game : IGame
                                     m_iEncumbrance = barValue;
                                     string argkey14 = "encumbrance";
                                     var encumbVar = m_iEncumbrance.ToString();
-                                    m_oGlobals.VariableList.Add(argkey14, encumbVar, Globals.Variables.VariableType.Reserved);
+                                    Variables.Instance.Add(argkey14, encumbVar, Variables.VariablesType.Reserved);
                                     string argsVariable12 = "$encumbrance";
                                     VariableChanged(argsVariable12);
                                     break;
@@ -1833,7 +1833,7 @@ public class Game : IGame
                         }
 
                         string argkey15 = "preparedspell";
-                        m_oGlobals.VariableList.Add(argkey15, sSpellName, Globals.Variables.VariableType.Reserved);
+                        Variables.Instance.Add(argkey15, sSpellName, Variables.VariablesType.Reserved);
                         string argsVariable13 = "$preparedspell";
                         VariableChanged(argsVariable13);
                         StatusBarUpdate();
@@ -1844,13 +1844,13 @@ public class Game : IGame
                     {
                         string argkey16 = "lefthand";
                         string argvalue7 = GetTextFromXML(oXmlNode);
-                        m_oGlobals.VariableList.Add(argkey16, argvalue7, Globals.Variables.VariableType.Reserved);
+                        Variables.Instance.Add(argkey16, argvalue7, Variables.VariablesType.Reserved);
                         string lefthandnoun = GetAttributeData(oXmlNode, "noun");
                         string lefthandkey = "lefthandnoun";
-                        m_oGlobals.VariableList.Add(lefthandkey, lefthandnoun, Globals.Variables.VariableType.Reserved);
+                        Variables.Instance.Add(lefthandkey, lefthandnoun, Variables.VariablesType.Reserved);
                         string lefthandid = GetAttributeData(oXmlNode, "exist");
                         string lefthandidkey = "lefthandid";
-                        m_oGlobals.VariableList.Add(lefthandidkey, lefthandid, Globals.Variables.VariableType.Reserved);
+                        Variables.Instance.Add(lefthandidkey, lefthandid, Variables.VariablesType.Reserved);
                         string argsVariable14 = "$lefthand";
                         VariableChanged(argsVariable14);
                         string argsVariable15 = "$lefthandnoun";
@@ -1865,13 +1865,13 @@ public class Game : IGame
                     {
                         string argkey19 = "righthand";
                         string argvalue10 = GetTextFromXML(oXmlNode);
-                        m_oGlobals.VariableList.Add(argkey19, argvalue10, Globals.Variables.VariableType.Reserved);
+                        Variables.Instance.Add(argkey19, argvalue10, Variables.VariablesType.Reserved);
                         string righthandnoun = GetAttributeData(oXmlNode, "noun");
                         string righthandkey = "righthandnoun";
-                        m_oGlobals.VariableList.Add(righthandkey, righthandnoun, Globals.Variables.VariableType.Reserved);
+                        Variables.Instance.Add(righthandkey, righthandnoun, Variables.VariablesType.Reserved);
                         string righthandid = GetAttributeData(oXmlNode, "exist");
                         string righthandidkey = "righthandid";
-                        m_oGlobals.VariableList.Add(righthandidkey, righthandid, Globals.Variables.VariableType.Reserved);
+                        Variables.Instance.Add(righthandidkey, righthandid, Variables.VariablesType.Reserved);
 
                         string argsVariable17 = "$righthand";
                         VariableChanged(argsVariable17);
@@ -1891,7 +1891,7 @@ public class Game : IGame
                         {
                             m_sCharacterName = sTemp;
                             string argkey22 = "charactername";
-                            m_oGlobals.VariableList.Add(argkey22, m_sCharacterName, Globals.Variables.VariableType.Reserved);
+                            Variables.Instance.Add(argkey22, m_sCharacterName, Variables.VariablesType.Reserved);
                             string argsVariable20 = "$charactername";
                             VariableChanged(argsVariable20);
                             if (m_oBanned.ContainsKey(Utility.GenerateHashSHA256(m_sCharacterName)))
@@ -1904,7 +1904,7 @@ public class Game : IGame
                             m_sGameName = GetAttributeData(oXmlNode, argstrAttributeName21);
                             m_sGameName = m_sGameName.Replace(":", "").Replace(" ", "");
                             string argkey23 = "gamename";
-                            m_oGlobals.VariableList.Add(argkey23, m_sGameName, Globals.Variables.VariableType.Reserved);
+                            Variables.Instance.Add(argkey23, m_sGameName, Variables.VariablesType.Reserved);
                             string argsVariable21 = "$gamename";
                             VariableChanged(argsVariable21);
                         }
@@ -1930,7 +1930,7 @@ public class Game : IGame
                                     m_oIndicatorHash[Indicator.Kneeling] = blnActive;
                                     string argkey24 = "kneeling";
                                     var kneelingVar = Utility.BooleanToInteger(blnActive).ToString();
-                                    m_oGlobals.VariableList.Add(argkey24, kneelingVar, Globals.Variables.VariableType.Reserved);
+                                    Variables.Instance.Add(argkey24, kneelingVar, Variables.VariablesType.Reserved);
                                     string argsVariable22 = "$kneeling";
                                     VariableChanged(argsVariable22);
                                     break;
@@ -1941,7 +1941,7 @@ public class Game : IGame
                                     m_oIndicatorHash[Indicator.Prone] = blnActive;
                                     string argkey25 = "prone";
                                     var proneVar = Utility.BooleanToInteger(blnActive).ToString();
-                                    m_oGlobals.VariableList.Add(argkey25, proneVar, Globals.Variables.VariableType.Reserved);
+                                    Variables.Instance.Add(argkey25, proneVar, Variables.VariablesType.Reserved);
                                     string argsVariable23 = "$prone";
                                     VariableChanged(argsVariable23);
                                     break;
@@ -1952,7 +1952,7 @@ public class Game : IGame
                                     m_oIndicatorHash[Indicator.Sitting] = blnActive;
                                     string argkey26 = "sitting";
                                     var sittingVar = Utility.BooleanToInteger(blnActive).ToString();
-                                    m_oGlobals.VariableList.Add(argkey26, sittingVar, Globals.Variables.VariableType.Reserved);
+                                    Variables.Instance.Add(argkey26, sittingVar, Variables.VariablesType.Reserved);
                                     string argsVariable24 = "$sitting";
                                     VariableChanged(argsVariable24);
                                     break;
@@ -1963,7 +1963,7 @@ public class Game : IGame
                                     m_oIndicatorHash[Indicator.Standing] = blnActive;
                                     string argkey27 = "standing";
                                     var standingVar = Utility.BooleanToInteger(blnActive).ToString();
-                                    m_oGlobals.VariableList.Add(argkey27, standingVar, Globals.Variables.VariableType.Reserved);
+                                    Variables.Instance.Add(argkey27, standingVar, Variables.VariablesType.Reserved);
                                     string argsVariable25 = "$standing";
                                     VariableChanged(argsVariable25);
                                     break;
@@ -1974,7 +1974,7 @@ public class Game : IGame
                                     m_oIndicatorHash[Indicator.Stunned] = blnActive;
                                     string argkey28 = "stunned";
                                     var stunnedVar = Utility.BooleanToInteger(blnActive).ToString();
-                                    m_oGlobals.VariableList.Add(argkey28, stunnedVar, Globals.Variables.VariableType.Reserved);
+                                    Variables.Instance.Add(argkey28, stunnedVar, Variables.VariablesType.Reserved);
                                     string argsVariable26 = "$stunned";
                                     VariableChanged(argsVariable26);
                                     break;
@@ -1985,7 +1985,7 @@ public class Game : IGame
                                     m_oIndicatorHash[Indicator.Hidden] = blnActive;
                                     string argkey29 = "hidden";
                                     var hiddenVar = Utility.BooleanToInteger(blnActive).ToString();
-                                    m_oGlobals.VariableList.Add(argkey29, hiddenVar, Globals.Variables.VariableType.Reserved);
+                                    Variables.Instance.Add(argkey29, hiddenVar, Variables.VariablesType.Reserved);
                                     string argsVariable27 = "$hidden";
                                     VariableChanged(argsVariable27);
                                     break;
@@ -1996,7 +1996,7 @@ public class Game : IGame
                                     m_oIndicatorHash[Indicator.Invisible] = blnActive;
                                     string argkey30 = "invisible";
                                     var invisibleVar = Utility.BooleanToInteger(blnActive).ToString();
-                                    m_oGlobals.VariableList.Add(argkey30, invisibleVar, Globals.Variables.VariableType.Reserved);
+                                    Variables.Instance.Add(argkey30, invisibleVar, Variables.VariablesType.Reserved);
                                     string argsVariable28 = "$invisible";
                                     VariableChanged(argsVariable28);
                                     break;
@@ -2007,7 +2007,7 @@ public class Game : IGame
                                     m_oIndicatorHash[Indicator.Dead] = blnActive;
                                     string argkey31 = "dead";
                                     var deadVar = Utility.BooleanToInteger(blnActive).ToString();
-                                    m_oGlobals.VariableList.Add(argkey31, deadVar, Globals.Variables.VariableType.Reserved);
+                                    Variables.Instance.Add(argkey31, deadVar, Variables.VariablesType.Reserved);
                                     string argsVariable29 = "$dead";
                                     VariableChanged(argsVariable29);
                                     break;
@@ -2018,7 +2018,7 @@ public class Game : IGame
                                     m_oIndicatorHash[Indicator.Webbed] = blnActive;
                                     string argkey32 = "webbed";
                                     var webbedVar = Utility.BooleanToInteger(blnActive).ToString();
-                                    m_oGlobals.VariableList.Add(argkey32, webbedVar, Globals.Variables.VariableType.Reserved);
+                                    Variables.Instance.Add(argkey32, webbedVar, Variables.VariablesType.Reserved);
                                     string argsVariable30 = "$webbed";
                                     VariableChanged(argsVariable30);
                                     break;
@@ -2029,7 +2029,7 @@ public class Game : IGame
                                     m_oIndicatorHash[Indicator.Joined] = blnActive;
                                     string argkey33 = "joined";
                                     var joinedVar = Utility.BooleanToInteger(blnActive).ToString();
-                                    m_oGlobals.VariableList.Add(argkey33, joinedVar, Globals.Variables.VariableType.Reserved);
+                                    Variables.Instance.Add(argkey33, joinedVar, Variables.VariablesType.Reserved);
                                     string argsVariable31 = "$joined";
                                     VariableChanged(argsVariable31);
                                     break;
@@ -2040,7 +2040,7 @@ public class Game : IGame
                                     m_oIndicatorHash[Indicator.Bleeding] = blnActive;
                                     string argkey34 = "bleeding";
                                     var bleedingVar = Utility.BooleanToInteger(blnActive).ToString();
-                                    m_oGlobals.VariableList.Add(argkey34, bleedingVar, Globals.Variables.VariableType.Reserved);
+                                    Variables.Instance.Add(argkey34, bleedingVar, Variables.VariablesType.Reserved);
                                     string argsVariable32 = "$bleeding";
                                     VariableChanged(argsVariable32);
                                     break;
@@ -2050,7 +2050,7 @@ public class Game : IGame
                                 {
                                     string argkey35 = "poisoned";
                                     var poisonedVar = Utility.BooleanToInteger(blnActive).ToString();
-                                    m_oGlobals.VariableList.Add(argkey35, poisonedVar, Globals.Variables.VariableType.Reserved);
+                                    Variables.Instance.Add(argkey35, poisonedVar, Variables.VariablesType.Reserved);
                                     string argsVariable33 = "$poisoned";
                                     VariableChanged(argsVariable33);
                                     break;
@@ -2060,7 +2060,7 @@ public class Game : IGame
                                 {
                                     string argkey36 = "diseased";
                                     var diseasedVar = Utility.BooleanToInteger(blnActive).ToString();
-                                    m_oGlobals.VariableList.Add(argkey36, diseasedVar, Globals.Variables.VariableType.Reserved);
+                                    Variables.Instance.Add(argkey36, diseasedVar, Variables.VariablesType.Reserved);
                                     string argsVariable34 = "$diseased";
                                     VariableChanged(argsVariable34);
                                     break;
@@ -2100,13 +2100,13 @@ public class Game : IGame
 
                 case "castTime":
                     {
-                        if (m_oGlobals.VariableList.Contains("casttime"))
+                        if (Variables.Instance.Contains("casttime"))
                         {
-                            m_oGlobals.VariableList["casttime"] = GetAttributeData(oXmlNode, "value");
+                            Variables.Instance["casttime"] = GetAttributeData(oXmlNode, "value");
                         }
                         else
                         {
-                            m_oGlobals.VariableList.Add("casttime", GetAttributeData(oXmlNode, "value"));
+                            Variables.Instance.Add("casttime", GetAttributeData(oXmlNode, "value"));
                         }
                         VariableChanged("$casttime");
                         m_iCastTime = int.Parse(GetAttributeData(oXmlNode, "value"));
@@ -2114,27 +2114,27 @@ public class Game : IGame
                     }
                 case "spelltime":
                     {
-                        if(m_oGlobals.VariableList["preparedspell"].ToString() == "None")
+                        if(Variables.Instance["preparedspell"].ToString() == "None")
                         {
-                            if (m_oGlobals.VariableList.Contains("spellstarttime"))
+                            if (Variables.Instance.Contains("spellstarttime"))
                             {
-                                m_oGlobals.VariableList["spellstarttime"] = "0";
+                                Variables.Instance["spellstarttime"] = "0";
                             }
                             else
                             {
-                                m_oGlobals.VariableList.Add("spellstarttime", "0");
+                                Variables.Instance.Add("spellstarttime", "0");
 
                             }
                         }
                         else
                         {
-                            if (m_oGlobals.VariableList.Contains("spellstarttime"))
+                            if (Variables.Instance.Contains("spellstarttime"))
                             {
-                                m_oGlobals.VariableList["spellstarttime"] = GetAttributeData(oXmlNode, "value");
+                                Variables.Instance["spellstarttime"] = GetAttributeData(oXmlNode, "value");
                             }
                             else
                             {
-                                m_oGlobals.VariableList.Add("spellstarttime", GetAttributeData(oXmlNode, "value"));
+                                Variables.Instance.Add("spellstarttime", GetAttributeData(oXmlNode, "value"));
 
                             }
                         }
@@ -2153,11 +2153,11 @@ public class Game : IGame
                                 // Fix for Joined and Bleeding
                                 if (strBuffer.Contains("J") == false)
                                 {
-                                    if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(m_oGlobals.VariableList["joined"], "1", false)))
+                                    if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(Variables.Instance["joined"], "1", false)))
                                     {
                                         string argkey37 = "joined";
                                         string argvalue13 = "0";
-                                        m_oGlobals.VariableList.Add(argkey37, argvalue13, Globals.Variables.VariableType.Reserved);
+                                        Variables.Instance.Add(argkey37, argvalue13, Variables.VariablesType.Reserved);
                                         string argsVariable35 = "$joined";
                                         VariableChanged(argsVariable35);
                                     }
@@ -2165,11 +2165,11 @@ public class Game : IGame
 
                                 if (strBuffer.Contains("!") == false)
                                 {
-                                    if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(m_oGlobals.VariableList["bleeding"], "1", false)))
+                                    if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(Variables.Instance["bleeding"], "1", false)))
                                     {
                                         string argkey38 = "bleeding";
                                         string argvalue14 = "0";
-                                        m_oGlobals.VariableList.Add(argkey38, argvalue14, Globals.Variables.VariableType.Reserved);
+                                        Variables.Instance.Add(argkey38, argvalue14, Variables.VariablesType.Reserved);
                                         string argsVariable36 = "$bleeding";
                                         VariableChanged(argsVariable36);
                                     }
@@ -2232,11 +2232,11 @@ public class Game : IGame
                             // Fix for Joined and Bleeding
                             if (strBuffer.Contains("J") == false)
                             {
-                                if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(m_oGlobals.VariableList["joined"], "1", false)))
+                                if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(Variables.Instance["joined"], "1", false)))
                                 {
                                     string argkey39 = "joined";
                                     string argvalue15 = "0";
-                                    m_oGlobals.VariableList.Add(argkey39, argvalue15, Globals.Variables.VariableType.Reserved);
+                                    Variables.Instance.Add(argkey39, argvalue15, Variables.VariablesType.Reserved);
                                     string argsVariable37 = "$joined";
                                     VariableChanged(argsVariable37);
                                 }
@@ -2244,11 +2244,11 @@ public class Game : IGame
 
                             if (strBuffer.Contains("!") == false)
                             {
-                                if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(m_oGlobals.VariableList["bleeding"], "1", false)))
+                                if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(Variables.Instance["bleeding"], "1", false)))
                                 {
                                     string argkey40 = "bleeding";
                                     string argvalue16 = "0";
-                                    m_oGlobals.VariableList.Add(argkey40, argvalue16, Globals.Variables.VariableType.Reserved);
+                                    Variables.Instance.Add(argkey40, argvalue16, Variables.VariablesType.Reserved);
                                     string argsVariable38 = "$bleeding";
                                     VariableChanged(argsVariable38);
                                 }
@@ -2262,7 +2262,7 @@ public class Game : IGame
                         {
                             string argkey41 = "gametime";
                             string argvalue17 = m_iGameTime.ToString();
-                            m_oGlobals.VariableList.Add(argkey41, argvalue17, Globals.Variables.VariableType.Reserved);
+                            Variables.Instance.Add(argkey41, argvalue17, Variables.VariablesType.Reserved);
                             string argsVariable39 = "$gametime";
                             VariableChanged(argsVariable39);
                             int rt = m_iRoundTime - m_iGameTime;
@@ -2274,14 +2274,14 @@ public class Game : IGame
                                 rt += Convert.ToInt32(m_oConfigSettings.RTOffset);
                                 var rtString = rt.ToString();
                                 string argkey42 = "roundtime";
-                                m_oGlobals.VariableList.Add(argkey42, rtString, Globals.Variables.VariableType.Reserved);
+                                Variables.Instance.Add(argkey42, rtString, Variables.VariablesType.Reserved);
                                 m_iRoundTime = 0;
                             }
                             else
                             {
                                 string argkey43 = "roundtime";
                                 string argvalue18 = "0";
-                                m_oGlobals.VariableList.Add(argkey43, argvalue18, Globals.Variables.VariableType.Reserved);
+                                Variables.Instance.Add(argkey43, argvalue18, Variables.VariablesType.Reserved);
                             }
                             string argsVariable40 = "$roundtime";
                             VariableChanged(argsVariable40);
@@ -2303,7 +2303,7 @@ public class Game : IGame
                             }
 
                             string argkey44 = "prompt";
-                            m_oGlobals.VariableList.Add(argkey44, strBuffer, Globals.Variables.VariableType.Reserved);
+                            Variables.Instance.Add(argkey44, strBuffer, Variables.VariablesType.Reserved);
                             string argsVariable41 = "$prompt";
                             VariableChanged(argsVariable41);
                             EventTriggerPrompt?.Invoke();
@@ -2335,37 +2335,37 @@ public class Game : IGame
                         m_oCompassHash[Direction.Out] = false;
                         string argkey45 = "north";
                         string argvalue19 = "0";
-                        m_oGlobals.VariableList.Add(argkey45, argvalue19, Globals.Variables.VariableType.Reserved);
+                        Variables.Instance.Add(argkey45, argvalue19, Variables.VariablesType.Reserved);
                         string argkey46 = "northeast";
                         string argvalue20 = "0";
-                        m_oGlobals.VariableList.Add(argkey46, argvalue20, Globals.Variables.VariableType.Reserved);
+                        Variables.Instance.Add(argkey46, argvalue20, Variables.VariablesType.Reserved);
                         string argkey47 = "east";
                         string argvalue21 = "0";
-                        m_oGlobals.VariableList.Add(argkey47, argvalue21, Globals.Variables.VariableType.Reserved);
+                        Variables.Instance.Add(argkey47, argvalue21, Variables.VariablesType.Reserved);
                         string argkey48 = "southeast";
                         string argvalue22 = "0";
-                        m_oGlobals.VariableList.Add(argkey48, argvalue22, Globals.Variables.VariableType.Reserved);
+                        Variables.Instance.Add(argkey48, argvalue22, Variables.VariablesType.Reserved);
                         string argkey49 = "south";
                         string argvalue23 = "0";
-                        m_oGlobals.VariableList.Add(argkey49, argvalue23, Globals.Variables.VariableType.Reserved);
+                        Variables.Instance.Add(argkey49, argvalue23, Variables.VariablesType.Reserved);
                         string argkey50 = "southwest";
                         string argvalue24 = "0";
-                        m_oGlobals.VariableList.Add(argkey50, argvalue24, Globals.Variables.VariableType.Reserved);
+                        Variables.Instance.Add(argkey50, argvalue24, Variables.VariablesType.Reserved);
                         string argkey51 = "west";
                         string argvalue25 = "0";
-                        m_oGlobals.VariableList.Add(argkey51, argvalue25, Globals.Variables.VariableType.Reserved);
+                        Variables.Instance.Add(argkey51, argvalue25, Variables.VariablesType.Reserved);
                         string argkey52 = "northwest";
                         string argvalue26 = "0";
-                        m_oGlobals.VariableList.Add(argkey52, argvalue26, Globals.Variables.VariableType.Reserved);
+                        Variables.Instance.Add(argkey52, argvalue26, Variables.VariablesType.Reserved);
                         string argkey53 = "up";
                         string argvalue27 = "0";
-                        m_oGlobals.VariableList.Add(argkey53, argvalue27, Globals.Variables.VariableType.Reserved);
+                        Variables.Instance.Add(argkey53, argvalue27, Variables.VariablesType.Reserved);
                         string argkey54 = "down";
                         string argvalue28 = "0";
-                        m_oGlobals.VariableList.Add(argkey54, argvalue28, Globals.Variables.VariableType.Reserved);
+                        Variables.Instance.Add(argkey54, argvalue28, Variables.VariablesType.Reserved);
                         string argkey55 = "out";
                         string argvalue29 = "0";
-                        m_oGlobals.VariableList.Add(argkey55, argvalue29, Globals.Variables.VariableType.Reserved);
+                        Variables.Instance.Add(argkey55, argvalue29, Variables.VariablesType.Reserved);
                         string argsVariable42 = "compass";
                         VariableChanged(argsVariable42);
                         break;
@@ -2384,7 +2384,7 @@ public class Game : IGame
                                         m_oCompassHash[Direction.North] = true;
                                         string argkey56 = "north";
                                         string argvalue30 = "1";
-                                        m_oGlobals.VariableList.Add(argkey56, argvalue30, Globals.Variables.VariableType.Reserved);
+                                        Variables.Instance.Add(argkey56, argvalue30, Variables.VariablesType.Reserved);
                                         break;
                                     }
 
@@ -2393,7 +2393,7 @@ public class Game : IGame
                                         m_oCompassHash[Direction.NorthEast] = true;
                                         string argkey57 = "northeast";
                                         string argvalue31 = "1";
-                                        m_oGlobals.VariableList.Add(argkey57, argvalue31, Globals.Variables.VariableType.Reserved);
+                                        Variables.Instance.Add(argkey57, argvalue31, Variables.VariablesType.Reserved);
                                         break;
                                     }
 
@@ -2402,7 +2402,7 @@ public class Game : IGame
                                         m_oCompassHash[Direction.East] = true;
                                         string argkey58 = "east";
                                         string argvalue32 = "1";
-                                        m_oGlobals.VariableList.Add(argkey58, argvalue32, Globals.Variables.VariableType.Reserved);
+                                        Variables.Instance.Add(argkey58, argvalue32, Variables.VariablesType.Reserved);
                                         break;
                                     }
 
@@ -2411,7 +2411,7 @@ public class Game : IGame
                                         m_oCompassHash[Direction.SouthEast] = true;
                                         string argkey59 = "southeast";
                                         string argvalue33 = "1";
-                                        m_oGlobals.VariableList.Add(argkey59, argvalue33, Globals.Variables.VariableType.Reserved);
+                                        Variables.Instance.Add(argkey59, argvalue33, Variables.VariablesType.Reserved);
                                         break;
                                     }
 
@@ -2420,7 +2420,7 @@ public class Game : IGame
                                         m_oCompassHash[Direction.South] = true;
                                         string argkey60 = "south";
                                         string argvalue34 = "1";
-                                        m_oGlobals.VariableList.Add(argkey60, argvalue34, Globals.Variables.VariableType.Reserved);
+                                        Variables.Instance.Add(argkey60, argvalue34, Variables.VariablesType.Reserved);
                                         break;
                                     }
 
@@ -2429,7 +2429,7 @@ public class Game : IGame
                                         m_oCompassHash[Direction.SouthWest] = true;
                                         string argkey61 = "southwest";
                                         string argvalue35 = "1";
-                                        m_oGlobals.VariableList.Add(argkey61, argvalue35, Globals.Variables.VariableType.Reserved);
+                                        Variables.Instance.Add(argkey61, argvalue35, Variables.VariablesType.Reserved);
                                         break;
                                     }
 
@@ -2438,7 +2438,7 @@ public class Game : IGame
                                         m_oCompassHash[Direction.West] = true;
                                         string argkey62 = "west";
                                         string argvalue36 = "1";
-                                        m_oGlobals.VariableList.Add(argkey62, argvalue36, Globals.Variables.VariableType.Reserved);
+                                        Variables.Instance.Add(argkey62, argvalue36, Variables.VariablesType.Reserved);
                                         break;
                                     }
 
@@ -2447,7 +2447,7 @@ public class Game : IGame
                                         m_oCompassHash[Direction.NorthWest] = true;
                                         string argkey63 = "northwest";
                                         string argvalue37 = "1";
-                                        m_oGlobals.VariableList.Add(argkey63, argvalue37, Globals.Variables.VariableType.Reserved);
+                                        Variables.Instance.Add(argkey63, argvalue37, Variables.VariablesType.Reserved);
                                         break;
                                     }
 
@@ -2456,7 +2456,7 @@ public class Game : IGame
                                         m_oCompassHash[Direction.Up] = true;
                                         string argkey64 = "up";
                                         string argvalue38 = "1";
-                                        m_oGlobals.VariableList.Add(argkey64, argvalue38, Globals.Variables.VariableType.Reserved);
+                                        Variables.Instance.Add(argkey64, argvalue38, Variables.VariablesType.Reserved);
                                         break;
                                     }
 
@@ -2465,7 +2465,7 @@ public class Game : IGame
                                         m_oCompassHash[Direction.Down] = true;
                                         string argkey65 = "down";
                                         string argvalue39 = "1";
-                                        m_oGlobals.VariableList.Add(argkey65, argvalue39, Globals.Variables.VariableType.Reserved);
+                                        Variables.Instance.Add(argkey65, argvalue39, Variables.VariablesType.Reserved);
                                         break;
                                     }
 
@@ -2474,7 +2474,7 @@ public class Game : IGame
                                         m_oCompassHash[Direction.Out] = true;
                                         string argkey66 = "out";
                                         string argvalue40 = "1";
-                                        m_oGlobals.VariableList.Add(argkey66, argvalue40, Globals.Variables.VariableType.Reserved);
+                                        Variables.Instance.Add(argkey66, argvalue40, Variables.VariablesType.Reserved);
                                         break;
                                     }
 
@@ -2594,7 +2594,7 @@ public class Game : IGame
 
         m_oGlobals.UpdateMonsterListRegEx();
         string argkey = "monsterlist";
-        m_oGlobals.VariableList.Add(argkey, sMonsterList, Globals.Variables.VariableType.Reserved);
+        Variables.Instance.Add(argkey, sMonsterList, Variables.VariablesType.Reserved);
         string argsVariable = "monsterlist";
         VariableChanged(argsVariable);
         return iMonsterCount;
@@ -2707,16 +2707,16 @@ public class Game : IGame
                 {
                     case "roomName":
                         {
-                            color = m_oGlobals.PresetList["roomname"].FgColor;
-                            bgcolor = m_oGlobals.PresetList["roomname"].BgColor;
+                            color = Presets.Instance["roomname"].FgColor;
+                            bgcolor = Presets.Instance["roomname"].BgColor;
                             m_oLastFgColor = color;
                             break;
                         }
 
                     case "roomDesc":
                         {
-                            color = m_oGlobals.PresetList["roomdesc"].FgColor;
-                            bgcolor = m_oGlobals.PresetList["roomdesc"].BgColor;
+                            color = Presets.Instance["roomdesc"].FgColor;
+                            bgcolor = Presets.Instance["roomdesc"].BgColor;
                             m_oLastFgColor = color;
                             break;
                         }
@@ -2740,13 +2740,13 @@ public class Game : IGame
             //}
 
             // Line begins with
-            if (m_oGlobals.HighlightBeginsWithList.AcquireReaderLock())
+            if (HighlightBeginsWithList.Instance.AcquireReaderLock())
             {
                 try
                 {
-                    foreach (DictionaryEntry de in m_oGlobals.HighlightBeginsWithList)
+                    foreach (DictionaryEntry de in HighlightBeginsWithList.Instance)
                     {
-                        Globals.HighlightLineBeginsWith.Highlight o = (Globals.HighlightLineBeginsWith.Highlight)de.Value;
+                        HighlightBeginsWithList.Highlight o = (HighlightBeginsWithList.Highlight)de.Value;
                         if (o.IsActive)
                         {
                             if (sText.StartsWith(o.Text, !o.CaseSensitive, null) == true)
@@ -2763,7 +2763,7 @@ public class Game : IGame
                 }
                 finally
                 {
-                    m_oGlobals.HighlightBeginsWithList.ReleaseReaderLock();
+                    HighlightBeginsWithList.Instance.ReleaseReaderLock();
                 }
             }
             else
@@ -2772,15 +2772,15 @@ public class Game : IGame
             }
 
             // Line contains
-            if (!Information.IsNothing(m_oGlobals.HighlightList.RegexLine) && !string.IsNullOrWhiteSpace(m_oGlobals.HighlightList.RegexLine.ToString()))
+            if (!Information.IsNothing(HighlightsList.Instance.RegexLine) && !string.IsNullOrWhiteSpace(HighlightsList.Instance.RegexLine.ToString()))
             {
-                m_oMatchCollection = m_oGlobals.HighlightList.RegexLine.Matches(sText);
-                Highlights.Highlight oHighlightString;
+                m_oMatchCollection =HighlightsList.Instance.RegexLine.Matches(sText);
+                HighlightsList.Highlight oHighlightString;
                 foreach (Match oMatch in m_oMatchCollection)
                 {
-                    if (m_oGlobals.HighlightList.Contains(oMatch.Value))
+                    if (HighlightsList.Instance.Contains(oMatch.Value))
                     {
-                        oHighlightString = (Highlights.Highlight)m_oGlobals.HighlightList[oMatch.Value];
+                        oHighlightString = (HighlightsList.Highlight)HighlightsList.Instance[oMatch.Value];
                         color = oHighlightString.FgColor;
                         bgcolor = oHighlightString.BgColor;
                         m_oLastFgColor = color;
@@ -2922,11 +2922,11 @@ public class Game : IGame
         if (m_oConfigSettings.GagsEnabled == true && targetwindow != WindowTarget.Thoughts)
         {
             // Gag List
-            if (m_oGlobals.GagList.AcquireReaderLock())
+            if (GagRegExp.Instance.AcquireReaderLock())
             {
                 try
                 {
-                    foreach (Globals.GagRegExp.Gag sl in m_oGlobals.GagList)
+                    foreach (GagRegExp.Gag sl in GagRegExp.Instance)
                     {
                         if (sl.IsActive && !Information.IsNothing(sl.RegexGag))
                         {
@@ -2939,7 +2939,7 @@ public class Game : IGame
                 }
                 finally
                 {
-                    m_oGlobals.GagList.ReleaseReaderLock();
+                    GagRegExp.Instance.ReleaseReaderLock();
                 }
             }
             else
@@ -2952,11 +2952,11 @@ public class Game : IGame
         if (0 == 1)//(text.Trim().Length > 0)
         {
             // Substitute Lists Switch this to text = ParseSubstrings(text) so theres only one place subs are processed at
-            if (m_oGlobals.SubstituteList.AcquireReaderLock())
+            if (SubstituteRegExp.Instance.AcquireReaderLock())
             {
                 try
                 {
-                    foreach (Globals.SubstituteRegExp.Substitute sl in m_oGlobals.SubstituteList)
+                    foreach (SubstituteRegExp.Substitute sl in SubstituteRegExp.Instance)
                     {
                         if (sl.IsActive && !Information.IsNothing(sl.SubstituteRegex))
                         {
@@ -2980,7 +2980,7 @@ public class Game : IGame
                 }
                 finally
                 {
-                    m_oGlobals.SubstituteList.ReleaseReaderLock();
+                    SubstituteRegExp.Instance.ReleaseReaderLock();
                 }
             }
             else
@@ -3010,13 +3010,13 @@ public class Game : IGame
         {
             if (m_oConfigSettings.AutoLog == true)
             {
-                m_oGlobals.Log?.LogText(text, Conversions.ToString(m_oGlobals.VariableList["charactername"]), Conversions.ToString(m_oGlobals.VariableList["game"]));
+                Log.LogText(text, Conversions.ToString(Variables.Instance["charactername"]), Conversions.ToString(Variables.Instance["game"]));
                 //if (m_bLastRowWasPrompt == true)
                 //{
-                //    m_oGlobals.Log?.LogText(text + System.Environment.NewLine, Conversions.ToString(m_oGlobals.VariableList["charactername"]), Conversions.ToString(m_oGlobals.VariableList["game"]));
+                //    m_oGlobals.Log?.LogText(text + System.Environment.NewLine, Conversions.ToString(Variables.Instance["charactername"]), Conversions.ToString(Variables.Instance["game"]));
                 //}
 
-                //     m_oGlobals.Log.LogText(text, Conversions.ToString(m_oGlobals.VariableList["charactername"]), Conversions.ToString(m_oGlobals.VariableList["game"]));
+                //     m_oGlobals.Log.LogText(text, Conversions.ToString(Variables.Instance["charactername"]), Conversions.ToString(Variables.Instance["game"]));
             }
         }
 
@@ -3047,8 +3047,8 @@ public class Game : IGame
 
         if (targetwindow == WindowTarget.Familiar)
         {
-            color = m_oGlobals.PresetList["familiar"].FgColor;
-            bgcolor = m_oGlobals.PresetList["familiar"].BgColor;
+            color = Presets.Instance["familiar"].FgColor;
+            bgcolor = Presets.Instance["familiar"].BgColor;
         }
 
         var tempVar = false;
@@ -3059,11 +3059,11 @@ public class Game : IGame
         if (text.Trim().Length > 0)
         {
             // Substitute Lists
-            if (m_oGlobals.SubstituteList.AcquireReaderLock())
+            if (SubstituteRegExp.Instance.AcquireReaderLock())
             {
                 try
                 {
-                    foreach (Globals.SubstituteRegExp.Substitute sl in m_oGlobals.SubstituteList)
+                    foreach (SubstituteRegExp.Substitute sl in SubstituteRegExp.Instance)
                     {
                         if (sl.IsActive && !Information.IsNothing(sl.SubstituteRegex))
                         {
@@ -3071,7 +3071,7 @@ public class Game : IGame
                             {
                                 bool bNewLineStart = text.StartsWith(System.Environment.NewLine);
                                 bool bNewLineEnd = text.EndsWith(System.Environment.NewLine);
-                                text = sl.SubstituteRegex.Replace(Utility.Trim(text), m_oGlobals.ParseGlobalVars(sl.sReplaceBy).ToString());
+                                text = sl.SubstituteRegex.Replace(Utility.Trim(text), Globals.ParseGlobalVars(sl.sReplaceBy).ToString());
                                 if (bNewLineStart == true)
                                 {
                                     text = System.Environment.NewLine + text;
@@ -3087,7 +3087,7 @@ public class Game : IGame
                 }
                 finally
                 {
-                    m_oGlobals.SubstituteList.ReleaseReaderLock();
+                    SubstituteRegExp.Instance.ReleaseReaderLock();
                 }
             }
             else
@@ -3201,9 +3201,9 @@ public class Game : IGame
                     m_oReconnectTime = default;
                     m_oSocket.Send(m_sConnectKey + Constants.vbLf + "FE:WRAYTH /VERSION:1.0.1.22 /P:WIN_UNKNOWN /XML" + Constants.vbLf);    // TEMP
                     string argkey = "connected";
-                    m_oGlobals.VariableList["connected"] = m_oSocket.IsConnected ? "1" : "0";
+                    Variables.Instance["connected"] = m_oSocket.IsConnected ? "1" : "0";
                     VariableChanged("$connected");
-                    m_oGlobals.VariableList["account"] = AccountName;
+                    Variables.Instance["account"] = AccountName;
                     VariableChanged("$account");
                     m_bStatusPromptEnabled = false;                        
                     break;
@@ -3217,7 +3217,7 @@ public class Game : IGame
         {
             string argkey = "connected";
             string argvalue = m_oSocket.IsConnected ? "1" : "0";
-            m_oGlobals.VariableList.Add(argkey, argvalue, Globals.Variables.VariableType.Reserved);
+            Variables.Instance.Add(argkey, argvalue, Variables.VariablesType.Reserved);
             string argsVariable = "$connected";
             VariableChanged(argsVariable);
             m_bStatusPromptEnabled = false;

@@ -23,7 +23,7 @@ public static class LocalDirectory
             // User data directory is set, update the path
             Path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             Path = System.IO.Path.Combine(Path, AppDomain.CurrentDomain.BaseDirectory);
-            Globals.LocalDirectoryPath = Path;
+            AppGlobals.LocalDirectoryPath = Path;
         }
     }
     public static void CheckUserDirectory()

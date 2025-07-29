@@ -228,7 +228,7 @@ public class Command
             if (bSendToGame == true)
             {
                 // Send Text To Game
-                string argsText = m_oGlobals.ParseGlobalVars(sText);
+                string argsText = Globals.ParseGlobalVars(sText);
                 SendTextToGame(argsText, bUserInput, sOrigin);
             }
 
@@ -238,7 +238,7 @@ public class Command
         foreach (string stemp in Utility.SafeSplit(sText,m_oConfigSettings.SeparatorChar))
         {
             var sStringTemp = stemp;
-            if (m_oGlobals.AliasList.ContainsKey(GetKeywordString(sStringTemp).ToLower()) == true) // Alias
+            if (Aliases.Instance.ContainsKey(GetKeywordString(sStringTemp).ToLower()) == true) // Alias
             {
                 sStringTemp = ParseAlias(sStringTemp);
             }
@@ -277,7 +277,7 @@ public class Command
                                         Color oBgcolor = default;
                                         if (oArgs.Count > 1 && oArgs[1].ToString().StartsWith(">"))
                                         {
-                                            sOutputWindow = m_oGlobals.ParseGlobalVars(oArgs[1].ToString().Substring(1));
+                                            sOutputWindow = Globals.ParseGlobalVars(oArgs[1].ToString().Substring(1));
                                             oArgs[1] = null;
                                             if (oArgs.Count > 2)
                                             {
@@ -286,7 +286,7 @@ public class Command
                                         }
                                         else if (oArgs.Count > 2 && oArgs[2].ToString().StartsWith(">"))
                                         {
-                                            sOutputWindow = m_oGlobals.ParseGlobalVars(oArgs[2].ToString().Substring(1));
+                                            sOutputWindow = Globals.ParseGlobalVars(oArgs[2].ToString().Substring(1));
                                             oArgs[2] = null;
                                             iColorIndex = 1;
                                         }
@@ -319,12 +319,12 @@ public class Command
 
                                         if (!Information.IsNothing(oColor) && oColor != Color.Empty)
                                         {
-                                            string argsText1 = m_oGlobals.ParseGlobalVars(ParseAllArgs(oArgs, 1, false) + System.Environment.NewLine);
+                                            string argsText1 = Globals.ParseGlobalVars(ParseAllArgs(oArgs, 1, false) + System.Environment.NewLine);
                                             EchoColorText(argsText1, oColor, oBgcolor, sOutputWindow);
                                         }
                                         else
                                         {
-                                            EchoText(m_oGlobals.ParseGlobalVars(ParseAllArgs(oArgs, 1, false) + System.Environment.NewLine), sOutputWindow);
+                                            EchoText(Globals.ParseGlobalVars(ParseAllArgs(oArgs, 1, false) + System.Environment.NewLine), sOutputWindow);
                                         }
 
                                         sResult = "";
@@ -337,13 +337,13 @@ public class Command
                                         string sLinkCommand = string.Empty;
                                         if (oArgs.Count > 3 && oArgs[1].ToString().StartsWith(">"))
                                         {
-                                            sWindow = m_oGlobals.ParseGlobalVars(oArgs[1].ToString().Substring(1));
-                                            sLinkText = m_oGlobals.ParseGlobalVars(oArgs[2].ToString());
+                                            sWindow = Globals.ParseGlobalVars(oArgs[1].ToString().Substring(1));
+                                            sLinkText = Globals.ParseGlobalVars(oArgs[2].ToString());
                                             sLinkCommand = Utility.ArrayToString(oArgs, 3);
                                         }
                                         else if (oArgs.Count > 2)
                                         {
-                                            sLinkText = m_oGlobals.ParseGlobalVars(oArgs[1].ToString());
+                                            sLinkText = Globals.ParseGlobalVars(oArgs[1].ToString());
                                             sLinkCommand = Utility.ArrayToString(oArgs, 2);
                                         }
 
@@ -357,7 +357,7 @@ public class Command
 
                                 case "icon":
                                     {
-                                        EventChangeIcon?.Invoke(m_oGlobals.ParseGlobalVars(oArgs[1].ToString()));
+                                        EventChangeIcon?.Invoke(Globals.ParseGlobalVars(oArgs[1].ToString()));
                                         break;
                                     }
 
@@ -368,19 +368,19 @@ public class Command
                                             string sLogText = string.Empty;
                                             if (oArgs[1].ToString().StartsWith(">"))
                                             {
-                                                string sFileName = m_oGlobals.ParseGlobalVars(oArgs[1].ToString().Substring(1));
+                                                string sFileName = Globals.ParseGlobalVars(oArgs[1].ToString().Substring(1));
                                                 if (oArgs.Count > 2)
                                                 {
-                                                    sLogText = m_oGlobals.ParseGlobalVars(ParseAllArgs(oArgs, 2, false));
-                                                    m_oGlobals.Log.LogLine(sLogText, sFileName);
+                                                    sLogText = Globals.ParseGlobalVars(ParseAllArgs(oArgs, 2, false));
+                                                    Log.LogLine(sLogText, sFileName);
                                                 }
                                             }
                                             else
                                             {
-                                                string sTargetChar = Conversions.ToString(m_oGlobals.VariableList["charactername"]);
-                                                string sGameName = Conversions.ToString(m_oGlobals.VariableList["game"]);
-                                                sLogText = m_oGlobals.ParseGlobalVars(ParseAllArgs(oArgs, 1, false));
-                                                m_oGlobals.Log.LogText(sLogText + System.Environment.NewLine, sTargetChar, sGameName);
+                                                string sTargetChar = Conversions.ToString(Variables.Instance["charactername"]);
+                                                string sGameName = Conversions.ToString(Variables.Instance["game"]);
+                                                sLogText = Globals.ParseGlobalVars(ParseAllArgs(oArgs, 1, false));
+                                                Log.LogText(sLogText + System.Environment.NewLine, sTargetChar, sGameName);
                                             }
                                         }
 
@@ -474,14 +474,14 @@ public class Command
                                     }
                                 case "browser":
                                     {
-                                        string url = m_oGlobals.ParseGlobalVars(oArgs[1].ToString());
+                                        string url = Globals.ParseGlobalVars(oArgs[1].ToString());
                                         if (!url.StartsWith("http://") && !url.StartsWith("https://")) url = "http://" + url;
                                         LaunchBrowser?.Invoke(url);
                                         break;
                                     }
                                 case "clear":
                                     {
-                                        ClearWindow(m_oGlobals.ParseGlobalVars(ParseAllArgs(oArgs, 1)));
+                                        ClearWindow(Globals.ParseGlobalVars(ParseAllArgs(oArgs, 1)));
                                         break;
                                     }
 
@@ -501,7 +501,7 @@ public class Command
                                                     case "setvariable":
                                                         {
                                                             EchoText("Variables Saved" + System.Environment.NewLine);
-                                                            m_oGlobals.VariableList.Save();
+                                                            Variables.Instance.Save();
                                                             break;
                                                         }
 
@@ -509,7 +509,7 @@ public class Command
                                                     case "aliases":
                                                         {
                                                             EchoText("Aliases Saved" + System.Environment.NewLine);
-                                                            m_oGlobals.AliasList.Save();
+                                                            Aliases.Instance.Save();
                                                             break;
                                                         }
 
@@ -517,7 +517,7 @@ public class Command
                                                     case "classes":
                                                         {
                                                             EchoText("Classes Saved" + System.Environment.NewLine);
-                                                            m_oGlobals.ClassList.Save();
+                                                            Classes.Instance.Save();
                                                             break;
                                                         }
 
@@ -527,7 +527,7 @@ public class Command
                                                     case "actions":
                                                         {
                                                             EchoText("Triggers Saved" + System.Environment.NewLine);
-                                                            m_oGlobals.TriggerList.Save(m_oConfigSettings.ConfigDir + @"\triggers.cfg");
+                                                            Triggers.Instance.Save();
                                                             break;
                                                         }
 
@@ -537,7 +537,7 @@ public class Command
                                                     case "settings":
                                                         {
                                                             EchoText("Settings Saved" + System.Environment.NewLine);
-                                                            ConfigSettings.GetInstance().SaveSettings(m_oConfigSettings.ConfigDir + @"\settings.cfg");
+                                                            ConfigSettings.GetInstance().SaveSettings();
                                                             break;
                                                         }
 
@@ -545,7 +545,7 @@ public class Command
                                                     case "macros":
                                                         {
                                                             EchoText("Macros Saved" + System.Environment.NewLine);
-                                                            m_oGlobals.MacroList.Save();
+                                                            Macros.Instance.Save();
                                                             break;
                                                         }
 
@@ -554,7 +554,7 @@ public class Command
                                                     case "substitute":
                                                         {
                                                             EchoText("Substitutes Saved" + System.Environment.NewLine);
-                                                            m_oGlobals.SubstituteList.Save(m_oConfigSettings.ConfigDir + @"\substitutes.cfg");
+                                                            SubstituteRegExp.Instance.Save();
                                                             break;
                                                         }
 
@@ -565,7 +565,7 @@ public class Command
                                                     case "ignores":
                                                         {
                                                             EchoText("Gags Saved" + System.Environment.NewLine);
-                                                            m_oGlobals.GagList.Save();
+                                                            GagRegExp.Instance.Save();
                                                             break;
                                                         }
 
@@ -573,7 +573,7 @@ public class Command
                                                     case "highlights":
                                                         {
                                                             EchoText("Highlights Saved" + System.Environment.NewLine);
-                                                            m_oGlobals.SaveHighlights(m_oConfigSettings.ConfigDir + @"\highlights.cfg");
+                                                            HighlightBase.SaveHighlights();
                                                             break;
                                                         }
 
@@ -581,7 +581,7 @@ public class Command
                                                     case "names":
                                                         {
                                                             EchoText("Names Saved" + System.Environment.NewLine);
-                                                            m_oGlobals.NameList.Save(m_oConfigSettings.ConfigDir + @"\names.cfg");
+                                                            Names.Instance.Save();
                                                             break;
                                                         }
 
@@ -589,7 +589,7 @@ public class Command
                                                     case "presets":
                                                         {
                                                             EchoText("Presets Saved" + System.Environment.NewLine);
-                                                            m_oGlobals.PresetList.Save(m_oConfigSettings.ConfigDir + @"\presets.cfg");
+                                                            Presets.Instance.Save();
                                                             break;
                                                         }
 
@@ -611,27 +611,27 @@ public class Command
                                                     case "all":
                                                         {
                                                             EchoText("Variables Saved" + System.Environment.NewLine);
-                                                            m_oGlobals.VariableList.Save();
+                                                            Variables.Instance.Save();
                                                             EchoText("Aliases Saved" + System.Environment.NewLine);
-                                                            m_oGlobals.AliasList.Save();
+                                                            Aliases.Instance.Save();
                                                             EchoText("Classes Saved" + System.Environment.NewLine);
-                                                            m_oGlobals.ClassList.Save();
+                                                            Classes.Instance.Save();
                                                             EchoText("Triggers Saved" + System.Environment.NewLine);
-                                                            m_oGlobals.TriggerList.Save(m_oConfigSettings.ConfigDir + @"\triggers.cfg");
+                                                            Triggers.Instance.Save();
                                                             EchoText("Settings Saved" + System.Environment.NewLine);
-                                                            m_oConfigSettings.SaveSettings(m_oConfigSettings.ConfigDir + @"\settings.cfg");
+                                                            m_oConfigSettings.SaveSettings();
                                                             EchoText("Macros Saved" + System.Environment.NewLine);
-                                                            m_oGlobals.MacroList.Save();
+                                                            Macros.Instance.Save();
                                                             EchoText("Substitutes Saved" + System.Environment.NewLine);
-                                                            m_oGlobals.SubstituteList.Save(m_oConfigSettings.ConfigDir + @"\substitutes.cfg");
+                                                            SubstituteRegExp.Instance.Save();
                                                             EchoText("Gags Saved" + System.Environment.NewLine);
-                                                            m_oGlobals.GagList.Save();
+                                                            GagRegExp.Instance.Save();
                                                             EchoText("Highlights Saved" + System.Environment.NewLine);
-                                                            m_oGlobals.SaveHighlights(m_oConfigSettings.ConfigDir + @"\highlights.cfg");
+                                                            HighlightBase.SaveHighlights();
                                                             EchoText("Names Saved" + System.Environment.NewLine);
-                                                            m_oGlobals.NameList.Save(m_oConfigSettings.ConfigDir + @"\names.cfg");
+                                                            Names.Instance.Save();
                                                             EchoText("Presets Saved" + System.Environment.NewLine);
-                                                            m_oGlobals.PresetList.Save(m_oConfigSettings.ConfigDir + @"\presets.cfg");
+                                                            Presets.Instance.Save();
                                                             break;
                                                         }
                                                 }
@@ -657,8 +657,8 @@ public class Command
                                                     case "setvariable":
                                                         {
                                                             EchoText("Variables Loaded" + System.Environment.NewLine);
-                                                            m_oGlobals.VariableList.ClearUser();
-                                                            m_oGlobals.VariableList.Load();
+                                                            Variables.Instance.ClearUser();
+                                                            Variables.Instance.Load();
                                                             break;
                                                         }
 
@@ -666,8 +666,8 @@ public class Command
                                                     case "aliases":
                                                         {
                                                             EchoText("Aliases Loaded" + System.Environment.NewLine);
-                                                            m_oGlobals.AliasList.Clear();
-                                                            m_oGlobals.AliasList.Load();
+                                                            Aliases.Instance.Clear();
+                                                            Aliases.Instance.Load();
                                                             break;
                                                         }
 
@@ -675,8 +675,8 @@ public class Command
                                                     case "classes":
                                                         {
                                                             EchoText("Classes Loaded" + System.Environment.NewLine);
-                                                            m_oGlobals.ClassList.Clear();
-                                                            m_oGlobals.ClassList.Load();
+                                                            Classes.Instance.Clear();
+                                                            Classes.Instance.Load();
                                                             EventClassChange?.Invoke();
                                                             break;
                                                         }
@@ -687,8 +687,8 @@ public class Command
                                                     case "actions":
                                                         {
                                                             EchoText("Triggers Loaded" + System.Environment.NewLine);
-                                                            m_oGlobals.TriggerList.Clear();
-                                                            m_oGlobals.TriggerList.Load(m_oConfigSettings.ConfigDir + @"\triggers.cfg");
+                                                            Triggers.Instance.Clear();
+                                                            Triggers.Instance.Load();
                                                             break;
                                                         }
 
@@ -698,7 +698,7 @@ public class Command
                                                     case "settings":
                                                         {
                                                             EchoText("Settings Loaded" + System.Environment.NewLine);
-                                                            m_oConfigSettings.LoadSettings(m_oConfigSettings.ConfigDir + @"\settings.cfg");
+                                                            ConfigSettings.Instance.LoadSettings();
                                                             break;
                                                         }
 
@@ -706,8 +706,8 @@ public class Command
                                                     case "macros":
                                                         {
                                                             EchoText("Macros Loaded" + System.Environment.NewLine);
-                                                            m_oGlobals.MacroList.Clear();
-                                                            m_oGlobals.MacroList.Load();
+                                                            Macros.Instance.Clear();
+                                                            Macros.Instance.Load();
                                                             break;
                                                         }
 
@@ -716,8 +716,8 @@ public class Command
                                                     case "substitute":
                                                         {
                                                             EchoText("Substitutes Loaded" + System.Environment.NewLine);
-                                                            m_oGlobals.SubstituteList.Clear();
-                                                            m_oGlobals.SubstituteList.Load(m_oConfigSettings.ConfigDir + @"\substitutes.cfg");
+                                                            SubstituteRegExp.Instance.Clear();
+                                                            SubstituteRegExp.Instance.Load();
                                                             break;
                                                         }
 
@@ -728,19 +728,19 @@ public class Command
                                                     case "ignores":
                                                         {
                                                             EchoText("Gags Loaded" + System.Environment.NewLine);
-                                                            m_oGlobals.GagList.Clear();
-                                                            m_oGlobals.GagList.Load();
+                                                            GagRegExp.Instance.Clear();
+                                                            GagRegExp.Instance.Load();
                                                             break;
                                                         }
 
                                                     case "highlight":
                                                     case "highlights":
                                                         {
-                                                            m_oGlobals.HighlightList.Clear();
-                                                            m_oGlobals.HighlightRegExpList.Clear();
-                                                            m_oGlobals.HighlightBeginsWithList.Clear();
+                                                            HighlightsList.Instance.Clear();
+                                                            HighlightRegExpList.Instance.Clear();
+                                                            HighlightBeginsWithList.Instance.Clear();
                                                             EchoText("Highlights Loaded" + System.Environment.NewLine);
-                                                            m_oGlobals.LoadHighlights(m_oConfigSettings.ConfigDir + @"\highlights.cfg");
+                                                            HighlightBase.LoadHighlights();
                                                             break;
                                                         }
 
@@ -748,8 +748,8 @@ public class Command
                                                     case "names":
                                                         {
                                                             EchoText("Names Loaded" + System.Environment.NewLine);
-                                                            m_oGlobals.NameList.Clear();
-                                                            m_oGlobals.NameList.Load(m_oConfigSettings.ConfigDir + @"\names.cfg");
+                                                            Names.Instance.Clear();
+                                                            Names.Instance.Load();
                                                             break;
                                                         }
 
@@ -757,8 +757,8 @@ public class Command
                                                     case "presets":
                                                         {
                                                             EchoText("Presets Loaded" + System.Environment.NewLine);
-                                                            m_oGlobals.PresetList.Clear();
-                                                            m_oGlobals.PresetList.Load(m_oConfigSettings.ConfigDir + @"\presets.cfg");
+                                                            Presets.Instance.Clear();
+                                                            Presets.Instance.Load();
                                                             break;
                                                         }
 
@@ -780,39 +780,39 @@ public class Command
                                                     case "all":
                                                         {
                                                             EchoText("Variables Loaded" + System.Environment.NewLine);
-                                                            m_oGlobals.VariableList.ClearUser();
-                                                            m_oGlobals.VariableList.Load();
+                                                            Variables.Instance.ClearUser();
+                                                            Variables.Instance.Load();
                                                             EchoText("Aliases Loaded" + System.Environment.NewLine);
-                                                            m_oGlobals.AliasList.Clear();
-                                                            m_oGlobals.AliasList.Load();
+                                                            Aliases.Instance.Clear();
+                                                            Aliases.Instance.Load();
                                                             EchoText("Classes Loaded" + System.Environment.NewLine);
-                                                            m_oGlobals.ClassList.Clear();
-                                                            m_oGlobals.ClassList.Load();
+                                                            Classes.Instance.Clear();
+                                                            Classes.Instance.Load();
                                                             EchoText("Triggers Loaded" + System.Environment.NewLine);
-                                                            m_oGlobals.TriggerList.Clear();
-                                                            m_oGlobals.TriggerList.Load(m_oConfigSettings.ConfigDir + @"\triggers.cfg");
+                                                            Triggers.Instance.Clear();
+                                                            Triggers.Instance.Load();
                                                             EchoText("Settings Loaded" + System.Environment.NewLine);
-                                                            m_oConfigSettings.LoadSettings(m_oConfigSettings.ConfigDir + @"\settings.cfg");
+                                                            m_oConfigSettings.LoadSettings();
                                                             EchoText("Macros Loaded" + System.Environment.NewLine);
-                                                            m_oGlobals.MacroList.Clear();
-                                                            m_oGlobals.MacroList.Load();
+                                                            Macros.Instance.Clear();
+                                                            Macros.Instance.Load();
                                                             EchoText("Substitutes Loaded" + System.Environment.NewLine);
-                                                            m_oGlobals.SubstituteList.Clear();
-                                                            m_oGlobals.SubstituteList.Load(m_oConfigSettings.ConfigDir + @"\substitutes.cfg");
+                                                            SubstituteRegExp.Instance.Clear();
+                                                            SubstituteRegExp.Instance.Load();
                                                             EchoText("Gags Loaded" + System.Environment.NewLine);
-                                                            m_oGlobals.GagList.Clear();
-                                                            m_oGlobals.GagList.Load();
-                                                            m_oGlobals.HighlightList.Clear();
-                                                            m_oGlobals.HighlightRegExpList.Clear();
-                                                            m_oGlobals.HighlightBeginsWithList.Clear();
+                                                            GagRegExp.Instance.Clear();
+                                                            GagRegExp.Instance.Load();
+                                                            HighlightsList.Instance.Clear();
+                                                            HighlightRegExpList.Instance.Clear();
+                                                            HighlightBeginsWithList.Instance.Clear();
+                                                            HighlightBase.LoadHighlights();
                                                             EchoText("Highlights Loaded" + System.Environment.NewLine);
-                                                            m_oGlobals.LoadHighlights(m_oConfigSettings.ConfigDir + @"\highlights.cfg");
                                                             EchoText("Names Loaded" + System.Environment.NewLine);
-                                                            m_oGlobals.NameList.Clear();
-                                                            m_oGlobals.NameList.Load(m_oConfigSettings.ConfigDir + @"\names.cfg");
+                                                            Names.Instance.Clear();
+                                                            Names.Instance.Load();
                                                             EchoText("Presets Loaded" + System.Environment.NewLine);
-                                                            m_oGlobals.PresetList.Clear();
-                                                            m_oGlobals.PresetList.Load(m_oConfigSettings.ConfigDir + @"\presets.cfg");
+                                                            Presets.Instance.Clear();
+                                                            Presets.Instance.Load();
                                                             break;
                                                         }
                                                 }
@@ -853,7 +853,7 @@ public class Command
                                         if (oArgs.Count > 1)
                                         {
                                             // Send Text To Game
-                                            string argsText2 = m_oGlobals.ParseGlobalVars(ParseAllArgs(oArgs, 1));
+                                            string argsText2 = Globals.ParseGlobalVars(ParseAllArgs(oArgs, 1));
                                             bool argbUserInput = false;
                                             SendTextToGame(argsText2, argbUserInput, sOrigin);
                                         }
@@ -865,7 +865,7 @@ public class Command
                                 case "push":
                                     {
                                         // If oArgs.Count > 2 Then
-                                        // RaiseEvent EventCopyData(m_oGlobals.ParseGlobalVars(oArgs.Item(1).ToString).ToLower, m_oGlobals.ParseGlobalVars(Utility.ArrayToString(oArgs, 2)))
+                                        // RaiseEvent EventCopyData(Globals.ParseGlobalVars(oArgs.Item(1).ToString).ToLower, Globals.ParseGlobalVars(Utility.ArrayToString(oArgs, 2)))
                                         // End If
                                         sResult = "";
                                         break;
@@ -891,21 +891,21 @@ public class Command
                                                     case "load":
                                                         {
                                                             EchoText("Variables Loaded" + System.Environment.NewLine);
-                                                            m_oGlobals.VariableList.Load();
+                                                            Variables.Instance.Load();
                                                             break;
                                                         }
 
                                                     case "save":
                                                         {
                                                             EchoText("Variables Saved" + System.Environment.NewLine);
-                                                            m_oGlobals.VariableList.Save();
+                                                            Variables.Instance.Save();
                                                             break;
                                                         }
 
                                                     case "clear":
                                                         {
                                                             EchoText("Variables Cleared" + System.Environment.NewLine);
-                                                            m_oGlobals.VariableList.ClearUser();
+                                                            Variables.Instance.ClearUser();
                                                             break;
                                                         }
 
@@ -926,9 +926,9 @@ public class Command
                                         else
                                         {
                                             // Add
-                                            string argkey = m_oGlobals.ParseGlobalVars(oArgs[1].ToString());
-                                            string argvalue = m_oGlobals.ParseGlobalVars(ParseAllArgs(oArgs, 2));
-                                            m_oGlobals.VariableList.Add(argkey, argvalue);
+                                            string argkey = Globals.ParseGlobalVars(oArgs[1].ToString());
+                                            string argvalue = Globals.ParseGlobalVars(ParseAllArgs(oArgs, 2));
+                                            Variables.Instance.Add(argkey, argvalue);
                                             string argsVariable = "$" + oArgs[1].ToString();
                                             VariableChanged(argsVariable);
                                         }
@@ -947,9 +947,9 @@ public class Command
                                         else
                                         {
                                             // Add
-                                            string argkey1 = m_oGlobals.ParseGlobalVars(oArgs[1].ToString());
-                                            string argvalue1 = m_oGlobals.ParseGlobalVars(ParseAllArgs(oArgs, 2));
-                                            m_oGlobals.VariableList.Add(argkey1, argvalue1, Globals.Variables.VariableType.Temporary);
+                                            string argkey1 = Globals.ParseGlobalVars(oArgs[1].ToString());
+                                            string argvalue1 = Globals.ParseGlobalVars(ParseAllArgs(oArgs, 2));
+                                            Variables.Instance.Add(argkey1, argvalue1, Variables.VariablesType.Temporary);
                                             string argsVariable1 = "$" + oArgs[1].ToString();
                                             VariableChanged(argsVariable1);
                                         }
@@ -968,19 +968,19 @@ public class Command
                                         else
                                         {
                                             // Add
-                                            string sName = m_oGlobals.ParseGlobalVars(oArgs[1].ToString());
-                                            string sValue = m_oGlobals.ParseGlobalVars(ParseAllArgs(oArgs, 2));
+                                            string sName = Globals.ParseGlobalVars(oArgs[1].ToString());
+                                            string sValue = Globals.ParseGlobalVars(ParseAllArgs(oArgs, 2));
                                             string sCmdRaw = "<stgupd>";
-                                            if (m_oGlobals.VariableList.ContainsKey(sName))
+                                            if (Variables.Instance.ContainsKey(sName))
                                             {
-                                                if (m_oGlobals.VariableList.get_GetVariable(sName).oType == Globals.Variables.VariableType.Server)
+                                                if (Variables.Instance.get_GetVariable(sName).oType == Variables.VariablesType.Server)
                                                 {
-                                                    sCmdRaw += "<vars><<d><k name=\"" + sName + "\" value=\"" + m_oGlobals.VariableList[sName] + "\"/></<d></vars>";
+                                                    sCmdRaw += "<vars><<d><k name=\"" + sName + "\" value=\"" + Variables.Instance[sName] + "\"/></<d></vars>";
                                                 }
                                             }
 
                                             sCmdRaw += "<vars><<a><k name=\"" + sName + "\" value=\"" + sValue + "\"/></<a></vars>";
-                                            m_oGlobals.VariableList.Add(sName, sValue, Globals.Variables.VariableType.Server);
+                                            Variables.Instance.Add(sName, sValue, Variables.VariablesType.Server);
                                             string argsVariable2 = "$" + oArgs[1].ToString();
                                             VariableChanged(argsVariable2);
                                             /* TODO ERROR: Skipped IfDirectiveTrivia *//* TODO ERROR: Skipped DisabledTextTrivia *//* TODO ERROR: Skipped EndIfDirectiveTrivia */
@@ -998,16 +998,16 @@ public class Command
                                         if (oArgs.Count >= 1)
                                         {
                                             string sName = oArgs[1].ToString();
-                                            if (m_oGlobals.VariableList.ContainsKey(sName))
+                                            if (Variables.Instance.ContainsKey(sName))
                                             {
-                                                if (m_oGlobals.VariableList.get_GetVariable(sName).oType == Globals.Variables.VariableType.Server)
+                                                if (Variables.Instance.get_GetVariable(sName).oType == Variables.VariablesType.Server)
                                                 {
-                                                    string sCmdRaw = Conversions.ToString("<stgupd><vars><<d><k name=\"" + sName + "\" value=\"" + m_oGlobals.VariableList[sName] + "\"/></<d></vars>");
+                                                    string sCmdRaw = Conversions.ToString("<stgupd><vars><<d><k name=\"" + sName + "\" value=\"" + Variables.Instance[sName] + "\"/></<d></vars>");
                                                     /* TODO ERROR: Skipped IfDirectiveTrivia *//* TODO ERROR: Skipped DisabledTextTrivia *//* TODO ERROR: Skipped EndIfDirectiveTrivia */
                                                     EventSendRaw?.Invoke(sCmdRaw + Constants.vbLf);
                                                 }
 
-                                                m_oGlobals.VariableList.Remove(sName);
+                                                Variables.Instance.Remove(sName);
                                             }
                                         }
 
@@ -1018,7 +1018,7 @@ public class Command
                                     {
                                         if (oArgs.Count > 1)
                                         {
-                                            string argsText3 = m_oGlobals.ParseGlobalVars(Utility.ArrayToString(oArgs, 1));
+                                            string argsText3 = Globals.ParseGlobalVars(Utility.ArrayToString(oArgs, 1));
                                             sResult = Eval(argsText3);
                                             // EchoText("Eval Result: " & sResult & vbNewLine)
                                         }
@@ -1031,13 +1031,13 @@ public class Command
                                         if (oArgs.Count > 1)
                                         {
                                             double dValue;
-                                            if (!double.TryParse(Conversions.ToString(m_oGlobals.VariableList[oArgs[1].ToString()]), out dValue))
+                                            if (!double.TryParse(Conversions.ToString(Variables.Instance[oArgs[1].ToString()]), out dValue))
                                                 dValue = 0;
                                             try
                                             {
-                                                string argsExpression = m_oGlobals.ParseGlobalVars(Utility.ArrayToString(oArgs, 2));
+                                                string argsExpression = Globals.ParseGlobalVars(Utility.ArrayToString(oArgs, 2));
                                                 dValue = Utility.MathCalc(dValue, argsExpression);
-                                                m_oGlobals.VariableList.Add(oArgs[1].ToString(), dValue.ToString());
+                                                Variables.Instance.Add(oArgs[1].ToString(), dValue.ToString());
                                                 string argsVariable3 = "$" + oArgs[1].ToString();
                                                 VariableChanged(argsVariable3);
                                             }
@@ -1056,7 +1056,7 @@ public class Command
                                     {
                                         if (oArgs.Count > 1)
                                         {
-                                            string argsText4 = m_oGlobals.ParseGlobalVars(Utility.ArrayToString(oArgs, 1));
+                                            string argsText4 = Globals.ParseGlobalVars(Utility.ArrayToString(oArgs, 1));
                                             sResult = EvalMath(argsText4);
                                             // EchoText("Math Result: " & sResult & vbNewLine)
                                         }
@@ -1070,14 +1070,14 @@ public class Command
                                         {
                                             if (oArgs[1].ToString().StartsWith("#"))
                                             {
-                                                oArgs[1] = await ParseCommand(m_oGlobals.ParseGlobalVars(oArgs[1].ToString()));
+                                                oArgs[1] = await ParseCommand(Globals.ParseGlobalVars(oArgs[1].ToString()));
                                             }
 
-                                            if (EvalIf(m_oGlobals.ParseGlobalVars(oArgs[1])) == true)
+                                            if (EvalIf(Globals.ParseGlobalVars(oArgs[1])) == true)
                                             {
                                                 if (oArgs[2].ToString().StartsWith("#"))
                                                 {
-                                                    sResult = await ParseCommand(m_oGlobals.ParseGlobalVars(oArgs[2].ToString()));
+                                                    sResult = await ParseCommand(Globals.ParseGlobalVars(oArgs[2].ToString()));
                                                 }
                                                 else
                                                 {
@@ -1088,7 +1088,7 @@ public class Command
                                             {
                                                 if (oArgs[3].ToString().StartsWith("#"))
                                                 {
-                                                    sResult = await ParseCommand(m_oGlobals.ParseGlobalVars(oArgs[3].ToString()));
+                                                    sResult = await ParseCommand(Globals.ParseGlobalVars(oArgs[3].ToString()));
                                                 }
                                                 else
                                                 {
@@ -1109,14 +1109,14 @@ public class Command
                                             if (sAction.Trim().Length > 0)
                                             {
                                                 double argdSeconds = Utility.StringToDouble(oArgs[1].ToString());
-                                                m_oGlobals.Events.AddToQueue(argdSeconds, sAction);
+                                                Globals.Instance.Events.AddToQueue(argdSeconds, sAction);
                                             }
                                         }
                                         else if (oArgs.Count == 2)
                                         {
                                             if ((oArgs[1].ToString().ToLower() ?? "") == "clear")
                                             {
-                                                m_oGlobals.Events.EventList.Clear();
+                                                Globals.Instance.Events.EventList.Clear();
                                             }
                                             else
                                             {
@@ -1140,7 +1140,7 @@ public class Command
                                             if (sAction.Trim().Length > 0)
                                             {
                                                 double argdDelay = Utility.StringToDouble(oArgs[1].ToString());
-                                                m_oGlobals.CommandQueue.AddToQueue(argdDelay, sAction, false, false, false);
+                                                Globals.Instance.CommandQueue.AddToQueue(argdDelay, sAction, false, false, false);
                                             }
                                         }
                                         else if (oArgs.Count == 2)
@@ -1148,7 +1148,7 @@ public class Command
                                             if ((oArgs[1].ToString().ToLower() ?? "") == "clear")
                                             {
                                                 // EchoText("Queue Cleared" & vbNewLine)
-                                                m_oGlobals.CommandQueue.Clear();
+                                                Globals.Instance.CommandQueue.Clear();
                                             }
                                             else
                                             {
@@ -1180,21 +1180,21 @@ public class Command
                                                     case "load":
                                                         {
                                                             EchoText("Aliases Loaded" + System.Environment.NewLine);
-                                                            m_oGlobals.AliasList.Load();
+                                                            Aliases.Instance.Load();
                                                             break;
                                                         }
 
                                                     case "save":
                                                         {
                                                             EchoText("Aliases Saved" + System.Environment.NewLine);
-                                                            m_oGlobals.AliasList.Save();
+                                                            Aliases.Instance.Save();
                                                             break;
                                                         }
 
                                                     case "clear":
                                                         {
                                                             EchoText("Aliases Cleared" + System.Environment.NewLine);
-                                                            m_oGlobals.AliasList.Clear();
+                                                            Aliases.Instance.Clear();
                                                             break;
                                                         }
 
@@ -1215,7 +1215,7 @@ public class Command
                                         else
                                         {
                                             // TODO: #alias {asdf asdf} {asdf} does not work with GetArg/GetArg(sRow)
-                                            m_oGlobals.AliasList.Add(oArgs[1].ToString(), oArgs[2].ToString());
+                                            Aliases.Instance.Add(oArgs[1].ToString(), oArgs[2].ToString());
                                         }
 
                                         break;
@@ -1225,7 +1225,7 @@ public class Command
                                     {
                                         if (oArgs.Count > 1)
                                         {
-                                            m_oGlobals.AliasList.Remove(oArgs[1].ToString());
+                                            Aliases.Instance.Remove(oArgs[1].ToString());
                                         }
 
                                         break;
@@ -1249,12 +1249,12 @@ public class Command
                                                         if ((sItem.Substring(1).ToLower() ?? "") == "all")
                                                         {
                                                             EchoText("All Classes Activated" + System.Environment.NewLine);
-                                                            m_oGlobals.ClassList.ActivateAll();
+                                                            Classes.Instance.ActivateAll();
                                                         }
                                                         else
                                                         {
                                                             string argsValue = "True";
-                                                            m_oGlobals.ClassList.Add(sItem.Substring(1).ToLower(), argsValue);
+                                                            Classes.Instance.Add(sItem.Substring(1).ToLower(), argsValue);
                                                         }
                                                     }
                                                     else if (sItem.StartsWith("-") && sItem.Length > 1)
@@ -1262,12 +1262,12 @@ public class Command
                                                         if ((sItem.Substring(1).ToLower() ?? "") == "all")
                                                         {
                                                             EchoText("All Classes InActivated" + System.Environment.NewLine);
-                                                            m_oGlobals.ClassList.InActivateAll();
+                                                            Classes.Instance.InActivateAll();
                                                         }
                                                         else
                                                         {
                                                             string argsValue1 = "False";
-                                                            m_oGlobals.ClassList.Add(sItem.Substring(1).ToLower(), argsValue1);
+                                                            Classes.Instance.Add(sItem.Substring(1).ToLower(), argsValue1);
                                                         }
                                                     }
                                                 }
@@ -1282,7 +1282,7 @@ public class Command
                                                     case "load":
                                                         {
                                                             EchoText("Classes Loaded" + System.Environment.NewLine);
-                                                            m_oGlobals.ClassList.Load();
+                                                            Classes.Instance.Load();
                                                             EventClassChange?.Invoke();
                                                             break;
                                                         }
@@ -1290,14 +1290,14 @@ public class Command
                                                     case "save":
                                                         {
                                                             EchoText("Classes Saved" + System.Environment.NewLine);
-                                                            m_oGlobals.ClassList.Save();
+                                                            Classes.Instance.Save();
                                                             break;
                                                         }
 
                                                     case "clear":
                                                         {
                                                             EchoText("Classes Cleared" + System.Environment.NewLine);
-                                                            m_oGlobals.ClassList.Clear();
+                                                            Classes.Instance.Clear();
                                                             break;
                                                         }
 
@@ -1328,7 +1328,7 @@ public class Command
                                                         case "1":
                                                             {
                                                                 EchoText("All Classes Activated" + System.Environment.NewLine);
-                                                                m_oGlobals.ClassList.ActivateAll();
+                                                                Classes.Instance.ActivateAll();
                                                                 break;
                                                             }
 
@@ -1337,14 +1337,14 @@ public class Command
                                                         case "0":
                                                             {
                                                                 EchoText("All Classes InActivated" + System.Environment.NewLine);
-                                                                m_oGlobals.ClassList.InActivateAll();
+                                                                Classes.Instance.InActivateAll();
                                                                 break;
                                                             }
                                                     }
                                                 }
                                                 else
                                                 {
-                                                    m_oGlobals.ClassList.Add(oArgs[1].ToString(), oArgs[2].ToString());
+                                                    Classes.Instance.Add(oArgs[1].ToString(), oArgs[2].ToString());
                                                 }
 
                                                 EventClassChange?.Invoke();
@@ -1358,7 +1358,7 @@ public class Command
                                     {
                                         if (oArgs.Count > 1)
                                         {
-                                            m_oGlobals.AliasList.Remove(oArgs[1].ToString());
+                                            Aliases.Instance.Remove(oArgs[1].ToString());
                                         }
 
                                         break;
@@ -1381,21 +1381,21 @@ public class Command
                                                 case "load":
                                                     {
                                                         EchoText("Triggers Loaded" + System.Environment.NewLine);
-                                                        m_oGlobals.TriggerList.Load(m_oConfigSettings.ConfigDir + @"\triggers.cfg");
+                                                        Triggers.Instance.Load();
                                                         break;
                                                     }
 
                                                 case "save":
                                                     {
                                                         EchoText("Triggers Saved" + System.Environment.NewLine);
-                                                        m_oGlobals.TriggerList.Save(m_oConfigSettings.ConfigDir + @"\triggers.cfg");
+                                                        Triggers.Instance.Save();
                                                         break;
                                                     }
 
                                                 case "clear":
                                                     {
                                                         EchoText("Triggers Cleared" + System.Environment.NewLine);
-                                                        m_oGlobals.TriggerList.Clear();
+                                                        Triggers.Instance.Clear();
                                                         break;
                                                     }
 
@@ -1420,7 +1420,7 @@ public class Command
                                                 sClass = oArgs[3].ToString().Trim();
                                             }
 
-                                            if (m_oGlobals.AddTrigger(oArgs[1].ToString(), oArgs[2].ToString(), false, false, sClass) == false)
+                                            if (Triggers.Instance.AddTrigger(oArgs[1].ToString(), oArgs[2].ToString(), false, false, sClass) == false)
                                             {
                                                 EchoText("Invalid regexp in trigger: " + oArgs[1].ToString() + System.Environment.NewLine);
                                             }
@@ -1433,7 +1433,7 @@ public class Command
                                     {
                                         if (oArgs.Count > 1)
                                         {
-                                            m_oGlobals.TriggerList.Remove(oArgs[1].ToString());
+                                            Triggers.Instance.Remove(oArgs[1].ToString());
                                         }
 
                                         break;
@@ -1443,8 +1443,8 @@ public class Command
                                     {
                                         if (oArgs.Count > 2)
                                         {
-                                            string argsValue2 = await ParseCommand(m_oGlobals.ParseGlobalVars(oArgs[1].ToString()));
-                                            string argsValue3 = await ParseCommand(m_oGlobals.ParseGlobalVars(oArgs[2].ToString()));
+                                            string argsValue2 = await ParseCommand(Globals.ParseGlobalVars(oArgs[1].ToString()));
+                                            string argsValue3 = await ParseCommand(Globals.ParseGlobalVars(oArgs[2].ToString()));
                                             sResult = Utility.RandomNumber(Utility.StringToInteger(argsValue2), Utility.StringToInteger(argsValue3)).ToString();
                                         }
                                         else
@@ -1472,14 +1472,14 @@ public class Command
                                                 case "load":
                                                     {
                                                         EchoText("Settings Loaded" + System.Environment.NewLine);
-                                                        m_oConfigSettings.LoadSettings(m_oConfigSettings.ConfigDir + @"\settings.cfg");
+                                                        m_oConfigSettings.LoadSettings();
                                                         break;
                                                     }
 
                                                 case "save":
                                                     {
                                                         EchoText("Settings Saved" + System.Environment.NewLine);
-                                                        m_oConfigSettings.SaveSettings(m_oConfigSettings.ConfigDir + @"\settings.cfg");
+                                                        m_oConfigSettings.SaveSettings();
                                                         break;
                                                     }
 
@@ -1526,7 +1526,7 @@ public class Command
 
                                 case "parse":
                                     {
-                                        string argsText5 = m_oGlobals.ParseGlobalVars(GetArgumentString(sRow));
+                                        string argsText5 = Globals.ParseGlobalVars(GetArgumentString(sRow));
                                         ParseLine(argsText5);
                                         sResult = "";
                                         break;
@@ -1595,21 +1595,21 @@ public class Command
                                                     case "load":
                                                         {
                                                             EchoText("Macros Loaded" + System.Environment.NewLine);
-                                                            m_oGlobals.MacroList.Load();
+                                                            Macros.Instance.Load();
                                                             break;
                                                         }
 
                                                     case "save":
                                                         {
                                                             EchoText("Macros Saved" + System.Environment.NewLine);
-                                                            m_oGlobals.MacroList.Save();
+                                                            Macros.Instance.Save();
                                                             break;
                                                         }
 
                                                     case "clear":
                                                         {
                                                             EchoText("Macros Cleared" + System.Environment.NewLine);
-                                                            m_oGlobals.MacroList.Clear();
+                                                            Macros.Instance.Clear();
                                                             break;
                                                         }
 
@@ -1628,7 +1628,7 @@ public class Command
                                             }
                                         }
                                         // Add
-                                        else if (m_oGlobals.MacroList.Add(oArgs[1].ToString(), oArgs[2].ToString()) == false)
+                                        else if (Macros.Instance.Add(oArgs[1].ToString(), oArgs[2].ToString()) == false)
                                         {
                                             EchoText("Unknown key combination: " + oArgs[1].ToString() + System.Environment.NewLine);
                                         }
@@ -1640,7 +1640,7 @@ public class Command
                                     {
                                         if (oArgs.Count > 1)
                                         {
-                                            if (m_oGlobals.MacroList.Remove(oArgs[1].ToString()) == -1)
+                                            if (Macros.Instance.Remove(oArgs[1].ToString()) == -1)
                                             {
                                                 EchoText("Unknown key combination: " + oArgs[1].ToString() + System.Environment.NewLine);
                                             }
@@ -1673,21 +1673,21 @@ public class Command
                                                     case "load":
                                                         {
                                                             EchoText("Substitutes Loaded" + System.Environment.NewLine);
-                                                            m_oGlobals.SubstituteList.Load(m_oConfigSettings.ConfigDir + @"\substitutes.cfg");
+                                                            SubstituteRegExp.Instance.Load();
                                                             break;
                                                         }
 
                                                     case "save":
                                                         {
                                                             EchoText("Substitutes Saved" + System.Environment.NewLine);
-                                                            m_oGlobals.SubstituteList.Save(m_oConfigSettings.ConfigDir + @"\substitutes.cfg");
+                                                            SubstituteRegExp.Instance.Save();
                                                             break;
                                                         }
 
                                                     case "clear":
                                                         {
                                                             EchoText("Substitutes Cleared" + System.Environment.NewLine);
-                                                            m_oGlobals.SubstituteList.Clear();
+                                                            SubstituteRegExp.Instance.Clear();
                                                             break;
                                                         }
 
@@ -1711,14 +1711,14 @@ public class Command
                                             string sClass = string.Empty;
                                             if (oArgs.Count > 3)
                                             {
-                                                sClass = m_oGlobals.ParseGlobalVars(oArgs[3].ToString());
+                                                sClass = Globals.ParseGlobalVars(oArgs[3].ToString());
                                             }
 
-                                            string argsText6 = m_oGlobals.ParseGlobalVars(oArgs[1].ToString());
-                                            string argReplaceBy = m_oGlobals.ParseGlobalVars(oArgs[2].ToString());
-                                            if (m_oGlobals.SubstituteList.Add(argsText6, argReplaceBy, false, sClass, true) == false)
+                                            string argsText6 = Globals.ParseGlobalVars(oArgs[1].ToString());
+                                            string argReplaceBy = Globals.ParseGlobalVars(oArgs[2].ToString());
+                                            if (SubstituteRegExp.Instance.Add(argsText6, argReplaceBy, false, sClass, true) == false)
                                             {
-                                                EchoText("Invalid regexp in substitute: " + m_oGlobals.ParseGlobalVars(oArgs[1].ToString()) + System.Environment.NewLine);
+                                                EchoText("Invalid regexp in substitute: " + Globals.ParseGlobalVars(oArgs[1].ToString()) + System.Environment.NewLine);
                                             }
                                         }
 
@@ -1731,8 +1731,8 @@ public class Command
                                     {
                                         if (oArgs.Count > 1)
                                         {
-                                            string argText = m_oGlobals.ParseGlobalVars(oArgs[1].ToString());
-                                            m_oGlobals.SubstituteList.Remove(argText);
+                                            string argText = Globals.ParseGlobalVars(oArgs[1].ToString());
+                                            SubstituteRegExp.Instance.Remove(argText);
                                         }
 
                                         break;
@@ -1756,21 +1756,21 @@ public class Command
                                                 case "load":
                                                     {
                                                         EchoText("Gags Loaded" + System.Environment.NewLine);
-                                                        m_oGlobals.GagList.Load();
+                                                        GagRegExp.Instance.Load();
                                                         break;
                                                     }
 
                                                 case "save":
                                                     {
                                                         EchoText("Gags Saved" + System.Environment.NewLine);
-                                                        m_oGlobals.GagList.Save();
+                                                        GagRegExp.Instance.Save();
                                                         break;
                                                     }
 
                                                 case "clear":
                                                     {
                                                         EchoText("Gags Cleared" + System.Environment.NewLine);
-                                                        m_oGlobals.GagList.Clear();
+                                                        GagRegExp.Instance.Clear();
                                                         break;
                                                     }
 
@@ -1783,13 +1783,13 @@ public class Command
                                                 default:
                                                     {
                                                         // Add
-                                                        string argsText7 = m_oGlobals.ParseGlobalVars(oArgs[1].ToString());
+                                                        string argsText7 = Globals.ParseGlobalVars(oArgs[1].ToString());
                                                         string className = oArgs.Count > 2 ? oArgs[2].ToString() : string.Empty;
                                                         bool caseSensitive = oArgs.Count > 3 ? oArgs[3].ToString().ToUpper() == "TRUE" : false;
 
-                                                        if (m_oGlobals.GagList.Add(argsText7, caseSensitive, className) == false)
+                                                        if (GagRegExp.Instance.Add(argsText7, caseSensitive, className) == false)
                                                         {
-                                                            EchoText("Invalid regexp in gag: " + m_oGlobals.ParseGlobalVars(Utility.ArrayToString(oArgs, 1)) + System.Environment.NewLine);
+                                                            EchoText("Invalid regexp in gag: " + Globals.ParseGlobalVars(Utility.ArrayToString(oArgs, 1)) + System.Environment.NewLine);
                                                         }
 
                                                         break;
@@ -1817,7 +1817,7 @@ public class Command
                                                     case "load":
                                                         {
                                                             EchoText("Presets Loaded" + System.Environment.NewLine);
-                                                            m_oGlobals.PresetList.Load(m_oConfigSettings.ConfigDir + @"\presets.cfg");
+                                                            Presets.Instance.Load();
                                                             var loadVar = "all";
                                                             EventPresetChanged?.Invoke(loadVar);
                                                             break;
@@ -1826,14 +1826,14 @@ public class Command
                                                     case "save":
                                                         {
                                                             EchoText("Presets Saved" + System.Environment.NewLine);
-                                                            m_oGlobals.PresetList.Save(m_oConfigSettings.ConfigDir + @"\presets.cfg");
+                                                            Presets.Instance.Save();
                                                             break;
                                                         }
 
                                                     case "clear":
                                                         {
                                                             EchoText("Presets Cleared" + System.Environment.NewLine);
-                                                            m_oGlobals.PresetList.Clear();
+                                                            Presets.Instance.Clear();
                                                             var clearVar = "all";
                                                             EventPresetChanged?.Invoke(clearVar);
                                                             break;
@@ -1853,9 +1853,9 @@ public class Command
                                                 }
                                             }
                                         }
-                                        else if (m_oGlobals.PresetList.ContainsKey(oArgs[1].ToString().ToLower()))
+                                        else if (Presets.Instance.ContainsKey(oArgs[1].ToString().ToLower()))
                                         {
-                                            m_oGlobals.PresetList.Add(oArgs[1].ToString().ToLower(), oArgs[2].ToString());
+                                            Presets.Instance.Add(oArgs[1].ToString().ToLower(), oArgs[2].ToString());
                                             EventPresetChanged?.Invoke(oArgs[1].ToString().ToLower());
                                         }
                                         else
@@ -1873,8 +1873,8 @@ public class Command
                                     {
                                         if (oArgs.Count > 1)
                                         {
-                                            string argText1 = m_oGlobals.ParseGlobalVars(Utility.ArrayToString(oArgs, 1));
-                                            m_oGlobals.GagList.Remove(argText1);
+                                            string argText1 = Globals.ParseGlobalVars(Utility.ArrayToString(oArgs, 1));
+                                            GagRegExp.Instance.Remove(argText1);
                                         }
 
                                         break;
@@ -1895,24 +1895,24 @@ public class Command
                                                 case "load":
                                                     {
                                                         EchoText("Highlights Loaded" + System.Environment.NewLine);
-                                                        m_oGlobals.LoadHighlights(m_oConfigSettings.ConfigDir + @"\highlights.cfg");
+                                                        HighlightBase.LoadHighlights();
                                                         break;
                                                     }
 
                                                 case "save":
                                                     {
                                                         EchoText("Highlights Saved" + System.Environment.NewLine);
-                                                        m_oGlobals.SaveHighlights(m_oConfigSettings.ConfigDir + @"\highlights.cfg");
+                                                        HighlightBase.SaveHighlights();
                                                         break;
                                                     }
 
                                                 case "clear":
                                                     {
                                                         EchoText("Highlights Cleared" + System.Environment.NewLine);
-                                                        m_oGlobals.HighlightList.Clear();
-                                                        m_oGlobals.HighlightRegExpList.Clear();
-                                                        m_oGlobals.HighlightBeginsWithList.Clear();
-                                                        m_oGlobals.HighlightList.RebuildLineIndex();
+                                                        HighlightsList.Instance.Clear();
+                                                        HighlightRegExpList.Instance.Clear();
+                                                        HighlightBeginsWithList.Instance.Clear();
+                                                        HighlightsList.Instance.RebuildLineIndex();
                                                         break;
                                                     }
 
@@ -1927,15 +1927,15 @@ public class Command
                                                     {
                                                         if (oArgs.Count > 3)
                                                         {
-                                                            string argsKey = m_oGlobals.ParseGlobalVars(Utility.ArrayToString(oArgs, 3));
+                                                            string argsKey = Globals.ParseGlobalVars(Utility.ArrayToString(oArgs, 3));
                                                             bool highlightWholeRow = true;
-                                                            string color = m_oGlobals.ParseGlobalVars(oArgs[2].ToString());
+                                                            string color = Globals.ParseGlobalVars(oArgs[2].ToString());
                                                             bool caseSensitive = oArgs.Count > 4 ? oArgs[4].ToString().ToUpper() == "TRUE" : false;
                                                             string soundFile = oArgs.Count > 5 ? oArgs[5].ToString() : string.Empty;
                                                             string className = oArgs.Count > 6 ? oArgs[6].ToString() : string.Empty;
                                                             bool isActive = oArgs.Count > 7 ? oArgs[7].ToString().ToUpper() == "TRUE" : true;
-                                                            m_oGlobals.HighlightList.Add(argsKey, highlightWholeRow, color, caseSensitive, soundFile, className, isActive);
-                                                            m_oGlobals.HighlightList.RebuildLineIndex();
+                                                           HighlightsList.Instance.Add(argsKey, highlightWholeRow, color, caseSensitive, soundFile, className, isActive);
+                                                            HighlightsList.Instance.RebuildLineIndex();
                                                         }
 
                                                         break;
@@ -1946,15 +1946,15 @@ public class Command
                                                     {
                                                         if (oArgs.Count > 3)
                                                         {
-                                                            string highlightText = m_oGlobals.ParseGlobalVars(Utility.ArrayToString(oArgs, 3));
+                                                            string highlightText = Globals.ParseGlobalVars(Utility.ArrayToString(oArgs, 3));
                                                             bool highlightWholeRow = false;
-                                                            string color = m_oGlobals.ParseGlobalVars(oArgs[2].ToString());
+                                                            string color = Globals.ParseGlobalVars(oArgs[2].ToString());
                                                             bool caseSensitive = oArgs.Count > 4 ? oArgs[4].ToString().ToUpper() == "TRUE" : false;
                                                             string soundFile = oArgs.Count > 5 ? oArgs[5].ToString() : string.Empty;
                                                             string className = oArgs.Count > 6 ? oArgs[6].ToString() : string.Empty;
                                                             bool isActive = oArgs.Count > 7 ? oArgs[7].ToString().ToUpper() == "TRUE" : true;
-                                                            m_oGlobals.HighlightList.Add(highlightText, highlightWholeRow, color , caseSensitive, soundFile, className, isActive);
-                                                            m_oGlobals.HighlightList.RebuildStringIndex();
+                                                           HighlightsList.Instance.Add(highlightText, highlightWholeRow, color , caseSensitive, soundFile, className, isActive);
+                                                            HighlightsList.Instance.RebuildStringIndex();
                                                         }
 
                                                         break;
@@ -1964,13 +1964,13 @@ public class Command
                                                     {
                                                         if (oArgs.Count > 3)
                                                         {
-                                                            string beginsWithText = m_oGlobals.ParseGlobalVars(Utility.ArrayToString(oArgs, 3));
-                                                            string color = m_oGlobals.ParseGlobalVars(oArgs[2].ToString());
+                                                            string beginsWithText = Globals.ParseGlobalVars(Utility.ArrayToString(oArgs, 3));
+                                                            string color = Globals.ParseGlobalVars(oArgs[2].ToString());
                                                             bool caseSensitive = oArgs.Count > 4 ? oArgs[4].ToString().ToUpper() == "TRUE" : false;
                                                             string soundFile = oArgs.Count > 5 ? oArgs[5].ToString() : string.Empty;
                                                             string className = oArgs.Count > 6 ? oArgs[6].ToString() : string.Empty;
                                                             bool isActive = oArgs.Count > 7 ? oArgs[7].ToString().ToUpper() == "TRUE" : true;
-                                                            m_oGlobals.HighlightBeginsWithList.Add(beginsWithText, color, caseSensitive, soundFile, className, isActive);
+                                                            HighlightBeginsWithList.Instance.Add(beginsWithText, color, caseSensitive, soundFile, className, isActive);
                                                         }
 
                                                         break;
@@ -1981,20 +1981,20 @@ public class Command
                                                     {
                                                         if (oArgs.Count > 3)
                                                         {
-                                                            string argsRegExp = m_oGlobals.ParseGlobalVars(Utility.ArrayToString(oArgs, 3));
+                                                            string argsRegExp = Globals.ParseGlobalVars(Utility.ArrayToString(oArgs, 3));
                                                             if (Utility.ValidateRegExp(argsRegExp) == true)
                                                             {
-                                                                string regexPattern = m_oGlobals.ParseGlobalVars(Utility.ArrayToString(oArgs, 3));
-                                                                string color = m_oGlobals.ParseGlobalVars(oArgs[2].ToString());
+                                                                string regexPattern = Globals.ParseGlobalVars(Utility.ArrayToString(oArgs, 3));
+                                                                string color = Globals.ParseGlobalVars(oArgs[2].ToString());
                                                                 bool caseSensitive = oArgs.Count > 4 ? oArgs[4].ToString().ToUpper() == "TRUE" : false;
                                                                 string soundFile = oArgs.Count > 5 ? oArgs[5].ToString() : string.Empty;
                                                                 string className = oArgs.Count > 6 ? oArgs[6].ToString() : string.Empty;
                                                                 bool isActive = oArgs.Count > 7 ? oArgs[7].ToString().ToUpper() == "TRUE" : true;
-                                                                m_oGlobals.HighlightRegExpList.Add(regexPattern, color, caseSensitive, soundFile, className, isActive);
+                                                                HighlightRegExpList.Instance.Add(regexPattern, color, caseSensitive, soundFile, className, isActive);
                                                             }
                                                             else
                                                             {
-                                                                EchoText("Invalid RegExp in highlight: " + m_oGlobals.ParseGlobalVars(Utility.ArrayToString(oArgs, 3)) + System.Environment.NewLine);
+                                                                EchoText("Invalid RegExp in highlight: " + Globals.ParseGlobalVars(Utility.ArrayToString(oArgs, 3)) + System.Environment.NewLine);
                                                             }
                                                         }
 
@@ -2036,21 +2036,21 @@ public class Command
                                                     case "load":
                                                         {
                                                             EchoText("Names Loaded" + System.Environment.NewLine);
-                                                            m_oGlobals.NameList.Load(m_oConfigSettings.ConfigDir + @"\names.cfg");
+                                                            Names.Instance.Load();
                                                             break;
                                                         }
 
                                                     case "save":
                                                         {
                                                             EchoText("Names Saved" + System.Environment.NewLine);
-                                                            m_oGlobals.NameList.Save(m_oConfigSettings.ConfigDir + @"\names.cfg");
+                                                            Names.Instance.Save();
                                                             break;
                                                         }
 
                                                     case "clear":
                                                         {
                                                             EchoText("Names Cleared" + System.Environment.NewLine);
-                                                            m_oGlobals.NameList.Clear();
+                                                            Names.Instance.Clear();
                                                             break;
                                                         }
 
@@ -2072,8 +2072,8 @@ public class Command
                                         {
                                             // Add
                                             for (int I = 2, loopTo2 = oArgs.Count - 1; I <= loopTo2; I++)
-                                                m_oGlobals.NameList.Add(oArgs[I].ToString(), oArgs[1].ToString());
-                                            m_oGlobals.NameList.RebuildIndex();
+                                                Names.Instance.Add(oArgs[I].ToString(), oArgs[1].ToString());
+                                            Names.Instance.RebuildRegExIndex(); // Index is for the regex used to find colors
                                         }
 
                                         break;
@@ -2084,7 +2084,7 @@ public class Command
                                         if (oArgs.Count > 1)
                                         {
                                             for (int I = 1, loopTo3 = oArgs.Count - 1; I <= loopTo3; I++)
-                                                m_oGlobals.NameList.Remove(oArgs[I].ToString());
+                                                Names.Instance.Remove(oArgs[I].ToString());
                                         }
 
                                         break;
@@ -2094,7 +2094,7 @@ public class Command
                                     {
                                         if (oArgs.Count > 1)
                                         {
-                                            string sFile = m_oGlobals.ParseGlobalVars(Utility.ArrayToString(oArgs, 1));
+                                            string sFile = Globals.ParseGlobalVars(Utility.ArrayToString(oArgs, 1));
                                             if (sFile.ToLower().EndsWith($".{m_oConfigSettings.ScriptExtension}") == false & sFile.ToLower().EndsWith(".js") == false)
                                             {
                                                 sFile += $".{m_oConfigSettings.ScriptExtension}";
@@ -2128,7 +2128,7 @@ public class Command
                                                 string sTemp = "index.txt";
                                                 if (oArgs.Count > 2)
                                                 {
-                                                    sTemp = m_oGlobals.ParseGlobalVars(Utility.ArrayToString(oArgs, 2));
+                                                    sTemp = Globals.ParseGlobalVars(Utility.ArrayToString(oArgs, 2));
                                                 }
 
                                                 if (sTemp.ToLower().EndsWith(".txt") == false)
@@ -2138,14 +2138,14 @@ public class Command
 
                                                 if (sTemp.IndexOf(@"\") == -1)
                                                 {
-                                                    sTemp = Globals.LocalDirectoryPath + @"\Help\" + sTemp;
+                                                    sTemp = AppGlobals.LocalDirectoryPath + @"\Help\" + sTemp;
                                                 }
 
                                                 Interaction.Shell("\"" + m_oConfigSettings.Editor + "\" \"" + sTemp + "\"", 0, false);
                                             }
                                             else
                                             {
-                                                ShowHelp(m_oGlobals.ParseGlobalVars(Utility.ArrayToString(oArgs, 1)));
+                                                ShowHelp(Globals.ParseGlobalVars(Utility.ArrayToString(oArgs, 1)));
                                             }
                                         }
                                         else
@@ -2171,37 +2171,37 @@ public class Command
                                             {
                                                 case "abort":
                                                     {
-                                                        EventScriptAbort?.Invoke(m_oGlobals.ParseGlobalVars(Utility.ArrayToString(oArgs, 2)));
+                                                        EventScriptAbort?.Invoke(Globals.ParseGlobalVars(Utility.ArrayToString(oArgs, 2)));
                                                         break;
                                                     }
 
                                                 case "pause":
                                                     {
-                                                        EventScriptPause?.Invoke(m_oGlobals.ParseGlobalVars(Utility.ArrayToString(oArgs, 2)));
+                                                        EventScriptPause?.Invoke(Globals.ParseGlobalVars(Utility.ArrayToString(oArgs, 2)));
                                                         break;
                                                     }
 
                                                 case "pauseorresume":
                                                     {
-                                                        EventScriptPauseOrResume?.Invoke(m_oGlobals.ParseGlobalVars(Utility.ArrayToString(oArgs, 2)));
+                                                        EventScriptPauseOrResume?.Invoke(Globals.ParseGlobalVars(Utility.ArrayToString(oArgs, 2)));
                                                         break;
                                                     }
 
                                                 case "reload":
                                                     {
-                                                        EventScriptReload?.Invoke(m_oGlobals.ParseGlobalVars(Utility.ArrayToString(oArgs, 2)));
+                                                        EventScriptReload?.Invoke(Globals.ParseGlobalVars(Utility.ArrayToString(oArgs, 2)));
                                                         break;
                                                     }
 
                                                 case "resume":
                                                     {
-                                                        EventScriptResume?.Invoke(m_oGlobals.ParseGlobalVars(Utility.ArrayToString(oArgs, 2)));
+                                                        EventScriptResume?.Invoke(Globals.ParseGlobalVars(Utility.ArrayToString(oArgs, 2)));
                                                         break;
                                                     }
 
                                                 case "trace":
                                                     {
-                                                        EventScriptTrace?.Invoke(m_oGlobals.ParseGlobalVars(Utility.ArrayToString(oArgs, 2)));
+                                                        EventScriptTrace?.Invoke(Globals.ParseGlobalVars(Utility.ArrayToString(oArgs, 2)));
                                                         break;
                                                     }
 
@@ -2210,7 +2210,7 @@ public class Command
                                                     {
                                                         if (oArgs.Count > 3)
                                                         {
-                                                            EventScriptVariables?.Invoke(oArgs[2].ToString(), m_oGlobals.ParseGlobalVars(oArgs[3].ToString()));
+                                                            EventScriptVariables?.Invoke(oArgs[2].ToString(), Globals.ParseGlobalVars(oArgs[3].ToString()));
                                                         }
                                                         else if (oArgs.Count > 2)
                                                         {
@@ -2229,7 +2229,7 @@ public class Command
                                                     {
                                                         if (oArgs.Count > 2)
                                                         {
-                                                            EventScriptDebug?.Invoke(Conversions.ToInteger(Utility.StringToDouble(oArgs[2].ToString())), m_oGlobals.ParseGlobalVars(Utility.ArrayToString(oArgs, 3)));
+                                                            EventScriptDebug?.Invoke(Conversions.ToInteger(Utility.StringToDouble(oArgs[2].ToString())), Globals.ParseGlobalVars(Utility.ArrayToString(oArgs, 3)));
                                                         }
 
                                                         break;
@@ -2243,7 +2243,7 @@ public class Command
 
                                                 default:
                                                     {
-                                                        EventListScripts?.Invoke(m_oGlobals.ParseGlobalVars(Utility.ArrayToString(oArgs, 2)));
+                                                        EventListScripts?.Invoke(Globals.ParseGlobalVars(Utility.ArrayToString(oArgs, 2)));
                                                         break;
                                                     }
                                             }
@@ -2283,13 +2283,13 @@ public class Command
                                                 case "9":
                                                 case "10":
                                                     {
-                                                        StatusBar(m_oGlobals.ParseGlobalVars(ParseAllArgs(oArgs, 2)), int.Parse(oArgs[1].ToString()));
+                                                        StatusBar(Globals.ParseGlobalVars(ParseAllArgs(oArgs, 2)), int.Parse(oArgs[1].ToString()));
                                                         break;
                                                     }
 
                                                 default:
                                                     {
-                                                        StatusBar(m_oGlobals.ParseGlobalVars(ParseAllArgs(oArgs, 1)));
+                                                        StatusBar(Globals.ParseGlobalVars(ParseAllArgs(oArgs, 1)));
                                                         break;
                                                     }
                                             }
@@ -2307,13 +2307,13 @@ public class Command
                                             {
                                                 case "load":
                                                     {
-                                                        EventLoadLayout?.Invoke(m_oGlobals.ParseGlobalVars(ParseAllArgs(oArgs, 2)));
+                                                        EventLoadLayout?.Invoke(Globals.ParseGlobalVars(ParseAllArgs(oArgs, 2)));
                                                         break;
                                                     }
 
                                                 case "save":
                                                     {
-                                                        EventSaveLayout?.Invoke(m_oGlobals.ParseGlobalVars(ParseAllArgs(oArgs, 2)));
+                                                        EventSaveLayout?.Invoke(Globals.ParseGlobalVars(ParseAllArgs(oArgs, 2)));
                                                         break;
                                                     }
                                             }
@@ -2340,7 +2340,7 @@ public class Command
                                                         int sHeight = 200;
                                                         int sTop = 10;
                                                         int sLeft = 10;
-                                                        EventAddWindow?.Invoke(m_oGlobals.ParseGlobalVars(ParseAllArgs(oArgs, 2)), sWidth, sHeight, sTop, sLeft);
+                                                        EventAddWindow?.Invoke(Globals.ParseGlobalVars(ParseAllArgs(oArgs, 2)), sWidth, sHeight, sTop, sLeft);
                                                         break;
                                                     }
                                                 case "position":
@@ -2362,11 +2362,11 @@ public class Command
                                                             if (oArgs.Count > 5 && int.TryParse(oArgs[5].ToString(), out int top)) sTop = top;
                                                             if (oArgs.Count > 6 && int.TryParse(oArgs[6].ToString(), out int left)) sLeft = left;
 
-                                                            EventPositionWindow?.Invoke(m_oGlobals.ParseGlobalVars(oArgs[2].ToString()), sWidth, sHeight, sTop, sLeft);
+                                                            EventPositionWindow?.Invoke(Globals.ParseGlobalVars(oArgs[2].ToString()), sWidth, sHeight, sTop, sLeft);
                                                         }
                                                         catch(Exception ex)
                                                         {
-                                                            EchoColorText(ex.Message + System.Environment.NewLine, m_oGlobals.PresetList["scriptecho"].FgColor, m_oGlobals.PresetList["scriptecho"].BgColor, "");
+                                                            EchoColorText(ex.Message + System.Environment.NewLine, Presets.Instance["scriptecho"].FgColor, Presets.Instance["scriptecho"].BgColor, "");
                                                         }
                                                         break;
                                                     }
@@ -2374,26 +2374,26 @@ public class Command
 
                                                 case "remove":
                                                     {
-                                                        EventRemoveWindow?.Invoke(m_oGlobals.ParseGlobalVars(ParseAllArgs(oArgs, 2)));
+                                                        EventRemoveWindow?.Invoke(Globals.ParseGlobalVars(ParseAllArgs(oArgs, 2)));
                                                         break;
                                                     }
 
                                                 case "close":
                                                 case "hide":
                                                     {
-                                                        EventCloseWindow?.Invoke(m_oGlobals.ParseGlobalVars(ParseAllArgs(oArgs, 2)));
+                                                        EventCloseWindow?.Invoke(Globals.ParseGlobalVars(ParseAllArgs(oArgs, 2)));
                                                         break;
                                                     }
 
                                                 case "load":
                                                     {
-                                                        EventLoadLayout?.Invoke(m_oGlobals.ParseGlobalVars(ParseAllArgs(oArgs, 2)));
+                                                        EventLoadLayout?.Invoke(Globals.ParseGlobalVars(ParseAllArgs(oArgs, 2)));
                                                         break;
                                                     }
 
                                                 case "save":
                                                     {
-                                                        EventLoadLayout?.Invoke(m_oGlobals.ParseGlobalVars(ParseAllArgs(oArgs, 2)));
+                                                        EventLoadLayout?.Invoke(Globals.ParseGlobalVars(ParseAllArgs(oArgs, 2)));
                                                         break;
                                                     }
                                             }
@@ -2406,7 +2406,7 @@ public class Command
                                     {
                                         if (oArgs.Count > 2)
                                         {
-                                            EventChangeWindowTitle?.Invoke(oArgs[1].ToString(), m_oGlobals.ParseGlobalVars(ParseAllArgs(oArgs, 2)));
+                                            EventChangeWindowTitle?.Invoke(oArgs[1].ToString(), Globals.ParseGlobalVars(ParseAllArgs(oArgs, 2)));
                                         }
 
                                         break;
@@ -2464,25 +2464,25 @@ public class Command
                                             {
                                                 case "enable":
                                                     {
-                                                        EnablePlugin?.Invoke(m_oGlobals.ParseGlobalVars(ParseAllArgs(oArgs, 2)));
+                                                        EnablePlugin?.Invoke(Globals.ParseGlobalVars(ParseAllArgs(oArgs, 2)));
                                                         break;
                                                     }
 
                                                 case "disable":
                                                     {
-                                                        DisablePlugin?.Invoke(m_oGlobals.ParseGlobalVars(ParseAllArgs(oArgs, 2)));
+                                                        DisablePlugin?.Invoke(Globals.ParseGlobalVars(ParseAllArgs(oArgs, 2)));
                                                         break;
                                                     }
 
                                                 case "load":
                                                     {
-                                                        LoadPlugin?.Invoke(m_oGlobals.ParseGlobalVars(ParseAllArgs(oArgs, 2)));
+                                                        LoadPlugin?.Invoke(Globals.ParseGlobalVars(ParseAllArgs(oArgs, 2)));
                                                         break;
                                                     }
 
                                                 case "unload":
                                                     {
-                                                        UnloadPlugin?.Invoke(m_oGlobals.ParseGlobalVars(ParseAllArgs(oArgs, 2)));
+                                                        UnloadPlugin?.Invoke(Globals.ParseGlobalVars(ParseAllArgs(oArgs, 2)));
                                                         break;
                                                     }
 
@@ -2541,7 +2541,7 @@ public class Command
                     if (bSendToGame == true)
                     {
                         // Send Text To Game
-                        string argsText8 = m_oGlobals.ParseGlobalVars(sRow);
+                        string argsText8 = Globals.ParseGlobalVars(sRow);
                         SendTextToGame(argsText8, bUserInput, sOrigin);
                     }
 
@@ -2561,7 +2561,7 @@ public class Command
     {
         if (oArgs.Count > 1)
         {
-            string s = m_oGlobals.ParseGlobalVars(ParseAllArgs(oArgs, 1));
+            string s = Globals.ParseGlobalVars(ParseAllArgs(oArgs, 1));
             if ((s.ToLower() ?? "") == "clear")
             {
                 m_oGlobals.CommandQueue.Clear();
@@ -2600,7 +2600,7 @@ public class Command
     {
         if (oArgs.Count > 1)
         {
-            string s = m_oGlobals.ParseGlobalVars(ParseAllArgs(oArgs, 1));
+            string s = Globals.ParseGlobalVars(ParseAllArgs(oArgs, 1));
             if ((s.ToLower() ?? "") == "clear")
             {
                 m_oGlobals.CommandQueue.Clear();
@@ -2645,16 +2645,16 @@ public class Command
         else if (args.Count == 5)
         {
             // EchoText("Connect Command Received" & vbNewLine);
-            var arg1 = m_oGlobals.ParseGlobalVars(args[1].ToString());
-            var arg2 = m_oGlobals.ParseGlobalVars(args[2].ToString());
-            var arg3 = m_oGlobals.ParseGlobalVars(args[3].ToString());
-            var arg4 = m_oGlobals.ParseGlobalVars(args[4].ToString());
+            var arg1 = Globals.ParseGlobalVars(args[1].ToString());
+            var arg2 = Globals.ParseGlobalVars(args[2].ToString());
+            var arg3 = Globals.ParseGlobalVars(args[3].ToString());
+            var arg4 = Globals.ParseGlobalVars(args[4].ToString());
 
             EventConnect?.Invoke(arg1, arg2, arg3, arg4, isLich);
         }
         else if (args.Count == 2)
         {
-            var arg1 = m_oGlobals.ParseGlobalVars(args[1].ToString());
+            var arg1 = Globals.ParseGlobalVars(args[1].ToString());
             var argEmpty = "";
             EventConnect?.Invoke(arg1, argEmpty, argEmpty, argEmpty, isLich);
         }
@@ -2748,9 +2748,9 @@ public class Command
         var oArgs = new ArrayList();
         oArgs = Utility.ParseArgs(sText);
         string sKey = GetKeywordString(sText);
-        if (m_oGlobals.AliasList.ContainsKey(sKey) == true)
+        if (Aliases.Instance.ContainsKey(sKey) == true)
         {
-            sResult = Conversions.ToString(m_oGlobals.AliasList[sKey]);
+            sResult = Conversions.ToString(Aliases.Instance[sKey]);
             if (sResult.Contains("$") == true)
             {
                 sResult = sResult.Replace("$0", GetArgumentString(sText).Replace("\"", ""));
@@ -2784,7 +2784,7 @@ public class Command
                 sFile += ".txt";
             }
 
-            sFile = Globals.LocalDirectoryPath + @"\Help\" + sFile.Replace(" ", "_"); // Replace with "_" for sub categories
+            sFile = AppGlobals.LocalDirectoryPath + @"\Help\" + sFile.Replace(" ", "_"); // Replace with "_" for sub categories
         }
 
         try
@@ -2988,54 +2988,54 @@ public class Command
             EchoText("Filter: " + sPattern + System.Environment.NewLine);
         }
 
-        if (m_oGlobals.VariableList.AcquireReaderLock())
+        if (Variables.Instance.AcquireReaderLock())
         {
             try
             {
                 int I = 0;
-                foreach (DictionaryEntry de in m_oGlobals.VariableList)
+                foreach (DictionaryEntry de in Variables.Instance)
                 {
                     if (bUsePattern == false | de.Key.ToString().Contains(sPattern))
                     {
-                        if (((Globals.Variables.Variable)de.Value).oType == Globals.Variables.VariableType.SaveToFile)
+                        if (((Variables.Variable)de.Value).oType == Variables.VariablesType.SaveToFile)
                         {
-                            EchoText("$" + de.Key.ToString() + "=" + ((Globals.Variables.Variable)de.Value).sValue + System.Environment.NewLine);
+                            EchoText("$" + de.Key.ToString() + "=" + ((Variables.Variable)de.Value).sValue + System.Environment.NewLine);
                             I += 1;
                         }
                     }
                 }
 
-                foreach (DictionaryEntry de in m_oGlobals.VariableList)
+                foreach (DictionaryEntry de in Variables.Instance)
                 {
                     if (bUsePattern == false | de.Key.ToString().Contains(sPattern))
                     {
-                        if (((Globals.Variables.Variable)de.Value).oType == Globals.Variables.VariableType.Temporary)
+                        if (((Variables.Variable)de.Value).oType == Variables.VariablesType.Temporary)
                         {
-                            EchoText("(temporary) $" + de.Key.ToString() + "=" + ((Globals.Variables.Variable)de.Value).sValue + System.Environment.NewLine);
+                            EchoText("(temporary) $" + de.Key.ToString() + "=" + ((Variables.Variable)de.Value).sValue + System.Environment.NewLine);
                             I += 1;
                         }
                     }
                 }
 
-                foreach (DictionaryEntry de in m_oGlobals.VariableList)
+                foreach (DictionaryEntry de in Variables.Instance)
                 {
                     if (bUsePattern == false | de.Key.ToString().Contains(sPattern))
                     {
-                        if (((Globals.Variables.Variable)de.Value).oType == Globals.Variables.VariableType.Reserved)
+                        if (((Variables.Variable)de.Value).oType == Variables.VariablesType.Reserved)
                         {
-                            EchoText("(reserved) $" + de.Key.ToString() + "=" + ((Globals.Variables.Variable)de.Value).sValue + System.Environment.NewLine);
+                            EchoText("(reserved) $" + de.Key.ToString() + "=" + ((Variables.Variable)de.Value).sValue + System.Environment.NewLine);
                             I += 1;
                         }
                     }
                 }
 
-                foreach (DictionaryEntry de in m_oGlobals.VariableList)
+                foreach (DictionaryEntry de in Variables.Instance)
                 {
                     if (bUsePattern == false | de.Key.ToString().Contains(sPattern))
                     {
-                        if (((Globals.Variables.Variable)de.Value).oType == Globals.Variables.VariableType.Server)
+                        if (((Variables.Variable)de.Value).oType == Variables.VariablesType.Server)
                         {
-                            EchoText("(server) $" + de.Key.ToString() + "=" + ((Globals.Variables.Variable)de.Value).sValue + System.Environment.NewLine);
+                            EchoText("(server) $" + de.Key.ToString() + "=" + ((Variables.Variable)de.Value).sValue + System.Environment.NewLine);
                             I += 1;
                         }
                     }
@@ -3048,7 +3048,7 @@ public class Command
             }
             finally
             {
-                m_oGlobals.VariableList.ReleaseReaderLock();
+                Variables.Instance.ReleaseReaderLock();
             }
         }
         else
@@ -3067,15 +3067,15 @@ public class Command
             EchoText("Filter: " + sPattern + System.Environment.NewLine);
         }
 
-        if (m_oGlobals.SubstituteList.AcquireReaderLock())
+        if (SubstituteRegExp.Instance.AcquireReaderLock())
         {
             try
             {
                 int I = 0;
-                var myEnumeratorWords = m_oGlobals.SubstituteList.GetEnumerator();
+                var myEnumeratorWords = SubstituteRegExp.Instance.GetEnumerator();
                 while (myEnumeratorWords.MoveNext())
                 {
-                    Globals.SubstituteRegExp.Substitute o = (Globals.SubstituteRegExp.Substitute)myEnumeratorWords.Current;
+                    SubstituteRegExp.Substitute o = (SubstituteRegExp.Substitute)myEnumeratorWords.Current;
                     EchoText(o.sText + " => " + o.sReplaceBy + System.Environment.NewLine);
                     I += 1;
                 }
@@ -3087,7 +3087,7 @@ public class Command
             }
             finally
             {
-                m_oGlobals.SubstituteList.ReleaseReaderLock();
+                SubstituteRegExp.Instance.ReleaseReaderLock();
             }
         }
         else
@@ -3106,15 +3106,15 @@ public class Command
             EchoText("Filter: " + sPattern + System.Environment.NewLine);
         }
 
-        if (m_oGlobals.GagList.AcquireReaderLock())
+        if (GagRegExp.Instance.AcquireReaderLock())
         {
             try
             {
                 int I = 0;
-                var myEnumeratorWords = m_oGlobals.GagList.GetEnumerator();
+                var myEnumeratorWords = GagRegExp.Instance.GetEnumerator();
                 while (myEnumeratorWords.MoveNext())
                 {
-                    Globals.GagRegExp.Gag o = (Globals.GagRegExp.Gag)myEnumeratorWords.Current;
+                    GagRegExp.Gag o = (GagRegExp.Gag)myEnumeratorWords.Current;
                     EchoText(o.Text + System.Environment.NewLine);
                     I += 1;
                 }
@@ -3126,7 +3126,7 @@ public class Command
             }
             finally
             {
-                m_oGlobals.GagList.ReleaseReaderLock();
+                GagRegExp.Instance.ReleaseReaderLock();
             }
         }
         else
@@ -3145,12 +3145,12 @@ public class Command
             EchoText("Filter: " + sPattern + System.Environment.NewLine);
         }
 
-        if (m_oGlobals.NameList.AcquireReaderLock())
+        if (Names.Instance.AcquireReaderLock())
         {
             try
             {
                 int I = 0;
-                foreach (DictionaryEntry de in m_oGlobals.NameList)
+                foreach (DictionaryEntry de in Names.Instance)
                 {
                     if (bUsePattern == false | de.Value.ToString().Contains(sPattern))
                     {
@@ -3167,7 +3167,7 @@ public class Command
             }
             finally
             {
-                m_oGlobals.NameList.ReleaseReaderLock();
+                Names.Instance.ReleaseReaderLock();
             }
         }
         else
@@ -3186,17 +3186,17 @@ public class Command
             EchoText("Filter: " + sPattern + System.Environment.NewLine);
         }
 
-        if (m_oGlobals.PresetList.AcquireReaderLock())
+        if (Presets.Instance.AcquireReaderLock())
         {
             try
             {
                 int I = 0;
-                foreach (DictionaryEntry de in m_oGlobals.PresetList)
+                foreach (DictionaryEntry de in Presets.Instance)
                 {
                     if (bUsePattern == false | de.Value.ToString().Contains(sPattern))
                     {
                         string argsText = Conversions.ToString(de.Key) + System.Environment.NewLine;
-                        EchoColorText(argsText, ((Globals.Presets.Preset)de.Value).FgColor, ((Globals.Presets.Preset)de.Value).BgColor);
+                        EchoColorText(argsText, ((Presets.Preset)de.Value).FgColor, ((Presets.Preset)de.Value).BgColor);
                         I += 1;
                     }
                 }
@@ -3208,7 +3208,7 @@ public class Command
             }
             finally
             {
-                m_oGlobals.PresetList.ReleaseReaderLock();
+                Presets.Instance.ReleaseReaderLock();
             }
         }
         else
@@ -3227,21 +3227,21 @@ public class Command
             EchoText("Filter: " + sPattern + System.Environment.NewLine);
         }
 
-        if (m_oGlobals.HighlightList.AcquireReaderLock())
+        if (HighlightsList.Instance.AcquireReaderLock())
         {
             try
             {
                 EchoText("Highlight Strings: " + System.Environment.NewLine);
                 /* TODO ERROR: Skipped IfDirectiveTrivia *//* TODO ERROR: Skipped DisabledTextTrivia *//* TODO ERROR: Skipped EndIfDirectiveTrivia */
                 int I = 0;
-                foreach (DictionaryEntry de in m_oGlobals.HighlightList)
+                foreach (DictionaryEntry de in HighlightsList.Instance)
                 {
                     if (bUsePattern == false | de.Value.ToString().Contains(sPattern))
                     {
-                        if (((Highlights.Highlight)de.Value).HighlightWholeRow == false)
+                        if (((HighlightBase)de.Value).HighlightWholeRow == false)
                         {
-                            string argsText = Conversions.ToString("[" + ((Highlights.Highlight)de.Value).ClassName + ":" + Interaction.IIf(((Highlights.Highlight)de.Value).IsActive, "ON", "OFF") + "] " + Conversions.ToString(de.Key) + System.Environment.NewLine);
-                            EchoColorText(argsText, ((Highlights.Highlight)de.Value).FgColor, ((Highlights.Highlight)de.Value).BgColor);
+                            string argsText = Conversions.ToString("[" + ((HighlightBase)de.Value).ClassName + ":" + Interaction.IIf(((HighlightBase)de.Value).IsActive, "ON", "OFF") + "] " + Conversions.ToString(de.Key) + System.Environment.NewLine);
+                            EchoColorText(argsText, ((HighlightBase)de.Value).FgColor, ((HighlightBase)de.Value).BgColor);
                         }
 
                         I += 1;
@@ -3255,7 +3255,7 @@ public class Command
             }
             finally
             {
-                m_oGlobals.HighlightList.ReleaseReaderLock();
+                HighlightsList.Instance.ReleaseReaderLock();
             }
         }
         else
@@ -3263,21 +3263,21 @@ public class Command
             GenieError.Error("ListHighlights", "Unable to aquire reader lock.");
         }
 
-        if (m_oGlobals.HighlightList.AcquireReaderLock())
+        if (HighlightsList.Instance.AcquireReaderLock())
         {
             try
             {
                 int I = 0;
                 EchoText("Highlight Lines: " + System.Environment.NewLine);
                 /* TODO ERROR: Skipped IfDirectiveTrivia *//* TODO ERROR: Skipped DisabledTextTrivia *//* TODO ERROR: Skipped EndIfDirectiveTrivia */
-                foreach (DictionaryEntry de in m_oGlobals.HighlightList)
+                foreach (DictionaryEntry de in HighlightsList.Instance)
                 {
                     if (bUsePattern == false | de.Value.ToString().Contains(sPattern))
                     {
-                        if (((Highlights.Highlight)de.Value).HighlightWholeRow == true)
+                        if (((HighlightBase)de.Value).HighlightWholeRow == true)
                         {
-                            string argsText1 = Conversions.ToString("[" + ((Highlights.Highlight)de.Value).ClassName + ":" + Interaction.IIf(((Highlights.Highlight)de.Value).IsActive, "ON", "OFF") + "] " + Conversions.ToString(de.Key) + System.Environment.NewLine);
-                            EchoColorText(argsText1, ((Highlights.Highlight)de.Value).FgColor, ((Highlights.Highlight)de.Value).BgColor);
+                            string argsText1 = Conversions.ToString("[" + ((HighlightBase)de.Value).ClassName + ":" + Interaction.IIf(((HighlightBase)de.Value).IsActive, "ON", "OFF") + "] " + Conversions.ToString(de.Key) + System.Environment.NewLine);
+                            EchoColorText(argsText1, ((HighlightBase)de.Value).FgColor, ((HighlightBase)de.Value).BgColor);
                         }
 
                         I += 1;
@@ -3291,7 +3291,7 @@ public class Command
             }
             finally
             {
-                m_oGlobals.HighlightList.ReleaseReaderLock();
+               HighlightsList.Instance.ReleaseReaderLock();
             }
         }
         else
@@ -3299,17 +3299,17 @@ public class Command
             GenieError.Error("ListHighlights", "Unable to aquire reader lock.");
         }
 
-        if (m_oGlobals.HighlightBeginsWithList.AcquireReaderLock())
+        if (HighlightBeginsWithList.Instance.AcquireReaderLock())
         {
             try
             {
                 int I = 0;
                 EchoText("Highlight BeginsWith: " + System.Environment.NewLine);
-                foreach (DictionaryEntry de in m_oGlobals.HighlightBeginsWithList)
+                foreach (DictionaryEntry de in HighlightBeginsWithList.Instance)
                 {
                     if (bUsePattern == false | de.Value.ToString().Contains(sPattern))
                     {
-                        Globals.HighlightLineBeginsWith.Highlight oHighlight = (Globals.HighlightLineBeginsWith.Highlight)de.Value;
+                        HighlightBeginsWithList.Highlight oHighlight = (HighlightBeginsWithList.Highlight)de.Value;
                         string argsText2 = Conversions.ToString("[" + oHighlight.ClassName + ":" + Interaction.IIf(oHighlight.IsActive, "ON", "OFF") + "] " + Conversions.ToString(de.Key) + System.Environment.NewLine);
                         EchoColorText(argsText2, oHighlight.FgColor, oHighlight.BgColor);
                         I += 1;
@@ -3323,7 +3323,7 @@ public class Command
             }
             finally
             {
-                m_oGlobals.HighlightBeginsWithList.ReleaseReaderLock();
+                HighlightBeginsWithList.Instance.ReleaseReaderLock();
             }
         }
         else
@@ -3331,17 +3331,17 @@ public class Command
             GenieError.Error("ListHighlights", "Unable to aquire reader lock.");
         }
 
-        if (m_oGlobals.HighlightRegExpList.AcquireReaderLock())
+        if (HighlightRegExpList.Instance.AcquireReaderLock())
         {
             try
             {
                 int I = 0;
                 EchoText("Highlight RegExp: " + System.Environment.NewLine);
-                foreach (DictionaryEntry de in m_oGlobals.HighlightRegExpList)
+                foreach (DictionaryEntry de in HighlightRegExpList.Instance)
                 {
                     if (bUsePattern == false | de.Value.ToString().Contains(sPattern))
                     {
-                        Globals.HighlightRegExp.Highlight oHighlight = (Globals.HighlightRegExp.Highlight)de.Value;
+                        HighlightRegExpList.Highlight oHighlight = (HighlightRegExpList.Highlight)de.Value;
                         string argsText3 = Conversions.ToString("[" + oHighlight.ClassName + ":" + Interaction.IIf(oHighlight.IsActive, "ON", "OFF") + "] " + Conversions.ToString(de.Key) + System.Environment.NewLine);
                         EchoColorText(argsText3, oHighlight.FgColor, oHighlight.BgColor);
                         I += 1;
@@ -3355,7 +3355,7 @@ public class Command
             }
             finally
             {
-                m_oGlobals.HighlightRegExpList.ReleaseReaderLock();
+                HighlightRegExpList.Instance.ReleaseReaderLock();
             }
         }
         else
@@ -3374,12 +3374,12 @@ public class Command
             EchoText("Filter: " + sPattern + System.Environment.NewLine);
         }
 
-        if (m_oGlobals.MacroList.AcquireReaderLock())
+        if (Macros.Instance.AcquireReaderLock())
         {
             try
             {
                 int I = 0;
-                foreach (DictionaryEntry de in m_oGlobals.MacroList)
+                foreach (DictionaryEntry de in Macros.Instance)
                 {
                     if (bUsePattern == false | de.Value.ToString().Contains(sPattern))
                     {
@@ -3395,7 +3395,7 @@ public class Command
             }
             finally
             {
-                m_oGlobals.MacroList.ReleaseReaderLock();
+                Macros.Instance.ReleaseReaderLock();
             }
         }
         else
@@ -3414,16 +3414,16 @@ public class Command
             EchoText("Filter: " + sPattern + System.Environment.NewLine);
         }
 
-        if (m_oGlobals.TriggerList.AcquireReaderLock())
+        if (Triggers.Instance.AcquireReaderLock())
         {
             try
             {
                 int I = 0;
-                foreach (DictionaryEntry de in m_oGlobals.TriggerList)
+                foreach (DictionaryEntry de in Triggers.Instance)
                 {
                     if (bUsePattern == false | de.Key.ToString().Contains(sPattern))
                     {
-                        EchoText(de.Key.ToString() + "=" + ((Globals.Triggers.Trigger)de.Value).sAction + System.Environment.NewLine);
+                        EchoText(de.Key.ToString() + "=" + ((Triggers.Trigger)de.Value).sAction + System.Environment.NewLine);
                         I += 1;
                     }
                 }
@@ -3435,7 +3435,7 @@ public class Command
             }
             finally
             {
-                m_oGlobals.TriggerList.ReleaseReaderLock();
+                Triggers.Instance.ReleaseReaderLock();
             }
         }
         else
@@ -3454,12 +3454,12 @@ public class Command
             EchoText("Filter: " + sPattern + System.Environment.NewLine);
         }
 
-        if (m_oGlobals.AliasList.AcquireReaderLock())
+        if (Aliases.Instance.AcquireReaderLock())
         {
             try
             {
                 int I = 0;
-                foreach (DictionaryEntry de in m_oGlobals.AliasList)
+                foreach (DictionaryEntry de in Aliases.Instance)
                 {
                     if (bUsePattern == false | de.Key.ToString().Contains(sPattern))
                     {
@@ -3475,7 +3475,7 @@ public class Command
             }
             finally
             {
-                m_oGlobals.AliasList.ReleaseReaderLock();
+                Aliases.Instance.ReleaseReaderLock();
             }
         }
         else
@@ -3494,12 +3494,12 @@ public class Command
             EchoText("Filter: " + sPattern + System.Environment.NewLine);
         }
 
-        if (m_oGlobals.ClassList.AcquireReaderLock())
+        if (Classes.Instance.AcquireReaderLock())
         {
             try
             {
                 int I = 0;
-                foreach (DictionaryEntry de in m_oGlobals.ClassList)
+                foreach (DictionaryEntry de in Classes.Instance)
                 {
                     if (bUsePattern == false | de.Key.ToString().Contains(sPattern))
                     {
@@ -3515,7 +3515,7 @@ public class Command
             }
             finally
             {
-                m_oGlobals.ClassList.ReleaseReaderLock();
+                Classes.Instance.ReleaseReaderLock();
             }
         }
         else

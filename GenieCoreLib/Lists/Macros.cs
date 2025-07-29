@@ -1,7 +1,18 @@
-﻿namespace GenieCoreLib;
+﻿using System.IO;
+using System.Text;
+
+namespace GenieCoreLib;
 
 public class Macros : SortedList
 {
+    public static Macros Instance => m_Macros ??= new Macros();
+    private static Macros m_Macros;
+
+    public Macros()
+    {
+        m_Macros = this;
+    }
+
     public class Macro
     {
         public string sKey = string.Empty;
@@ -56,35 +67,29 @@ public class Macros : SortedList
             return 0;
         }
     }
-
-    private string m_FileName = Globals.LocalDirectoryPath + @"\Config\" + "macros.cfg";
-
-    public bool Load(string sFileName = null)
+    public bool Load()
+    {
+        return Load(Path.Combine(ConfigSettings.Instance.ConfigDir, "macros.cfg"));
+    }
+    public bool Load(string sFileName)
     {
         try
         {
-            if (Information.IsNothing(sFileName))
-            {
-                sFileName = m_FileName;
-            }
-
             if (sFileName.IndexOf(@"\") == -1)
             {
-                sFileName = Globals.LocalDirectoryPath + @"\Config\" + sFileName;
+                sFileName = Path.Combine(ConfigSettings.Instance.ConfigDir, sFileName);
             }
 
-            m_FileName = sFileName;
             if (File.Exists(sFileName) == true)
             {
-                var oStreamReader = new StreamReader(sFileName);
-                string strLine = oStreamReader.ReadLine();
-                while (!Information.IsNothing(strLine))
+                string[] lines = File.ReadAllLines(sFileName);
+                foreach (string strLine in lines)
                 {
-                    LoadRow(strLine);
-                    strLine = oStreamReader.ReadLine();
+                    if (strLine.StartsWith("#macro {") && strLine.EndsWith("}"))
+                    {
+                        LoadRow(strLine);
+                    }
                 }
-
-                oStreamReader.Close();
                 return true;
             }
             else
@@ -92,9 +97,7 @@ public class Macros : SortedList
                 return false;
             }
         }
-        #pragma warning disable CS0168
         catch (Exception Err)
-        #pragma warning restore CS0168
         {
             return false;
         }
@@ -114,49 +117,27 @@ public class Macros : SortedList
         }
     }
 
-    public bool Save(string sFileName = null)
+    public bool Save()
+    {
+        return Save(Path.Combine(ConfigSettings.Instance.ConfigDir, "macros.cfg"));
+    }
+    public bool Save(string sFileName)
     {
         try
         {
-            if (Information.IsNothing(sFileName))
+            if (sFileName.IndexOf(@"\") == -1 && sFileName.IndexOf(@"/") == -1)
             {
-                sFileName = m_FileName;
+                sFileName = Path.Combine(ConfigSettings.Instance.ConfigDir, sFileName);
             }
-
-            if (sFileName.IndexOf(@"\") == -1)
+            StringBuilder sb = new();
+            foreach (object key in base.Keys)
             {
-                sFileName = Globals.LocalDirectoryPath + @"\Config\" + sFileName;
+                sb.AppendLine("#macro {" + ((Keys)key).ToString() + "} {" + ((Macro)base[key]).sAction + "}");
             }
-
-            if (File.Exists(sFileName) == true)
-            {
-                Utility.DeleteFile(sFileName);
-            }
-
-            if (AcquireReaderLock())
-            {
-                try
-                {
-                    var oStreamWriter = new StreamWriter(sFileName, false);
-                    foreach (object key in base.Keys)
-                        oStreamWriter.WriteLine("#macro {" + ((Keys)Conversions.ToInteger(key)).ToString() + "} {" + ((Macro)base[key]).sAction + "}");
-                    oStreamWriter.Close();
-                }
-                finally
-                {
-                    ReleaseReaderLock();
-                }
-            }
-            else
-            {
-                throw new Exception("Unable to aquire reader lock.");
-            }
-
+            File.WriteAllText(sFileName, sb.ToString());
             return true;
         }
-        #pragma warning disable CS0168
         catch (Exception ex)
-        #pragma warning restore CS0168
         {
             return false;
         }

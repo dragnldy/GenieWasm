@@ -1,9 +1,20 @@
 ﻿using System.Collections;
+using System.IO;
+using System.Text;
+using static GenieCoreLib.Macros;
 
 namespace GenieCoreLib;
 
 public class Classes : SortedList
 {
+    public static Classes Instance => m_Classes ??= new Classes();
+    private static Classes m_Classes;
+
+    public Classes()
+    {
+        m_Classes = this;
+    }
+
     public void ActivateAll()
     {
         var oList = new ArrayList();
@@ -129,37 +140,32 @@ public class Classes : SortedList
         }
     }
 
-    private string m_FileName = Globals.LocalDirectoryPath + @"\Config\" + "classes.cfg";
-
-    public bool Load(string sFileName = null)
+    public bool Load()
+    {
+        return Load(Path.Combine(ConfigSettings.Instance.ConfigDir, "classes.cfg"));
+    }
+    public bool Load(string sFileName)
     {
         try
         {
-            if (Information.IsNothing(sFileName))
-            {
-                sFileName = m_FileName;
-            }
-
-            string argsKey = "default";
-            string argsValue = "True";
-            Add(argsKey, argsValue);
             if (sFileName.IndexOf(@"\") == -1)
             {
-                sFileName = Globals.LocalDirectoryPath + @"\Config\" + sFileName;
+                sFileName = Path.Combine(ConfigSettings.Instance.ConfigDir, sFileName);
             }
 
-            m_FileName = sFileName;
             if (File.Exists(sFileName) == true)
             {
-                var oStreamReader = new StreamReader(sFileName);
-                string strLine = oStreamReader.ReadLine();
-                while (!Information.IsNothing(strLine))
+                string argsKey = "default";
+                string argsValue = "True";
+                Add(argsKey, argsValue);
+                string[] lines = File.ReadAllLines(sFileName);
+                foreach (string strLine in lines)
                 {
-                    LoadRow(strLine);
-                    strLine = oStreamReader.ReadLine();
+                    if (strLine.StartsWith("#class {") && strLine.EndsWith("}"))
+                    {
+                        LoadRow(strLine);
+                    }
                 }
-
-                oStreamReader.Close();
                 return true;
             }
             else
@@ -167,9 +173,7 @@ public class Classes : SortedList
                 return false;
             }
         }
-        #pragma warning disable CS0168
         catch (Exception Err)
-        #pragma warning restore CS0168
         {
             return false;
         }
@@ -184,49 +188,27 @@ public class Classes : SortedList
         }
     }
 
-    public bool Save(string sFileName = null)
+    public bool Save()
+    {
+        return Save(Path.Combine(ConfigSettings.Instance.ConfigDir, "classes.cfg"));
+    }
+    public bool Save(string sFileName)
     {
         try
         {
-            if (Information.IsNothing(sFileName))
+            if (sFileName.IndexOf(@"\") == -1 && sFileName.IndexOf(@"/") == -1)
             {
-                sFileName = m_FileName;
+                sFileName = Path.Combine(ConfigSettings.Instance.ConfigDir, sFileName);
             }
-
-            if (sFileName.IndexOf(@"\") == -1)
+            StringBuilder sb = new();
+            foreach (object key in base.Keys)
             {
-                sFileName = Globals.LocalDirectoryPath + @"\Config\" + sFileName;
+                sb.AppendLine("#class {" + Conversions.ToString(key).ToString() + "} {" + Conversions.ToBoolean(base[key]).ToString() + "}");
             }
-
-            if (File.Exists(sFileName) == true)
-            {
-                Utility.DeleteFile(sFileName);
-            }
-
-            if (AcquireReaderLock())
-            {
-                try
-                {
-                    var oStreamWriter = new StreamWriter(sFileName, false);
-                    foreach (object key in base.Keys)
-                        oStreamWriter.WriteLine("#class {" + Conversions.ToString(key).ToString() + "} {" + Conversions.ToBoolean(base[key]).ToString() + "}");
-                    oStreamWriter.Close();
-                }
-                finally
-                {
-                    ReleaseReaderLock();
-                }
-            }
-            else
-            {
-                throw new Exception("Unable to aquire reader lock.");
-            }
-
+            File.WriteAllText(sFileName, sb.ToString());
             return true;
         }
-        #pragma warning disable CS0168
         catch (Exception ex)
-        #pragma warning restore CS0168
         {
             return false;
         }

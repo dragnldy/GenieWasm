@@ -2,7 +2,7 @@
 
     static class FileDirectory
     {
-    public static string Path => Globals.LocalDirectoryPath;
+    public static string Path => AppGlobals.LocalDirectoryPath;
         public static string ConfigPath => System.IO.Path.Combine(Path, "Config");
         public static string MacrosFileName => System.IO.Path.Combine(ConfigPath, "macros.cfg");
         public static string ClassesFileName => System.IO.Path.Combine(ConfigPath, "classes.cfg");
@@ -11,7 +11,7 @@
 
         public static void CheckUserDirectory()
         {
-            string dir = System.IO.Path.Combine(Globals.LocalDirectoryPath, "Config");
+            string dir = System.IO.Path.Combine(AppGlobals.LocalDirectoryPath, "Config");
             if (!System.IO.Directory.Exists(dir))
             {
                 // No local settings, change to user data directory
@@ -22,7 +22,7 @@
         public static void SetUserDataDirectory()
         {
             string dir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            dir = System.IO.Path.Combine(dir, Globals.LocalDirectoryPath);
+            dir = System.IO.Path.Combine(dir, AppGlobals.LocalDirectoryPath);
             if (!System.IO.Directory.Exists(dir))
             {
                 System.IO.Directory.CreateDirectory(dir);

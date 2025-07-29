@@ -764,14 +764,14 @@ public class Script
     {
         if (!Information.IsNothing(sVar) & !Information.IsNothing(sVal))
         {
-            if (m_oGlobals.VariableList.ContainsKey(sVar))
+            if (Variables.Instance.ContainsKey(sVar))
             {
-                m_oGlobals.VariableList[sVar] = sVal;
+                Variables.Instance[sVar] = sVal;
             }
             else
             {
                 string argvalue = Conversions.ToString(sVal);
-                m_oGlobals.VariableList.Add(sVar, argvalue);
+                Variables.Instance.Add(sVar, argvalue);
             }
         }
     }
@@ -2126,7 +2126,7 @@ public class Script
 
     private void SetBufferWait()
     {
-        if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(m_oGlobals.VariableList["connected"], 1, false)))
+        if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(Variables.Instance["connected"], 1, false)))
         {
             m_bBufferEnd = false;
         }
@@ -2300,9 +2300,9 @@ public class Script
 
     private string GetVariable(string sVar)
     {
-        if (m_oGlobals.VariableList.ContainsKey(sVar))
+        if (Variables.Instance.ContainsKey(sVar))
         {
-            return Conversions.ToString(m_oGlobals.VariableList[sVar]);
+            return Conversions.ToString(Variables.Instance[sVar]);
         }
 
         return string.Empty;
@@ -2358,7 +2358,7 @@ public class Script
                         {
                             if (p <= 0 || (sText.Substring(p - 1, 1) ?? "") != @"\")
                             {
-                                sText = sText.Substring(0, p) + m_oGlobals.ParseVariable(sText.Substring(p));
+                                sText = sText.Substring(0, p) + Globals.ParseVariable(sText.Substring(p));
                             }
 
                             break;
@@ -2373,7 +2373,7 @@ public class Script
         }
         else
         {
-            sText = m_oGlobals.ParseGlobalVars(sText);
+            sText = Globals.ParseGlobalVars(sText);
         }
 
         if (sText.Contains("@")) // On the fly variables and RegExpArgs
@@ -2389,7 +2389,7 @@ public class Script
                 sText = sText.Replace("@timer@", "0");
             }
 
-            sText = m_oGlobals.ParseSpecialVariables(sText);
+            sText = Globals.ParseSpecialVariables(sText);
         }
 
         return sText;
@@ -3432,14 +3432,14 @@ public class Script
             {   
                 DoCommandText = FullCommand;
                 DoCommandAdditionalRegex = "";
-                DoCommandRepeatRegex = m_oGlobals.VariableList["repeatregex"].ToString();
+                DoCommandRepeatRegex = Variables.Instance["repeatregex"].ToString();
             }
             else if(doRegex.Count == 1)
             {   
                 DoCommandText = doRegex[0].Captures[0].ToString();
                 DoCommandText = DoCommandText.Substring(1, DoCommandText.Length - 2);
                 DoCommandAdditionalRegex = "";
-                DoCommandRepeatRegex = m_oGlobals.VariableList["repeatregex"].ToString();
+                DoCommandRepeatRegex = Variables.Instance["repeatregex"].ToString();
             }
             else if(doRegex.Count > 1)
             {
@@ -3447,7 +3447,7 @@ public class Script
                 DoCommandText = DoCommandText.Substring(1, DoCommandText.Length - 2);
                 DoCommandAdditionalRegex = doRegex[1].Captures[0].ToString() ;
                 DoCommandAdditionalRegex = DoCommandAdditionalRegex.Substring(1, DoCommandAdditionalRegex.Length - 2);
-                DoCommandRepeatRegex = m_oGlobals.VariableList["repeatregex"].ToString() + "|" + DoCommandAdditionalRegex;
+                DoCommandRepeatRegex = Variables.Instance["repeatregex"].ToString() + "|" + DoCommandAdditionalRegex;
             }
             MatchList.Add(DoCommandRepeatRegex, GENIE_INTERNAL_ACTION_DO, true);
             SendText(DoCommandText, true, true);
@@ -4371,7 +4371,7 @@ public class Script
 
     private void PrintEcho(string sText)
     {
-        EventPrintText?.Invoke(sText + System.Environment.NewLine, m_oGlobals.PresetList["scriptecho"].FgColor, Color.Transparent);
+        EventPrintText?.Invoke(sText + System.Environment.NewLine, Presets.Instance["scriptecho"].FgColor, Color.Transparent);
     }
 
     private void SendText(string text, bool queue = false, bool docommand = false)

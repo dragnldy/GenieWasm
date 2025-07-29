@@ -9,11 +9,11 @@ public static class MyResources
 
     public static string GetApplicationName()
     {
-        return Globals.AppName;
+        return AppGlobals.AppName;
     }
     public static string GetApplicationVersion()
     {
-        return Globals.AppVersion;
+        return AppGlobals.AppVersion;
     }
     public static string StringResource(string resourceName)
     {

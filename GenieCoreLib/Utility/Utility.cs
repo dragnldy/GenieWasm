@@ -649,7 +649,7 @@ public class Utility
     public static string AssemblyCompanyName()
     {
         // Todo: Implement a way to retrieve the company name from the assembly.
-        return Globals.AppName;
+        return AppGlobals.AppName;
     }
 
     public static DateTime AssemblyBuildDate(System.Reflection.Assembly a)
@@ -775,10 +775,10 @@ public class Utility
     {
         try
         {
-            IEnumerable<string> files = Directory.EnumerateFiles(Globals.LocalDirectoryPath + @"\Config");
+            IEnumerable<string> files = Directory.EnumerateFiles(AppGlobals.LocalDirectoryPath + @"\Config");
             foreach (string file in files.Where(n => n.EndsWith(".layout")))
             {
-                MoveFile(file, Globals.LocalDirectoryPath + @"\Config\Layout\" + file);
+                MoveFile(file, AppGlobals.LocalDirectoryPath + @"\Config\Layout\" + file);
             }
         }
         #pragma warning disable CS0168
