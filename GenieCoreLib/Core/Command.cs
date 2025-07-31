@@ -1,6 +1,6 @@
-﻿using System.Collections;
-using System.Drawing;
+﻿using System.Drawing;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace GenieCoreLib;
 
@@ -199,7 +199,7 @@ public class Command
     public delegate void ListPluginsEventHandler();
     #endregion Events
 
-    public static Command GetInstance() => _m_oCommand ?? new Command();
+    public static Command Instance => _m_oCommand ?? new Command();
     private static Command _m_oCommand;
 
     private Game m_oGame;
@@ -216,7 +216,6 @@ public class Command
         m_oGlobals = Globals.Instance;
         m_oGame = Game.GetInstance();
         m_oEval = Evaluator.GetInstance();
-
     }
 
     public async Task<string> ParseCommand(string sText, bool bSendToGame = false, bool bUserInput = false, string sOrigin = "", bool bParseQuickSend = true)
@@ -2838,22 +2837,6 @@ public class Command
         SendText(sText, bUserInput, sOrigin);
     }
 
-    // Private Function ParseAllArgs(ByoList As ArrayList, Optional ByVal iStartIndex As Integer = 1) As String
-    // Dim sResult As String = String.Empty
-
-    // For i As Integer = iStartIndex To oList.Count - 1
-    // If Not IsNothing(oList.Item(i)) Then
-    // sResult &= " " & ParseCommand(oList.Item(i).ToString)
-    // End If
-    // Next
-
-    // If sResult.Length > 0 Then
-    // sResult = sResult.Substring(1) ' Remove first space
-    // End If
-
-    // Return sResult
-    // End Function
-
     private string ParseAllArgs(ArrayList oList, int iStartIndex = 1, bool bParseQuickSend = true)
     {
         string sResult = string.Empty;
@@ -2979,93 +2962,79 @@ public class Command
             EchoText(s + System.Environment.NewLine);
     }
 
-    private void ListAliases(string sPattern)
+    public string ListPresets(string sPattern)
+    {
+        string allVars = Presets.Instance.ListAll(sPattern);
+        if (!string.IsNullOrEmpty(allVars)) EchoText(allVars);
+        return allVars;
+    }
+    public string ListAliases(string sPattern)
     {
         string allVars = Aliases.Instance.ListAll(sPattern);
         if (!string.IsNullOrEmpty(allVars)) EchoText(allVars);
+        return allVars;
     }
-    private void ListSubstitutes(string sPattern)
-    {
-        string allVars = SubstituteRegExp.Instance.ListAll(sPattern);
-        if (!string.IsNullOrEmpty(allVars)) EchoText(allVars);
-    }
-    private void ListVariables(string sPattern)
-    {
-        string allVars = Variables.Instance.ListAll(sPattern);
-        if (!string.IsNullOrEmpty(allVars)) EchoText(allVars);
-    }
-    private void ListGags(string sPattern)
-    {
-        string allVars = GagRegExp.Instance.ListAll(sPattern);
-        if (!string.IsNullOrEmpty(allVars)) EchoText(allVars);
-    }
-    private void ListNames(string sPattern)
+    public string ListNames(string sPattern)
     {
         string allVars = Names.Instance.ListAll(sPattern);
         if (!string.IsNullOrEmpty(allVars)) EchoText(allVars);
+        return allVars;
     }
-
-    private void ListPresets(string sPattern)
-    {
-        string allVars = Presets.Instance.ListAll(sPattern);
-        if (!string.IsNullOrEmpty(allVars)) EchoText(allVars);
-    }
-
-    private void ListHighlights(string sPattern)
-    {
-        string allVars = Presets.Instance.ListAll(sPattern);
-        if (!string.IsNullOrEmpty(allVars)) EchoText(allVars);
-        /*
-        if (((HighlightBase)de.Value).HighlightWholeRow == false)
-        {
-            string argsText = Conversions.ToString("[" + ((HighlightBase)de.Value).ClassName + ":" + Interaction.IIf(((HighlightBase)de.Value).IsActive, "ON", "OFF") + "] " + Conversions.ToString(de.Key) + System.Environment.NewLine);
-            EchoColorText(argsText, ((HighlightBase)de.Value).FgColor, ((HighlightBase)de.Value).BgColor);
-        
-                        if (((HighlightBase)de.Value).HighlightWholeRow == true)
-                        {
-                            string argsText1 = Conversions.ToString("[" + ((HighlightBase)de.Value).ClassName + ":" + Interaction.IIf(((HighlightBase)de.Value).IsActive, "ON", "OFF") + "] " + Conversions.ToString(de.Key) + System.Environment.NewLine);
-                            EchoColorText(argsText1, ((HighlightBase)de.Value).FgColor, ((HighlightBase)de.Value).BgColor);
-                        }
-
-                            if (bUsePattern == false | de.Value.ToString().Contains(sPattern))
-                    {
-                        HighlightBeginsWithList.Highlight oHighlight = (HighlightBeginsWithList.Highlight)de.Value;
-                        string argsText2 = Conversions.ToString("[" + oHighlight.ClassName + ":" + Interaction.IIf(oHighlight.IsActive, "ON", "OFF") + "] " + Conversions.ToString(de.Key) + System.Environment.NewLine);
-                        EchoColorText(argsText2, oHighlight.FgColor, oHighlight.BgColor);
-                        I += 1;
-                        HighlightRegExpList.Highlight oHighlight = (HighlightRegExpList.Highlight)de.Value;
-                        string argsText3 = Conversions.ToString("[" + oHighlight.ClassName + ":" + Interaction.IIf(oHighlight.IsActive, "ON", "OFF") + "] " + Conversions.ToString(de.Key) + System.Environment.NewLine);
-                        EchoColorText(argsText3, oHighlight.FgColor, oHighlight.BgColor);
-                    }
-        }*/
-    }
-
-    private void ListMacros(string sPattern)
+    public string ListMacros(string sPattern)
     {
         string allVars = Macros.Instance.ListAll(sPattern);
         if (!string.IsNullOrEmpty(allVars)) EchoText(allVars);
+        return allVars;
     }
-    private void ListTriggers(string sPattern)
-    {
-        string allVars = Macros.Instance.ListAll(sPattern);
-        if (!string.IsNullOrEmpty(allVars)) EchoText(allVars);
-    }
-    private void ListClasses(string sPattern)
+    public string ListClasses(string sPattern)
     {
         string allVars = Classes.Instance.ListAll(sPattern);
         if (!string.IsNullOrEmpty(allVars)) EchoText(allVars);
+        return allVars;
     }
-    private void ListEvents(string sPattern)
+    public string ListTriggers(string sPattern)
+    {
+        string allVars = Triggers.Instance.ListAll(sPattern);
+        if (!string.IsNullOrEmpty(allVars)) EchoText(allVars);
+        return allVars;
+    }
+    public string ListGags(string sPattern)
+    {
+        string allVars = GagRegExp.Instance.ListAll(sPattern);
+        if (!string.IsNullOrEmpty(allVars)) EchoText(allVars);
+        return allVars;
+    }
+    public string ListEvents(string sPattern)
     {
         string allVars = QueueList.Instance.ListAll(sPattern);
         if (!string.IsNullOrEmpty(allVars)) EchoText(allVars);
-        /*
-        if (bUsePattern == false | ((Events.Queue.EventItem)m_oGlobals.Events.EventList.get_Item(I)).sAction.Contains(sPattern))
-        {
-            EchoText("(" + ((Events.Queue.EventItem)m_oGlobals.Events.EventList.get_Item(I)).oDate + ") " + ((Events.Queue.EventItem)m_oGlobals.Events.EventList.get_Item(I)).sAction + System.Environment.NewLine);
-
-        }*/
+        return allVars;
     }
+    public string ListSubstitutes(string sPattern)
+    {
+        string allVars = SubstituteRegExp.Instance.ListAll(sPattern);
+        if (!string.IsNullOrEmpty(allVars)) EchoText(allVars);
+        return allVars;
+    }
+    public string ListVariables(string sPattern)
+    {
+        string allVars = Variables.Instance.ListAll(sPattern);
+        if (!string.IsNullOrEmpty(allVars)) EchoText(allVars);
+        return allVars;
+    }
+    public string ListHighlights(string sPattern)
+    {
+        StringBuilder sb = new();
+        string allVars = HighlightsList.Instance.ListAll(sPattern);
+        sb.Append(allVars);
+        allVars = HighlightBeginsWithList.Instance.ListAll(sPattern);
+        sb.Append(allVars);
+        allVars = HighlightRegExpList.Instance.ListAll(sPattern);
+        sb.Append(allVars);
+        return sb.ToString();
+    }
+
+  
     private void ListCommandQueue(string sPattern)
     {
         ListEvents(sPattern);

@@ -31,6 +31,27 @@ public class HighlightBeginsWithList : SortedList
         {
             return $"Line Begins With: {Text} {base.ToFormattedString(sValuePattern)}";
         }
+        public string ToFileString(string sKey)
+        {
+            string sColorName = ColorName;
+            string sText = Text;
+            if (CaseSensitive == false)
+            {
+                sText = "/" + sText + "/i";
+            }
+
+            string sLine = "#highlight {beginswith} {" + sColorName + "} {" + sText + "}";
+            if (ClassName.Length > 0 || SoundFile.Length > 0)
+            {
+                sLine += " {" + ClassName + "}";
+            }
+
+            if (SoundFile.Length > 0)
+            {
+                sLine += " {" + SoundFile + "}";
+            }
+            return sLine;
+        }
 
     }
 
@@ -113,6 +134,14 @@ public class HighlightBeginsWithList : SortedList
 
             return true;
         }
+    }
+    public string ListSubset(string keyPattern)
+    {
+        return ListArray("HighlightsBeginWith", keyPattern);
+    }
+    public string ListAll(string keyPattern = "")
+    {
+        return ListSubset(keyPattern);
     }
 }
 

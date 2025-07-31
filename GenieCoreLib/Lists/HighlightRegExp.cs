@@ -45,6 +45,27 @@ public class HighlightRegExpList : SortedList
         {
             return $"Regular Expression: {Text} {base.ToFormattedString(sValuePattern)}";
         }
+        public string ToFileString(string sKey)
+        {
+            string sColorName = ColorName;
+            string sText = Text;
+            if (CaseSensitive == false)
+            {
+                sText = "/" + sText + "/i";
+            }
+
+            string sLine = "#highlight {regexp} {" + sColorName + "} {" + sText + "}";
+            if (ClassName.Length > 0 | SoundFile.Length > 0)
+            {
+                sLine += " {" + ClassName + "}";
+            }
+
+            if (SoundFile.Length > 0)
+            {
+                sLine += " {" + SoundFile + "}";
+            }
+            return sLine;
+        }
     }
 
     public void ToggleClass(string ClassName, bool Value)
@@ -126,5 +147,13 @@ public class HighlightRegExpList : SortedList
 
             return true;
         }
+    }
+    public string ListSubset(string keyPattern)
+    {
+        return ListArray("HighlightsRegExp", keyPattern);
+    }
+    public string ListAll(string keyPattern = "")
+    {
+        return ListSubset(keyPattern);
     }
 }

@@ -42,19 +42,15 @@ public class QueueList : ArrayList
                     (Restrictions.WaitForStunned && IsStunned) |
                     (Restrictions.WaitForWebbed && IsWebbed));
         }
-        public string ToFormattedString(string sValuePattern = "")
+        public string ToFormattedString()
         {
             string sFormatted = $"Delay: {Delay}, Action: {Action} Time: {DoDate}";
-            if (!string.IsNullOrEmpty(sValuePattern))
-            {
-                string sRestrictions = string.Empty +
+            string sRestrictions = string.Empty +
                     (Restrictions.WaitForStunned ? "Stunned" : string.Empty) +
                     (Restrictions.WaitForWebbed ? "Webbed" : string.Empty) +
                     (Restrictions.WaitForRoundtime ? "Roundtime" : string.Empty);
 
-                sFormatted += $"{sFormatted} Restrictions: {sRestrictions}";
-            }
-            return sFormatted;
+            return $"{sFormatted} Restrictions: {sRestrictions}";
         }
     }
     public class EventComparer : IComparer

@@ -39,7 +39,7 @@ public class SubstituteRegExp : ArrayList
             this.ClassName = ClassName;
             this.IsActive = IsActive;
         }
-        public string ToFormattedString(string sValuePattern)
+        public string ToFormattedString()
         {
             return $"Text: {sText}, ReplaceBy: {sReplaceBy}, IgnoreCase: {bIgnoreCase}, ClassName: {ClassName}, IsActive: {IsActive}";
         }
@@ -248,13 +248,13 @@ public class SubstituteRegExp : ArrayList
             return false;
         }
     }
-    public string ListSubset(string keyPattern = "", string valuePattern = "")
+    public string ListSubset(string keyPattern)
     {
-        return ListArray("Substitutes", keyPattern, valuePattern);
+        return ListArray("Substitutes", keyPattern);
     }
-    public string ListAll(string keyPattern = "", string valuePattern = "")
+    public string ListAll(string keyPattern = "")
     {
-        return ListSubset("");
+        return ListSubset(keyPattern);
     }
 
 }

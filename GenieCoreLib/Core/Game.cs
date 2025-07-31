@@ -10,9 +10,6 @@ namespace GenieCoreLib;
 
 public interface IGame
 {
-    Globals m_oGlobals { get; }
-    Config m_oConfig { get; }
-    ConfigSettings m_oConfigSettings { get; }
     void Connect(string sGenieKey, string sAccountName, string sPassword, string sCharacter, string sGame);
     void DirectConnect(string Character, string Game, string Host, int Port, string Key);
     void Disconnect(bool ExitOnDisconnect = false);
@@ -25,10 +22,6 @@ public class Game : IGame
 {
     public static Game GetInstance() => _m_oGame ?? new Game();
     private static Game _m_oGame;
-
-    public Globals m_oGlobals => Globals.Instance;
-    public Config m_oConfig => Config.GetInstance();
-    public ConfigSettings m_oConfigSettings => ConfigSettings.GetInstance();
 
     public Game()
     {
@@ -415,7 +408,7 @@ public class Game : IGame
         string sShowText = sText;
         if (!m_oSocket.IsConnected)
         {
-            if (!sText.StartsWith(Conversions.ToString(m_oConfigSettings.MyCommandChar)))
+            if (!sText.StartsWith(ConfigSettings.Instance.MyCommandChar.ToString()))
             {
                 sShowText = "(" + sShowText + ")";
             }
@@ -475,7 +468,7 @@ public class Game : IGame
             {
                 color = Presets.Instance["inputuser"].FgColor;
                 bgcolor = Presets.Instance["inputuser"].BgColor;
-                if (!sText.StartsWith(Conversions.ToString(m_oConfigSettings.MyCommandChar))) // Skip user commands
+                if (!sText.StartsWith(ConfigSettings.Instance.MyCommandChar.ToString())) // Skip user commands
                 {
                     Variables.Instance["lastinput"] = sText;
                     var lastinputVar = "lastinput";
@@ -493,7 +486,7 @@ public class Game : IGame
             PrintInputText(argsText, color, bgcolor);
         }
 
-        if (!sText.StartsWith(Conversions.ToString(m_oConfigSettings.MyCommandChar))) // Skip user commands
+        if (!sText.StartsWith(ConfigSettings.Instance.MyCommandChar.ToString())) // Skip user commands
         {
             m_oLastUserActivity = DateTime.Now;
             m_oSocket.Send(sText + Constants.vbCrLf);
@@ -502,7 +495,7 @@ public class Game : IGame
             EventVariableChanged?.Invoke(lastCommandVar);
         }
 
-        if (m_oConfigSettings.AutoLog == true)
+        if (ConfigSettings.Instance.AutoLog == true)
         {
             Log.LogText(sShowText + System.Environment.NewLine, Conversions.ToString(Variables.Instance["charactername"]), Conversions.ToString(Variables.Instance["game"]));
         }
@@ -595,7 +588,7 @@ public class Game : IGame
                                     default:
                                         break;
                                 }
-                                m_oGlobals.VolatileHighlights.Add(new VolatileHighlight(sTmp, presetLabel, sTextBuffer.Length));
+                                Globals.Instance.VolatileHighlights.Add(new VolatileHighlight(sTmp, presetLabel, sTextBuffer.Length));
                                 if(presetLabel == "roomdesc")
                                 {
                                     PrintTextWithParse(sTmp, bIsPrompt: false, oWindowTarget: 0);
@@ -612,10 +605,10 @@ public class Game : IGame
                                 if (!string.IsNullOrWhiteSpace(sBoldBuffer))
                                 {
                                     sBoldBuffer = ParseSubstitutions(sBoldBuffer);
-                                    m_oGlobals.VolatileHighlights.Add(new VolatileHighlight(sBoldBuffer, "creatures", iBoldIndex));
+                                    Globals.Instance.VolatileHighlights.Add(new VolatileHighlight(sBoldBuffer, "creatures", iBoldIndex));
                                 }
                             }
-                            if (m_bBold & !m_oConfigSettings.Condensed)
+                            if (m_bBold & !ConfigSettings.Instance.Condensed)
                             {
                                 if (sTextBuffer.StartsWith("< ") | sTextBuffer.StartsWith("> ") | sTextBuffer.StartsWith("* "))
                                 {
@@ -771,7 +764,7 @@ public class Game : IGame
             {
                 if (sBoldBuffer.EndsWith("\r\n")) sBoldBuffer = sBoldBuffer.Substring(0, sBoldBuffer.Length - "\r\n".Length);
                 sBoldBuffer = ParseSubstitutions(sBoldBuffer);
-                m_oGlobals.VolatileHighlights.Add(new VolatileHighlight(sBoldBuffer, "creatures", iBoldIndex)); //trim because excessive whitespace seems to be breaking this
+                Globals.Instance.VolatileHighlights.Add(new VolatileHighlight(sBoldBuffer, "creatures", iBoldIndex)); //trim because excessive whitespace seems to be breaking this
                 sBoldBuffer = string.Empty;
             }
 
@@ -888,7 +881,7 @@ public class Game : IGame
                     m_bUpdatingRoom = false;
                     UpdateRoom();
                 }
-                m_oGlobals.VolatileHighlights.Clear();
+                Globals.Instance.VolatileHighlights.Clear();
             }
             finally
             {
@@ -1194,12 +1187,12 @@ public class Game : IGame
                             {
                                 if (strRow.IndexOf("GAMEHOST=") > -1)
                                 {
-                                        m_sConnectHost = IsLich ? m_oConfigSettings.LichServer : strRow.Substring(9);
+                                        m_sConnectHost = IsLich ? ConfigSettings.Instance.LichServer : strRow.Substring(9);
 
                                     }
                                 else if (strRow.IndexOf("GAMEPORT=") > -1)
                                 {
-                                        m_sConnectPort = IsLich ? m_oConfigSettings.LichPort : int.Parse(strRow.Substring(9));
+                                        m_sConnectPort = IsLich ? ConfigSettings.Instance.LichPort : int.Parse(strRow.Substring(9));
                                     }
                                 else if (strRow.IndexOf("KEY=") > -1)
                                 {
@@ -1263,7 +1256,7 @@ public class Game : IGame
                         if ((oXmlNode.ParentNode.Name ?? "") != "component")
                         {
                             string sText = GetTextFromXML(oXmlNode);
-                            if (m_oConfigSettings.ShowLinks)
+                            if (ConfigSettings.Instance.ShowLinks)
                             {
                                 string argstrAttributeName = "cmd";
                                 string sCmd = GetAttributeData(oXmlNode, argstrAttributeName);
@@ -1323,7 +1316,7 @@ public class Game : IGame
                     }
                 case "resource":
                     {
-                        if (!m_oConfigSettings.ShowImages) break;
+                        if (!ConfigSettings.Instance.ShowImages) break;
                         var attribute = GetAttributeData(oXmlNode, "picture");
                         if (!string.IsNullOrEmpty(attribute) && attribute != "0") 
                         {
@@ -1331,7 +1324,7 @@ public class Game : IGame
                             string gamecode = "DR"; //default DR
                             if (AccountGame.StartsWith("GS")) gamecode = "GS";
                             // ToDo: Check if the image exists in the art directory
-                            // if (FileHandler.FetchImage(attribute, m_oConfigSettings.ArtDir, gamecode).Result) AddImage(Path.Combine(gamecode, attribute), "portrait");
+                            // if (FileHandler.FetchImage(attribute, ConfigSettings.Instance.ArtDir, gamecode).Result) AddImage(Path.Combine(gamecode, attribute), "portrait");
                         }
                         break;
                     }
@@ -2179,7 +2172,7 @@ public class Game : IGame
                             {
                                 strBuffer += "DEAD";
                             }
-                            else if (m_oConfigSettings.PromptForce == true)
+                            else if (ConfigSettings.Instance.PromptForce == true)
                             {
                                 if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(m_oIndicatorHash[Indicator.Kneeling], true, false)))
                                 {
@@ -2269,9 +2262,9 @@ public class Game : IGame
                             if (rt > 0)
                             {
                                 SetRoundTime(rt);
-                                if (m_bStatusPromptEnabled == false && (m_oConfigSettings.PromptForce == true))
+                                if (m_bStatusPromptEnabled == false && (ConfigSettings.Instance.PromptForce == true))
                                     strBuffer += "R";
-                                rt += Convert.ToInt32(m_oConfigSettings.RTOffset);
+                                rt += Convert.ToInt32(ConfigSettings.Instance.RTOffset);
                                 var rtString = rt.ToString();
                                 string argkey42 = "roundtime";
                                 Variables.Instance.Add(argkey42, rtString, Variables.VariablesType.Reserved);
@@ -2292,10 +2285,10 @@ public class Game : IGame
                                 m_iCastTime = 0;
                             }
 
-                            if (m_oConfigSettings.Prompt.Length > 0 && !m_bLastRowWasPrompt)
+                            if (ConfigSettings.Instance.Prompt.Length > 0 && !m_bLastRowWasPrompt)
                             {
-                                strBuffer = strBuffer.Replace(m_oConfigSettings.Prompt.Trim(), "");
-                                strBuffer += m_oConfigSettings.Prompt;
+                                strBuffer = strBuffer.Replace(ConfigSettings.Instance.Prompt.Trim(), "");
+                                strBuffer += ConfigSettings.Instance.Prompt;
                                 bool argbIsPrompt = true;
                                 WindowTarget argoWindowTarget = 0;
                                 //Status prompt set from the XML printing to main/game 
@@ -2547,26 +2540,26 @@ public class Game : IGame
     private static int tagOffset = "<pushBold /><popBold />".Length;
     private void SetRoomObjects(XmlNode oXmlNode)
     {
-        m_oGlobals.RoomObjects.Clear();
+        Globals.Instance.RoomObjects.Clear();
         foreach (Match roomObject in m_RoomObjectsRegex.Matches(oXmlNode.InnerXml))
         {
-            int position = roomObject.Index - (tagOffset * m_oGlobals.RoomObjects.Count);
+            int position = roomObject.Index - (tagOffset * Globals.Instance.RoomObjects.Count);
             VolatileHighlight highlight = new VolatileHighlight(ParseSubstitutions(roomObject.Groups[1].Value), "creatures", position);
-            m_oGlobals.RoomObjects.Add(highlight);
+            Globals.Instance.RoomObjects.Add(highlight);
         }
     }
     private int CountMonsters(XmlNode oXmlNode)
     {
         int iMonsterCount = 0;
         string sMonsterList = string.Empty;
-        m_oGlobals.MonsterList.Clear();
+        Globals.Instance.MonsterList.Clear();
         foreach (Match m in m_MonsterRegex.Matches(oXmlNode.InnerXml.Replace(" and ", ", ").Replace(" and <pushBold />", ", <pushBold />")))
         {
             var sValue = m.Groups[1].Value + m.Groups[2].Value;
             // PrintText(sValue & vbNewLine)
 
             bool bIgnore = false;
-            foreach (string sIgnore in m_oConfigSettings.IgnoreMonsterList.Split('|'))
+            foreach (string sIgnore in ConfigSettings.Instance.IgnoreMonsterList.Split('|'))
             {
                 if (Conversions.ToBoolean(sValue.Contains(sIgnore)))
                 {
@@ -2586,13 +2579,13 @@ public class Game : IGame
                 sMonsterList += sValue.ToString().Trim();
             }
 
-            if (!m_oGlobals.MonsterList.Contains(sValue.ToString().Trim()))
+            if (!Globals.Instance.MonsterList.Contains(sValue.ToString().Trim()))
             {
-                m_oGlobals.MonsterList.Add(sValue.ToString().Trim());
+                Globals.Instance.MonsterList.Add(sValue.ToString().Trim());
             }
         }
 
-        m_oGlobals.UpdateMonsterListRegEx();
+        Globals.Instance.UpdateMonsterListRegEx();
         string argkey = "monsterlist";
         Variables.Instance.Add(argkey, sMonsterList, Variables.VariablesType.Reserved);
         string argsVariable = "monsterlist";
@@ -2755,7 +2748,7 @@ public class Game : IGame
                                 bgcolor = o.BgColor;
                                 m_oLastFgColor = color;
                                 // ToDo: Figure out way to call back to platform specific sound player
-                                //if (o.SoundFile.Length > 0 && m_oConfigSettings.PlaySounds)
+                                //if (o.SoundFile.Length > 0 && ConfigSettings.Instance.PlaySounds)
                                 //    Sound.PlayWaveFile(o.SoundFile);
                             }
                         }
@@ -2785,7 +2778,7 @@ public class Game : IGame
                         bgcolor = oHighlightString.BgColor;
                         m_oLastFgColor = color;
                         // ToDo: Figure out way to call back to platform specific sound player
-                        //if (oHighlightString.SoundFile.Length > 0 && m_oConfigSettings.PlaySounds)
+                        //if (oHighlightString.SoundFile.Length > 0 && ConfigSettings.Instance.PlaySounds)
                         //    Sound.PlayWaveFile(oHighlightString.SoundFile);
                     }
                 }
@@ -2805,7 +2798,7 @@ public class Game : IGame
 
     private void PrintTextToWindow(string text, Color color, Color bgcolor, WindowTarget targetwindow = WindowTarget.Main, bool isprompt = false, bool isroomoutput = false)
     {
-        if (text.Length == 0 || (!isroomoutput && m_oConfigSettings.Condensed && text.Trim().Length == 0))
+        if (text.Length == 0 || (!isroomoutput && ConfigSettings.Instance.Condensed && text.Trim().Length == 0))
         {
             return;
         }
@@ -2907,7 +2900,7 @@ public class Game : IGame
 
         if (targetwindow != WindowTarget.Room & targetwindow != WindowTarget.Inv & targetwindow != WindowTarget.Log & text.Trim().Length > 0)
         {
-            if (m_oConfigSettings.ParseGameOnly == false | targetwindow == WindowTarget.Main)
+            if (ConfigSettings.Instance.ParseGameOnly == false | targetwindow == WindowTarget.Main)
             {
                 string argsText = Utility.Trim(text);
                 TriggerParse(argsText);
@@ -2919,7 +2912,7 @@ public class Game : IGame
             return;
         }
 
-        if (m_oConfigSettings.GagsEnabled == true && targetwindow != WindowTarget.Thoughts)
+        if (ConfigSettings.Instance.GagsEnabled == true && targetwindow != WindowTarget.Thoughts)
         {
             // Gag List
             if (GagRegExp.Instance.AcquireReaderLock())
@@ -3008,15 +3001,15 @@ public class Game : IGame
 
         if (targetwindow == WindowTarget.Main | targetwindow == WindowTarget.Thoughts | targetwindow == WindowTarget.Combat)
         {
-            if (m_oConfigSettings.AutoLog == true)
+            if (ConfigSettings.Instance.AutoLog == true)
             {
                 Log.LogText(text, Conversions.ToString(Variables.Instance["charactername"]), Conversions.ToString(Variables.Instance["game"]));
                 //if (m_bLastRowWasPrompt == true)
                 //{
-                //    m_oGlobals.Log?.LogText(text + System.Environment.NewLine, Conversions.ToString(Variables.Instance["charactername"]), Conversions.ToString(Variables.Instance["game"]));
+                //    Globals.Instance.Log?.LogText(text + System.Environment.NewLine, Conversions.ToString(Variables.Instance["charactername"]), Conversions.ToString(Variables.Instance["game"]));
                 //}
 
-                //     m_oGlobals.Log.LogText(text, Conversions.ToString(Variables.Instance["charactername"]), Conversions.ToString(Variables.Instance["game"]));
+                //     Globals.Instance.Log.LogText(text, Conversions.ToString(Variables.Instance["charactername"]), Conversions.ToString(Variables.Instance["game"]));
             }
         }
 
@@ -3297,7 +3290,7 @@ public class Game : IGame
 
     private void GameSocket_EventConnectionLost()
     {
-        if (m_oConfigSettings.Reconnect == true & m_bManualDisconnect == false)
+        if (ConfigSettings.Instance.Reconnect == true & m_bManualDisconnect == false)
         {
             if (m_iConnectAttempts == 0) // Attempt to connect right away
             {

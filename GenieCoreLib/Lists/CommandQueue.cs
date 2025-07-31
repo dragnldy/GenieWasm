@@ -9,7 +9,17 @@ public class CommandQueue
         public bool WaitForRoundtime = false;
         public bool WaitForStunned = false;
         public bool WaitForWebbed = false;
-        public CommandRestrictions() { }
+
+        public CommandRestrictions()
+        {
+
+        }
+        public CommandRestrictions(bool waitForRoundtime, bool waitForStunned, bool waitForWebbed)
+        {
+            WaitForRoundtime = waitForRoundtime;
+            WaitForStunned = waitForStunned;
+            WaitForWebbed = waitForWebbed;
+        }
     }
 
     private object m_oThreadLock = new object(); // Thread safety

@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.ComponentModel;
 using System.Text;
+using System.Xml.Linq;
+using static GenieCoreLib.GagRegExp;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace GenieCoreLib;
@@ -55,7 +57,8 @@ public bool AcquireWriterLock()
     {
         try
         {
-            m_oRWLock.ExitReadLock();
+            if(m_oRWLock.IsReadLockHeld)
+                m_oRWLock.ExitReadLock();
             return true;
         }
         catch 
@@ -229,7 +232,7 @@ public bool AcquireWriterLock()
                 int i = 0;
                 foreach (DictionaryEntry de in this)
                 {
-                    if (bUsePattern == false | de.Key.ToString().Contains(sKeyPattern))
+                    if (bUsePattern == false | de.Key.ToString().Contains(sKeyPattern,StringComparison.OrdinalIgnoreCase))
                     {
                         string text = FormatVariable(de.Value, itemName, sValuePattern);
                         if (!string.IsNullOrEmpty(text))
@@ -244,7 +247,37 @@ public bool AcquireWriterLock()
                 {
                     sb.AppendLine("None.");
                 }
+                ReleaseReaderLock();
                 return (sb.ToString());
+            }
+            catch(Exception exc)
+            {
+                try
+                {
+                    int i = 0;
+                    for (int I = 0, loopTo = base.Count - 1; I <= loopTo; I++)
+                    {
+                        object obj = get_Item(I);
+                        string text = FormatVariable(obj, itemName, sKeyPattern);
+                        if (string.IsNullOrEmpty(text)) continue;
+                        string stext = $"{itemName}${text}";
+                        sb.AppendLine(stext); i++;
+                    }
+                    if (i == 0)
+                    {
+                        sb.AppendLine("None.");
+                    }
+                    ReleaseReaderLock();
+                    return (sb.ToString());
+                }
+                catch (Exception exc2)
+                {
+
+                }
+                finally
+                {
+                    ReleaseReaderLock();
+                }
             }
             finally
             {
@@ -256,6 +289,7 @@ public bool AcquireWriterLock()
             GenieError.Error("ListVariables", "Unable to aquire reader lock.");
             return string.Empty;
         }
+        return string.Empty;
     }
 
     public static string FormatVariable(object? value, string itemName, string sValuePattern)
@@ -264,15 +298,35 @@ public bool AcquireWriterLock()
 
         switch (itemName)
         {
+            case "Presets":
+                Presets.Preset preset = value as Presets.Preset;
+                if (preset is null) return string.Empty;
+                return preset.ToFormattedString(sValuePattern);
+
             case "Variables":
                 Variables.Variable variable = value as Variables.Variable;
                 if (variable is null) return string.Empty;
-                return variable.ToFormattedString(sValuePattern);
+                if (string.IsNullOrEmpty(sValuePattern) || variable.oType.ToString().Equals(sValuePattern))
+                    return variable.ToFormattedString(sValuePattern);
+                return string.Empty;
+
+            case "Events":
+                QueueList.EventItem eventItem = value as QueueList.EventItem;
+                if (eventItem is null) return string.Empty;
+                if (string.IsNullOrEmpty(sValuePattern) || eventItem.Action.Contains(sValuePattern, StringComparison.OrdinalIgnoreCase))
+                {
+                    return eventItem.ToFormattedString();
+                }
+                return string.Empty;
 
             case "Gags":
                 GagRegExp.Gag gag = value as GagRegExp.Gag;
                 if (gag is null) return string.Empty;
-                return gag.ToFormattedString(sValuePattern);
+                if (string.IsNullOrEmpty(sValuePattern) || gag.Text.Contains(sValuePattern, StringComparison.OrdinalIgnoreCase))
+                {
+                    return gag.ToFormattedString();
+                }
+                return string.Empty;
 
             case "Names":
                 Names.Name name = value as Names.Name;
@@ -282,7 +336,9 @@ public bool AcquireWriterLock()
             case "Substitutes":
                 SubstituteRegExp.Substitute subs = value as SubstituteRegExp.Substitute;
                 if (subs is null) return string.Empty;
-                return subs.ToFormattedString(sValuePattern);
+                if (string.IsNullOrEmpty(sValuePattern) || subs.sText.Contains(sValuePattern,StringComparison.OrdinalIgnoreCase))
+                    return subs.ToFormattedString();
+                return string.Empty;
 
             case "Macros":
                 Macros.Macro macro = value as Macros.Macro;
@@ -297,39 +353,21 @@ public bool AcquireWriterLock()
                 Triggers.Trigger trigger = value as Triggers.Trigger;
                 if (trigger is null) return string.Empty;
                 return trigger.ToFormattedString(sValuePattern);
-            case "Events":
-                QueueList.EventItem eventItem = value as QueueList.EventItem;
-                if (eventItem is null) return string.Empty;
-                return eventItem.ToFormattedString(sValuePattern);
 
+            case "HighlightsBeginWith":
+                HighlightBeginsWithList.Highlight beginsWithList = value as HighlightBeginsWithList.Highlight;
+                if (beginsWithList is null) return string.Empty;
+                return beginsWithList.ToFormattedString(sValuePattern);
+            case "HighlightsRegExp":
+                HighlightRegExpList.Highlight regExpList = value as HighlightRegExpList.Highlight;
+                if (regExpList is null) return string.Empty;
+                return regExpList.ToFormattedString(sValuePattern);
             case "Highlights":
-                string highlightType = value.GetType().Name;
-                switch (highlightType)
-                {
-                    case "HighlightBeginsWithList.Highlight":
-                        HighlightBeginsWithList.Highlight beginsWithList = value as HighlightBeginsWithList.Highlight;
-                        if (beginsWithList is null) return string.Empty;
-                        return beginsWithList.ToFormattedString(sValuePattern);
-                    case "typeof(HighlightRegExpList.Highlight":
-                        HighlightRegExpList.Highlight regExpList = value as HighlightRegExpList.Highlight;
-                        if (regExpList is null) return string.Empty;
-                        return regExpList.ToFormattedString(sValuePattern);
-                    case "HighlightsList.Highlight":
-                        HighlightsList.Highlight highlightList = value as HighlightsList.Highlight;
-                        if (highlightList is null) return string.Empty;
-                        return highlightList.ToFormattedString(sValuePattern);
-                    default:
-                        return "Unknown highlight type";
-                }
-                
-                if (value is null)
-                {
-                    return string.Empty;
-                }
-                return value.ToString();
+                HighlightsList.Highlight highlightList = value as HighlightsList.Highlight;
+                if (highlightList is null) return string.Empty;
+                return highlightList.ToFormattedString(sValuePattern);
             default:
                 return "Unknown type";
-
         }
         return string.Empty;
     }

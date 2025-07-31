@@ -32,7 +32,7 @@ public class GagRegExp : ArrayList
                 RegexGag = new Regex(Text, bIgnoreCase ? (MyRegexOptions.options | RegexOptions.IgnoreCase) : MyRegexOptions.options);
             }
         }
-        public string ToFormattedString(string sValuePattern)
+        public string ToFormattedString()
         {
             return $"Text: {Text}, IgnoreCase: {bIgnoreCase}, ClassName: {ClassName}, IsActive: {IsActive}";
         }
@@ -80,7 +80,7 @@ public class GagRegExp : ArrayList
     {
         if (AcquireReaderLock())
         {
-            var al = new ArrayList();
+            // var al = new ArrayList();
             try
             {
                 for (int I = 0, loopTo = base.Count - 1; I <= loopTo; I++)

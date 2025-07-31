@@ -353,11 +353,11 @@ public class Variables : SortedList
         Add("repeatregex", @"^\.\.\.wait|^Sorry\, you may only type ahead|^You are still stunned|^You can\'t do that while|^You don\'t seem to be able", Variables.VariablesType.Reserved);
 
     }
-    public string ListSubset(string keyPattern = "", string valuePattern = "")
+    public string ListSubset(string keyPattern, string valuePattern)
     {
         return ListArray("Variables", keyPattern, valuePattern);
     }
-    public string ListAll(string keyPattern = "", string valuePattern = "")
+    public string ListAll(string keyPattern = "")
     {
         StringBuilder sb = new();
         sb.Append(ListSubset(keyPattern, "SaveToFile"));

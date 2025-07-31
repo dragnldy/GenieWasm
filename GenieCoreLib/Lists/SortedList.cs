@@ -192,7 +192,7 @@ public class SortedList : System.Collections.SortedList
                 int i = 0;
                 foreach (DictionaryEntry de in this)
                 {
-                    if (bUsePattern == false | de.Key.ToString().Contains(sKeyPattern))
+                    if (bUsePattern == false | de.Key.ToString().Contains(sKeyPattern,StringComparison.OrdinalIgnoreCase))
                     {
                         string text = FormatVariable(de.Value, itemName, sValuePattern);
                         if (!string.IsNullOrEmpty(text))
