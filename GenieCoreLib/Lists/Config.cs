@@ -6,28 +6,22 @@ namespace GenieCoreLib;
 
 public interface IConfig
 {
-    ConfigSettings m_oConfigSettings { get; }
-    bool Save(string sFileName = "settings.cfg");
-    bool Load(string sFileName = "settings.cfg");
- //   bool SetSetting(string key, string value = "", bool showException = true);
 }
 
 public class Config: IConfig, INotifyPropertyChanged
 {
-    public static Config GetInstance() => _m_oConfig;
+    public static Config Instance => _m_oConfig  ?? new Config();
     private static Config _m_oConfig;
 
-    public ConfigSettings m_oConfigSettings { get; set; }
     public delegate void ConfigChangedEventHandler(ConfigFieldUpdated oField);
     public event PropertyChangedEventHandler? PropertyChanged;
 
 
-    public Config(ConfigSettings configsettings)
+    public Config()
     {
         _m_oConfig = this;
-        m_oConfigSettings = configsettings;
-        m_oConfigSettings.ConnectString = "FE:GENIE /VERSION:" + MyResources.GetApplicationVersion() + " /P:WIN_XP /XML";
-        m_oConfigSettings.PropertyChanged +=ConfigSettings_PropertyChanged;
+        ConfigSettings.Instance.ConnectString = "FE:GENIE /VERSION:" + MyResources.GetApplicationVersion() + " /P:WIN_XP /XML";
+        ConfigSettings.Instance.PropertyChanged +=ConfigSettings_PropertyChanged;
     }
 
     private void ConfigSettings_PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -93,46 +87,4 @@ public class Config: IConfig, INotifyPropertyChanged
         AlwaysOnTop,
         UpdateMapperScripts
     }
-
-    public bool Save(string sFileName = "settings.cfg")
-    {
-        try
-        {
-            if (sFileName.IndexOf(@"\") == -1)
-            {
-                sFileName = m_oConfigSettings.ConfigDir + @"\" + sFileName;
-            }
-            if (File.Exists(sFileName))
-            {
-                Utility.DeleteFile(sFileName);
-            }
-            m_oConfigSettings.SaveSettings(sFileName);
-
-        }
-        catch (Exception exc)
-        {
-            return false;
-        }
-        return true;
-    }
-
-    public bool Load(string sFileName = "settings.cfg")
-    {
-        if (sFileName.IndexOf(@"\") == -1)
-        {
-            sFileName = m_oConfigSettings.ConfigDir + @"\" + sFileName;
-        }
-
-        if (File.Exists(sFileName))
-        {
-            m_oConfigSettings = m_oConfigSettings.LoadSettings(sFileName);
-            string configData = File.ReadAllText(sFileName);
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
 }

@@ -11,8 +11,8 @@ public class Script
     public static Script GetInstance() => _m_oScript ?? new Script();
     private static Script _m_oScript;
     private Globals m_oGlobals = Globals.Instance;
-    private Config m_oConfig = Config.GetInstance();
-    private ConfigSettings m_oConfigSettings = ConfigSettings.GetInstance();
+    private Config m_oConfig = Config.Instance;
+    private ConfigSettings m_oConfigSettings = ConfigSettings.Instance;
 
 
     private const int m_iDefaultTimeout = 3500;

@@ -15,7 +15,7 @@ public class TestConfigSettings
         Assert.IsTrue(File.Exists(configPath));
         string configData = File.ReadAllText(configPath);
         Assert.IsTrue(!string.IsNullOrEmpty(configData));
-        ConfigSettings settings = ConfigSettings.GetInstance();
+        ConfigSettings settings = ConfigSettings.Instance;
         Assert.IsNotNull(settings);
         settings.IgnoreMonsterList = "JUNK"; // Set it so we can make sure is changed after load
 
@@ -29,12 +29,12 @@ public class TestConfigSettings
         GenieWasm.Desktop.LocalSetup.InitLocalDirectory();
         string path = AppGlobals.LocalDirectoryPath;
         string configPath = System.IO.Path.Combine(path, "config", "settings.cfg");
-        ConfigSettings settings = ConfigSettings.GetInstance();
+        ConfigSettings settings = ConfigSettings.Instance;
         Assert.IsNotNull(settings);
         settings.LoadSettings(configPath);
         string jsonBeforeWrite = JsonSerializer.Serialize(settings, new JsonSerializerOptions{ WriteIndented = true });
-        settings.SaveSettings(configPath);
-        settings.LoadSettings(configPath);
+        settings.SaveSettings(configPath.Replace("settings","settings.test"));
+        settings.LoadSettings(configPath.Replace("settings","settings.test"));
         string jsonAfterWrite = JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true });
         Assert.IsTrue(jsonBeforeWrite.Equals(jsonAfterWrite), "Settings were not saved correctly.");
     }

@@ -20,7 +20,7 @@ public interface IGame
 }
 public class Game : IGame
 {
-    public static Game GetInstance() => _m_oGame ?? new Game();
+    public static Game Instance => _m_oGame ?? new Game();
     private static Game _m_oGame;
 
     public Game()
@@ -362,7 +362,7 @@ public class Game : IGame
         }
     }
 
-    public void Connect(string sGenieKey, string sAccountName, string sPassword, string sCharacter, string sGame)
+    public void Connect(string sGenieKeyx, string sAccountName, string sPassword, string sCharacter, string sGame)
     {
         m_sAccountName = sAccountName;
         m_sAccountPassword = sPassword;

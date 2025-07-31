@@ -64,7 +64,7 @@ public class Globals : IGlobals
     
     private void HandleGenieException(string section, string message, string description = null) // Pass it up
     {
-        ConfigSettings.GetInstance().AutoLog = false;
+        ConfigSettings.Instance.AutoLog = false;
         GenieError.Error(section, message, description);
     }
 

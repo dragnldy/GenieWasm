@@ -2,6 +2,7 @@
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 
 namespace GenieCoreLib;
@@ -40,8 +41,8 @@ public interface IConfigSettings
 }
 public partial class ConfigSettings : INotifyPropertyChanged, IConfigSettings, IDisposable
 {
-    public static ConfigSettings Instance => GetInstance();
-    public static ConfigSettings GetInstance() => _m_oConfigSettings ?? new ConfigSettings();
+    [JsonIgnore]
+    public static ConfigSettings Instance => _m_oConfigSettings ?? new ConfigSettings();
     private static ConfigSettings _m_oConfigSettings;
 
     // We don't want to do property changed notifications for every property initialization
@@ -543,12 +544,18 @@ public partial class ConfigSettings : INotifyPropertyChanged, IConfigSettings, I
 
     public ConfigSettings LoadSettings()
     {
-        return LoadSettings("settings.cfg");
+        return LoadSettings("settings");
     }
-    public ConfigSettings LoadSettings(string legacyFileName)
+    public ConfigSettings LoadSettings(string fileName)
     {
         bLoading = true;
-        string jsonFile = legacyFileName + ".json";
+        string filePath = !fileName.Contains("config", StringComparison.OrdinalIgnoreCase) ? Path.Combine(ConfigSettings.Instance.ConfigDir, fileName) : fileName;
+        string jsonFile = filePath.Replace(".cfg",".json");
+        if (!jsonFile.EndsWith(".json"))
+        {
+            jsonFile += ".json";
+        }
+
         if (File.Exists(jsonFile))
         {
             // Load settings from the file
@@ -571,9 +578,12 @@ public partial class ConfigSettings : INotifyPropertyChanged, IConfigSettings, I
         else
         {
             // if no json file, look for a legacy config file
-            if (File.Exists(legacyFileName))
+            if (!filePath.EndsWith(".cfg"))
+                filePath += ".cfg";
+
+            if (File.Exists(filePath))
             {
-                string configData = File.ReadAllText(legacyFileName);
+                string configData = File.ReadAllText(filePath);
                 if (configData.StartsWith("#config"))
                 {
                     // This is a legacy config file, handle it accordingly
@@ -587,6 +597,91 @@ public partial class ConfigSettings : INotifyPropertyChanged, IConfigSettings, I
         bLoading = false;
         return this;
     }
+    public string ListAll(string sPattern = "")
+    {
+        StringBuilder sb = new();
+        sb.AppendLine("Active settings:");
+        if (!string.IsNullOrEmpty(sPattern))
+        {
+            sb.AppendLine($"Pattern: {sPattern}");
+        }
+        PropertyInfo[] properties = (this.GetType()).GetProperties();
+        List<PropertyInfo> propertyList = properties.ToList();
+        int i = 0;
+        foreach (PropertyInfo property in propertyList)
+        {
+            if (property.CanRead && (sPattern == "" || property.Name.Contains(sPattern, StringComparison.OrdinalIgnoreCase)))
+            {
+                if (property.Name.Equals("Instance")) continue;
+                object? value = property.GetValue(this);
+                sb.AppendLine($"{property.Name}= {value}");
+                i++;
+            }
+        }
+        if (i == 0)
+        {
+            sb.AppendLine("None");
+        }
+        return sb.ToString();
+    }
+    /*
+
+        EchoText(System.Environment.NewLine + "Active settings: " + System.Environment.NewLine);
+        EchoText("alwaysontop=" + m_oConfigSettings.AlwaysOnTop.ToString() + System.Environment.NewLine);
+        EchoText("abortdupescript=" + m_oConfigSettings.AbortDupeScript.ToString() + System.Environment.NewLine);
+        EchoText("autolog=" + m_oConfigSettings.AutoLog.ToString() + System.Environment.NewLine);
+        EchoText("automapper=" + m_oConfigSettings.AutoMapper.ToString() + System.Environment.NewLine);
+        EchoText("commandchar=" + m_oConfigSettings.CommandChar.ToString() + System.Environment.NewLine);
+        EchoText("connectstring=" + m_oConfigSettings.ConnectString.ToString() + System.Environment.NewLine);
+        EchoText("classicconnect=" + m_oConfigSettings.ClassicConnect.ToString() + System.Environment.NewLine);
+        EchoText("editor=" + m_oConfigSettings.Editor + System.Environment.NewLine);
+        EchoText("ignoreclosealert=" + m_oConfigSettings.IgnoreCloseAlert.ToString() + System.Environment.NewLine);
+        EchoText("ignorescriptwarnings=" + m_oConfigSettings.IgnoreScriptWarnings.ToString() + System.Environment.NewLine);
+        EchoText("keepinputtext=" + m_oConfigSettings.KeepInput.ToString() + System.Environment.NewLine);
+        EchoText("sizeinputtogame=" + m_oConfigSettings.SizeInputToGame.ToString() + System.Environment.NewLine);
+        EchoText("maxgosubdepth=" + m_oConfigSettings.MaxGoSubDepth + System.Environment.NewLine);
+        EchoText("maxrowbuffer=" + m_oConfigSettings.BufferLineSize.ToString() + System.Environment.NewLine);
+        EchoText("monstercountignorelist=" + m_oConfigSettings.IgnoreMonsterList + System.Environment.NewLine);
+        EchoText("muted=" + (!m_oConfigSettings.PlaySounds).ToString() + System.Environment.NewLine);
+        EchoText("mycommandchar=" + m_oConfigSettings.MyCommandChar.ToString() + System.Environment.NewLine);
+        EchoText("parsegameonly=" + m_oConfigSettings.ParseGameOnly.ToString() + System.Environment.NewLine);
+        EchoText("prompt=" + m_oConfigSettings.Prompt + System.Environment.NewLine);
+        EchoText("promptbreak=" + m_oConfigSettings.PromptBreak + System.Environment.NewLine);
+        EchoText("promptforce=" + m_oConfigSettings.PromptForce + System.Environment.NewLine);
+        EchoText("condensed=" + m_oConfigSettings.Condensed + System.Environment.NewLine);
+        EchoText("reconnect=" + m_oConfigSettings.Reconnect.ToString() + System.Environment.NewLine);
+        EchoText("roundtimeoffset=" + m_oConfigSettings.RTOffset + System.Environment.NewLine);
+        EchoText("showlinks=" + m_oConfigSettings.ShowLinks.ToString() + System.Environment.NewLine);
+        EchoText("showimages=" + m_oConfigSettings.ShowImages.ToString() + System.Environment.NewLine);
+        EchoText("artdir=" + m_oConfigSettings.ArtDir + System.Environment.NewLine);
+        EchoText("logdir=" + m_oConfigSettings.LogDir + System.Environment.NewLine);
+        EchoText("configdir=" + m_oConfigSettings.ConfigDir + System.Environment.NewLine);
+        EchoText("plugindir=" + m_oConfigSettings.PluginDir + System.Environment.NewLine);
+        EchoText("mapdir=" + m_oConfigSettings.MapDir + System.Environment.NewLine);
+        EchoText("scriptdir=" + m_oConfigSettings.ScriptDir + System.Environment.NewLine);
+        EchoText("sounddir=" + m_oConfigSettings.SoundDir + System.Environment.NewLine);
+        EchoText("scriptchar=" + m_oConfigSettings.ScriptChar.ToString() + System.Environment.NewLine);
+        EchoText("scriptrepo=" + m_oConfigSettings.ScriptRepo + System.Environment.NewLine);
+        EchoText("maprepo=" + m_oConfigSettings.MapRepo + System.Environment.NewLine);
+        EchoText("updatemapperscripts=" + m_oConfigSettings.UpdateMapperScripts.ToString() + System.Environment.NewLine);
+        EchoText("pluginrepo=" + m_oConfigSettings.PluginRepo + System.Environment.NewLine);
+        EchoText("scriptextension=" + m_oConfigSettings.ScriptExtension + System.Environment.NewLine);
+        EchoText("scripttimeout=" + m_oConfigSettings.ScriptTimeout.ToString() + System.Environment.NewLine);
+        EchoText("separatorchar=" + m_oConfigSettings.SeparatorChar.ToString() + System.Environment.NewLine);
+        EchoText("spelltimer=" + m_oConfigSettings.ShowSpellTimer.ToString() + System.Environment.NewLine);
+        EchoText("triggeroninput=" + m_oConfigSettings.TriggerOnInput.ToString() + System.Environment.NewLine);
+        EchoText("servertimeout=" + m_oConfigSettings.ServerActivityTimeout.ToString() + System.Environment.NewLine);
+        EchoText("servertimeoutcommand=" + m_oConfigSettings.ServerActivityCommand.ToString() + System.Environment.NewLine);
+        EchoText("usertimeout=" + m_oConfigSettings.UserActivityTimeout.ToString() + System.Environment.NewLine);
+        EchoText("usertimeoutcommand=" + m_oConfigSettings.UserActivityCommand.ToString() + System.Environment.NewLine);
+        EchoText("connectscript=" + m_oConfigSettings.ConnectScript.ToString() + System.Environment.NewLine);
+        EchoText("checkforupdates=" + m_oConfigSettings.CheckForUpdates.ToString() + System.Environment.NewLine);
+        EchoText("autoupdate=" + m_oConfigSettings.AutoUpdate.ToString() + System.Environment.NewLine);
+        EchoText("autoupdatelamp=" + m_oConfigSettings.AutoUpdateLamp.ToString() + System.Environment.NewLine);
+        EchoText("automapperalpha=" + m_oConfigSettings.AutoMapperAlpha.ToString() + System.Environment.NewLine);
+        EchoText("weblinksafety=" + m_oConfigSettings.WebLinkSafety.ToString() + System.Environment.NewLine);
+    }
+     */
 
     private void CopyBackToSelf(ConfigSettings configSettings)
     {
@@ -653,13 +748,18 @@ public partial class ConfigSettings : INotifyPropertyChanged, IConfigSettings, I
 
     public bool SaveSettings()
     {
-        return SaveSettings(Path.Combine(ConfigSettings.Instance.ConfigDir, "settings.cfg"));
+        return SaveSettings(Path.Combine(ConfigSettings.Instance.ConfigDir, "settings"));
     }
-    public bool SaveSettings(string legacyFileName)
+    public bool SaveSettings(string fileName)
     {
+        string filePath = !fileName.Contains("config", StringComparison.OrdinalIgnoreCase) ? Path.Combine(ConfigSettings.Instance.ConfigDir, fileName) : fileName;
+        string jsonFile = filePath.Replace(".cfg", ".json");
+        if (!jsonFile.EndsWith(".json"))
+        {
+            jsonFile += ".json";
+        }
         try
         {
-            string jsonFile = legacyFileName + ".json";
             string json = JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(jsonFile, json);
             return true;

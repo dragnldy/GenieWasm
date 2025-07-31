@@ -70,7 +70,7 @@ public class Log
     }
     public static string GetFileName(string sCharacterName, string sInstanceName)
     {
-        string fileBase = Path.Combine(AppGlobals.LocalDirectoryPath, ConfigSettings.GetInstance().LogDir);
+        string fileBase = Path.Combine(AppGlobals.LocalDirectoryPath, ConfigSettings.Instance.LogDir);
         fileBase = Path.Combine(fileBase, string.IsNullOrEmpty(sCharacterName) ? "Unknown" : sCharacterName);
         return fileBase + sInstanceName + "_" + DateTime.Now.ToString("yyyy-MM-dd") + ".log";
     }

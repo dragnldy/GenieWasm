@@ -7,6 +7,44 @@ namespace TestGenieWasm;
 [TestClass]
 public class TestGlobals
 {
+    #region ConfigSettings
+    [TestMethod]
+    public void CanLoadConfigSettings()
+    {
+        string path = AppGlobals.LocalDirectoryPath;
+        ConfigSettings config = LoadConfigSettings();
+        Assert.IsTrue(config is not null, "ConfigSettings should have been loaded successfully.");
+    }
+    internal ConfigSettings LoadConfigSettings()
+    {
+        GenieWasm.Desktop.LocalSetup.InitLocalDirectory();
+        ConfigSettings config = ConfigSettings.Instance.LoadSettings();
+        return config;
+    }
+
+    [TestMethod]
+    public void CanSaveConfigSettings()
+    {
+        GenieWasm.Desktop.LocalSetup.InitLocalDirectory();
+        ConfigSettings config = LoadConfigSettings();
+        Assert.IsTrue(config.SaveSettings("settings.test.cfg"), "ConfigSettings should have been saved successfully.");
+    }
+    [TestMethod]
+    public void CanListConfigSettings()
+    {
+        GenieWasm.Desktop.LocalSetup.InitLocalDirectory();
+        ConfigSettings config = LoadConfigSettings();
+        string allvars = config.ListAll("");
+        Assert.IsTrue(allvars.Length > 0, "ConfigSettings should have been listed successfully.");
+        string allvars2 = Command.Instance.ListSettings();
+        Assert.IsTrue(allvars2.Length == allvars.Length, "ConfigSettings should have been listed successfully.");
+        string filtered = Command.Instance.ListSettings("autolog");
+        Assert.IsTrue(filtered.Length < allvars.Length && !filtered.Contains("None"), "ConfigSettings 'autolog' should have been listed successfully.");
+        string filtered2 = Command.Instance.ListSettings("junk");
+        Assert.IsTrue(filtered2.Contains("None"), "ConfigSettings 'junk' should NOT have been listed successfully.");
+    }
+    #endregion ConfigSettings
+
     #region Testing Presets
     [TestMethod]
     public void CanLoadGlobalPresets()

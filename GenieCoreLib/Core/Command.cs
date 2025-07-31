@@ -205,8 +205,6 @@ public class Command
     private Game m_oGame;
     private Globals m_oGlobals = Globals.Instance;
 
-    private ConfigSettings m_oConfigSettings = ConfigSettings.GetInstance();
-
     private Evaluator m_oEval;
     private MathEval m_oMathEval = new MathEval();
 
@@ -214,7 +212,7 @@ public class Command
     {
         _m_oCommand = this;
         m_oGlobals = Globals.Instance;
-        m_oGame = Game.GetInstance();
+        m_oGame = Game.Instance;
         m_oEval = Evaluator.GetInstance();
     }
 
@@ -234,7 +232,7 @@ public class Command
             return sText;
         }
 
-        foreach (string stemp in Utility.SafeSplit(sText,m_oConfigSettings.SeparatorChar))
+        foreach (string stemp in Utility.SafeSplit(sText,ConfigSettings.Instance.SeparatorChar))
         {
             var sStringTemp = stemp;
             if (Aliases.Instance.ContainsKey(GetKeywordString(sStringTemp).ToLower()) == true) // Alias
@@ -242,20 +240,20 @@ public class Command
                 sStringTemp = ParseAlias(sStringTemp);
             }
 
-            foreach (string row in Utility.SafeSplit(sStringTemp, m_oConfigSettings.SeparatorChar))
+            foreach (string row in Utility.SafeSplit(sStringTemp, ConfigSettings.Instance.SeparatorChar))
             {
                 var sRow = row;
                 // Quick #send
                 if (bParseQuickSend)
                 {
-                    if (sRow.StartsWith(Conversions.ToString(m_oConfigSettings.QuickSendChar)))
+                    if (sRow.StartsWith(Conversions.ToString(ConfigSettings.Instance.QuickSendChar)))
                     {
                         sRow = "#send " + sRow.Substring(1);
                     }
                 }
 
                 sResult = string.Empty;
-                if (sRow.Trim().StartsWith(Conversions.ToString(m_oConfigSettings.CommandChar)))
+                if (sRow.Trim().StartsWith(Conversions.ToString(ConfigSettings.Instance.CommandChar)))
                 {
                     // Get result from function then send result to game
                     var oArgs = new ArrayList();
@@ -422,16 +420,16 @@ public class Command
                                 case "lichconnect":
                                     {
                                         string failure = string.Empty;
-                                        if (!File.Exists(m_oConfigSettings.CmdPath)) failure += "CMD not found at Path:\t" + m_oConfigSettings.CmdPath + System.Environment.NewLine;
-                                        if (!File.Exists(m_oConfigSettings.RubyPath)) failure += "Ruby not found at Path:\t" + m_oConfigSettings.RubyPath + System.Environment.NewLine;
-                                        if (!File.Exists(m_oConfigSettings.LichPath)) failure += "Lich not found at Path:\t" + m_oConfigSettings.LichPath + System.Environment.NewLine;
+                                        if (!File.Exists(ConfigSettings.Instance.CmdPath)) failure += "CMD not found at Path:\t" + ConfigSettings.Instance.CmdPath + System.Environment.NewLine;
+                                        if (!File.Exists(ConfigSettings.Instance.RubyPath)) failure += "Ruby not found at Path:\t" + ConfigSettings.Instance.RubyPath + System.Environment.NewLine;
+                                        if (!File.Exists(ConfigSettings.Instance.LichPath)) failure += "Lich not found at Path:\t" + ConfigSettings.Instance.LichPath + System.Environment.NewLine;
                                         if (string.IsNullOrWhiteSpace(failure))
                                         {
                                             EchoText("Starting Lich Server\n");
-                                            string lichLaunch = $"/C {m_oConfigSettings.RubyPath} {m_oConfigSettings.LichPath} {m_oConfigSettings.LichArguments}";
-                                            await Utility.ExecuteProcess(m_oConfigSettings.CmdPath, lichLaunch, false, false);
+                                            string lichLaunch = $"/C {ConfigSettings.Instance.RubyPath} {ConfigSettings.Instance.LichPath} {ConfigSettings.Instance.LichArguments}";
+                                            await Utility.ExecuteProcess(ConfigSettings.Instance.CmdPath, lichLaunch, false, false);
                                             int count = 0;
-                                            while (count < m_oConfigSettings.LichStartPause)
+                                            while (count < ConfigSettings.Instance.LichStartPause)
                                             {
                                                 await Task.Delay(1000);
                                                 count++;
@@ -451,13 +449,13 @@ public class Command
                                     {
                                         EchoText($"\nLich Settings\n");
                                         EchoText($"----------------------------------------------------\n");
-                                        EchoText($"Cmd Path:\t\t {m_oConfigSettings.CmdPath}\n");
-                                        EchoText($"Ruby Path:\t\t {m_oConfigSettings.RubyPath}\n");
-                                        EchoText($"Lich Path:\t\t {m_oConfigSettings.LichPath}\n");
-                                        EchoText($"Lich Arguments:\t {m_oConfigSettings.LichArguments}\n");
-                                        EchoText($"Lich Start Pause:\t {m_oConfigSettings.LichStartPause}\n");
-                                        EchoText($"Lich Server:\t\t {m_oConfigSettings.LichServer}\n");
-                                        EchoText($"Lich Port:\t\t {m_oConfigSettings.LichPort}\n\n");
+                                        EchoText($"Cmd Path:\t\t {ConfigSettings.Instance.CmdPath}\n");
+                                        EchoText($"Ruby Path:\t\t {ConfigSettings.Instance.RubyPath}\n");
+                                        EchoText($"Lich Path:\t\t {ConfigSettings.Instance.LichPath}\n");
+                                        EchoText($"Lich Arguments:\t {ConfigSettings.Instance.LichArguments}\n");
+                                        EchoText($"Lich Start Pause:\t {ConfigSettings.Instance.LichStartPause}\n");
+                                        EchoText($"Lich Server:\t\t {ConfigSettings.Instance.LichServer}\n");
+                                        EchoText($"Lich Port:\t\t {ConfigSettings.Instance.LichPort}\n\n");
                                         break;
                                     }
 
@@ -536,7 +534,7 @@ public class Command
                                                     case "settings":
                                                         {
                                                             EchoText("Settings Saved" + System.Environment.NewLine);
-                                                            ConfigSettings.GetInstance().SaveSettings();
+                                                            ConfigSettings.Instance.SaveSettings();
                                                             break;
                                                         }
 
@@ -618,7 +616,7 @@ public class Command
                                                             EchoText("Triggers Saved" + System.Environment.NewLine);
                                                             Triggers.Instance.Save();
                                                             EchoText("Settings Saved" + System.Environment.NewLine);
-                                                            m_oConfigSettings.SaveSettings();
+                                                            ConfigSettings.Instance.SaveSettings();
                                                             EchoText("Macros Saved" + System.Environment.NewLine);
                                                             Macros.Instance.Save();
                                                             EchoText("Substitutes Saved" + System.Environment.NewLine);
@@ -791,7 +789,7 @@ public class Command
                                                             Triggers.Instance.Clear();
                                                             Triggers.Instance.Load();
                                                             EchoText("Settings Loaded" + System.Environment.NewLine);
-                                                            m_oConfigSettings.LoadSettings();
+                                                            ConfigSettings.Instance.LoadSettings();
                                                             EchoText("Macros Loaded" + System.Environment.NewLine);
                                                             Macros.Instance.Clear();
                                                             Macros.Instance.Load();
@@ -910,7 +908,7 @@ public class Command
 
                                                     case "edit":
                                                         {
-                                                            Interaction.Shell("\"" + m_oConfigSettings.Editor + "\" \"" + m_oConfigSettings.ConfigProfileDir + @"\variables.cfg""", 0, false);
+                                                            Interaction.Shell("\"" + ConfigSettings.Instance.Editor + "\" \"" + ConfigSettings.Instance.ConfigProfileDir + @"\variables.cfg""", 0, false);
                                                             break;
                                                         }
 
@@ -1200,7 +1198,7 @@ public class Command
 
                                                     case "edit":
                                                         {
-                                                            Interaction.Shell("\"" + m_oConfigSettings.Editor + "\" \"" + m_oConfigSettings.ConfigProfileDir + @"\aliases.cfg""", 0, false);
+                                                            Interaction.Shell("\"" + ConfigSettings.Instance.Editor + "\" \"" + ConfigSettings.Instance.ConfigProfileDir + @"\aliases.cfg""", 0, false);
                                                             break;
                                                         }
 
@@ -1303,7 +1301,7 @@ public class Command
 
                                                     case "edit":
                                                         {
-                                                            Interaction.Shell("\"" + m_oConfigSettings.Editor + "\" \"" + m_oConfigSettings.ConfigProfileDir + @"\classes.cfg""", 
+                                                            Interaction.Shell("\"" + ConfigSettings.Instance.Editor + "\" \"" + ConfigSettings.Instance.ConfigProfileDir + @"\classes.cfg""", 
                                                                 0, false);
                                                             break;
                                                         }
@@ -1401,7 +1399,7 @@ public class Command
 
                                                 case "edit":
                                                     {
-                                                        Interaction.Shell("\"" + m_oConfigSettings.Editor + "\" \"" + m_oConfigSettings.ConfigDir + @"\triggers.cfg""", 0, false);
+                                                        Interaction.Shell("\"" + ConfigSettings.Instance.Editor + "\" \"" + ConfigSettings.Instance.ConfigDir + @"\triggers.cfg""", 0, false);
                                                         break;
                                                     }
 
@@ -1472,20 +1470,20 @@ public class Command
                                                 case "load":
                                                     {
                                                         EchoText("Settings Loaded" + System.Environment.NewLine);
-                                                        m_oConfigSettings.LoadSettings();
+                                                        ConfigSettings.Instance.LoadSettings();
                                                         break;
                                                     }
 
                                                 case "save":
                                                     {
                                                         EchoText("Settings Saved" + System.Environment.NewLine);
-                                                        m_oConfigSettings.SaveSettings();
+                                                        ConfigSettings.Instance.SaveSettings();
                                                         break;
                                                     }
 
                                                 case "edit":
                                                     {
-                                                        Interaction.Shell("\"" + m_oConfigSettings.Editor + "\" \"" + m_oConfigSettings.ConfigDir + @"\settings.cfg""", 0, false);
+                                                        Interaction.Shell("\"" + ConfigSettings.Instance.Editor + "\" \"" + ConfigSettings.Instance.ConfigDir + @"\settings.cfg""", 0, false);
                                                         break;
                                                     }
 
@@ -1493,7 +1491,7 @@ public class Command
                                                     {
                                                         try
                                                         {
-                                                            if (!m_oConfigSettings.SetSetting(oArgs[1].ToString(), string.Empty ))
+                                                            if (!ConfigSettings.Instance.SetSetting(oArgs[1].ToString(), string.Empty ))
                                                             EchoText($"Can't clear setting {oArgs[1].ToString()}" + System.Environment.NewLine);
                                                         }
                                                         catch(Exception ex)
@@ -1509,7 +1507,7 @@ public class Command
                                         {
                                             try
                                             {
-                                                if(!m_oConfigSettings.SetSetting(oArgs[1].ToString(), Utility.ArrayToString(oArgs, 2)))
+                                                if(!ConfigSettings.Instance.SetSetting(oArgs[1].ToString(), Utility.ArrayToString(oArgs, 2)))
                                                 {
                                                     EchoText($"Can't set setting {oArgs[1].ToString()} to {Utility.ArrayToString(oArgs, 2)}" + System.Environment.NewLine);
                                                 }
@@ -1535,7 +1533,7 @@ public class Command
                                 case "beep":
                                 case "bell":
                                     {
-                                        if (m_oConfigSettings.PlaySounds == true)
+                                        if (ConfigSettings.Instance.PlaySounds == true)
                                         {
                                             Interaction.Beep();
                                         }
@@ -1548,7 +1546,7 @@ public class Command
                                 case "playwave":
                                 case "playsound":
                                     {
-                                        if (m_oConfigSettings.PlaySounds == true)
+                                        if (ConfigSettings.Instance.PlaySounds == true)
                                         {
                                             string sSound = GetArgumentString(sRow);
                                             if ((sSound.ToLower() ?? "") == "stop")
@@ -1566,7 +1564,7 @@ public class Command
 
                                 case "playsystem":
                                     {
-                                        if (m_oConfigSettings.PlaySounds == true)
+                                        if (ConfigSettings.Instance.PlaySounds == true)
                                         {
                                             string sSound = GetArgumentString(sRow);
                                             if (sSound.Length > 0)
@@ -1615,7 +1613,7 @@ public class Command
 
                                                     case "edit":
                                                         {
-                                                            Interaction.Shell("\"" + m_oConfigSettings.Editor + "\" \"" + m_oConfigSettings.ConfigProfileDir + @"\macros.cfg""", 0, false);
+                                                            Interaction.Shell("\"" + ConfigSettings.Instance.Editor + "\" \"" + ConfigSettings.Instance.ConfigProfileDir + @"\macros.cfg""", 0, false);
                                                             break;
                                                         }
 
@@ -1693,7 +1691,7 @@ public class Command
 
                                                     case "edit":
                                                         {
-                                                            Interaction.Shell("\"" + m_oConfigSettings.Editor + "\" \"" + m_oConfigSettings.ConfigDir + @"\substitutes.cfg""", 0, false);
+                                                            Interaction.Shell("\"" + ConfigSettings.Instance.Editor + "\" \"" + ConfigSettings.Instance.ConfigDir + @"\substitutes.cfg""", 0, false);
                                                             break;
                                                         }
 
@@ -1776,7 +1774,7 @@ public class Command
 
                                                 case "edit":
                                                     {
-                                                        Interaction.Shell("\"" + m_oConfigSettings.Editor + "\" \"" + m_oConfigSettings.ConfigProfileDir + @"\gags.cfg""", 0, false);
+                                                        Interaction.Shell("\"" + ConfigSettings.Instance.Editor + "\" \"" + ConfigSettings.Instance.ConfigProfileDir + @"\gags.cfg""", 0, false);
                                                         break;
                                                     }
 
@@ -1841,7 +1839,7 @@ public class Command
 
                                                     case "edit":
                                                         {
-                                                            Interaction.Shell("\"" + m_oConfigSettings.Editor + "\" \"" + m_oConfigSettings.ConfigDir + @"\presets.cfg""", 0, false);
+                                                            Interaction.Shell("\"" + ConfigSettings.Instance.Editor + "\" \"" + ConfigSettings.Instance.ConfigDir + @"\presets.cfg""", 0, false);
                                                             break;
                                                         }
 
@@ -1918,7 +1916,7 @@ public class Command
 
                                                 case "edit":
                                                     {
-                                                        Interaction.Shell("\"" + m_oConfigSettings.Editor + "\" \"" + m_oConfigSettings.ConfigDir + @"\highlights.cfg""", 0, false);
+                                                        Interaction.Shell("\"" + ConfigSettings.Instance.Editor + "\" \"" + ConfigSettings.Instance.ConfigDir + @"\highlights.cfg""", 0, false);
                                                         break;
                                                     }
 
@@ -2056,7 +2054,7 @@ public class Command
 
                                                     case "edit":
                                                         {
-                                                            Interaction.Shell("\"" + m_oConfigSettings.Editor + "\" \"" + m_oConfigSettings.ConfigDir + @"\names.cfg""", 0, false);
+                                                            Interaction.Shell("\"" + ConfigSettings.Instance.Editor + "\" \"" + ConfigSettings.Instance.ConfigDir + @"\names.cfg""", 0, false);
                                                             break;
                                                         }
 
@@ -2095,14 +2093,14 @@ public class Command
                                         if (oArgs.Count > 1)
                                         {
                                             string sFile = Globals.ParseGlobalVars(Utility.ArrayToString(oArgs, 1));
-                                            if (sFile.ToLower().EndsWith($".{m_oConfigSettings.ScriptExtension}") == false & sFile.ToLower().EndsWith(".js") == false)
+                                            if (sFile.ToLower().EndsWith($".{ConfigSettings.Instance.ScriptExtension}") == false & sFile.ToLower().EndsWith(".js") == false)
                                             {
-                                                sFile += $".{m_oConfigSettings.ScriptExtension}";
+                                                sFile += $".{ConfigSettings.Instance.ScriptExtension}";
                                             }
 
                                             if (sFile.IndexOf(@"\") == -1)
                                             {
-                                                string sLocation = m_oConfigSettings.ScriptDir;
+                                                string sLocation = ConfigSettings.Instance.ScriptDir;
                                                 if (sLocation.EndsWith(@"\"))
                                                 {
                                                     sFile = sLocation + sFile;
@@ -2113,7 +2111,7 @@ public class Command
                                                 }
                                             }
 
-                                            Interaction.Shell("\"" + m_oConfigSettings.Editor + "\" \"" + sFile + "\"", 0, false);
+                                            Interaction.Shell("\"" + ConfigSettings.Instance.Editor + "\" \"" + sFile + "\"", 0, false);
                                         }
 
                                         break;
@@ -2141,7 +2139,7 @@ public class Command
                                                     sTemp = AppGlobals.LocalDirectoryPath + @"\Help\" + sTemp;
                                                 }
 
-                                                Interaction.Shell("\"" + m_oConfigSettings.Editor + "\" \"" + sTemp + "\"", 0, false);
+                                                Interaction.Shell("\"" + ConfigSettings.Instance.Editor + "\" \"" + sTemp + "\"", 0, false);
                                             }
                                             else
                                             {
@@ -2532,7 +2530,7 @@ public class Command
                         }
                     }
                 }
-                else if (sRow.StartsWith(Conversions.ToString(m_oConfigSettings.ScriptChar)))
+                else if (sRow.StartsWith(Conversions.ToString(ConfigSettings.Instance.ScriptChar)))
                 {
                     RunScript(sRow);
                 }
@@ -2635,7 +2633,7 @@ public class Command
             }
         }
     }
-    private void Connect(ArrayList args, bool isLich = false)
+    public void Connect(ArrayList args, bool isLich = false)
     {
         if (args.Count == 1)
         {
@@ -2754,7 +2752,7 @@ public class Command
             if (sResult.Contains("$") == true)
             {
                 sResult = sResult.Replace("$0", GetArgumentString(sText).Replace("\"", ""));
-                for (int i = 1, loopTo = m_oConfigSettings.ArgumentCount - 1; i <= loopTo; i++)
+                for (int i = 1, loopTo = ConfigSettings.Instance.ArgumentCount - 1; i <= loopTo; i++)
                 {
                     if (i > oArgs.Count - 1)
                     {
@@ -2880,64 +2878,6 @@ public class Command
         return d.ToString();
     }
 
-    private void ListSettings()
-    {
-        EchoText(System.Environment.NewLine + "Active settings: " + System.Environment.NewLine);
-        EchoText("alwaysontop=" + m_oConfigSettings.AlwaysOnTop.ToString() + System.Environment.NewLine);
-        EchoText("abortdupescript=" + m_oConfigSettings.AbortDupeScript.ToString() + System.Environment.NewLine);
-        EchoText("autolog=" + m_oConfigSettings.AutoLog.ToString() + System.Environment.NewLine);
-        EchoText("automapper=" + m_oConfigSettings.AutoMapper.ToString() + System.Environment.NewLine);
-        EchoText("commandchar=" + m_oConfigSettings.CommandChar.ToString() + System.Environment.NewLine);
-        EchoText("connectstring=" + m_oConfigSettings.ConnectString.ToString() + System.Environment.NewLine);
-        EchoText("classicconnect=" + m_oConfigSettings.ClassicConnect.ToString() + System.Environment.NewLine);
-        EchoText("editor=" + m_oConfigSettings.Editor + System.Environment.NewLine);
-        EchoText("ignoreclosealert=" + m_oConfigSettings.IgnoreCloseAlert.ToString() + System.Environment.NewLine);
-        EchoText("ignorescriptwarnings=" + m_oConfigSettings.IgnoreScriptWarnings.ToString() + System.Environment.NewLine);
-        EchoText("keepinputtext=" + m_oConfigSettings.KeepInput.ToString() + System.Environment.NewLine);
-        EchoText("sizeinputtogame=" + m_oConfigSettings.SizeInputToGame.ToString() + System.Environment.NewLine);
-        EchoText("maxgosubdepth=" + m_oConfigSettings.MaxGoSubDepth + System.Environment.NewLine);
-        EchoText("maxrowbuffer=" + m_oConfigSettings.BufferLineSize.ToString() + System.Environment.NewLine);
-        EchoText("monstercountignorelist=" + m_oConfigSettings.IgnoreMonsterList + System.Environment.NewLine);
-        EchoText("muted=" + (!m_oConfigSettings.PlaySounds).ToString() + System.Environment.NewLine);
-        EchoText("mycommandchar=" + m_oConfigSettings.MyCommandChar.ToString() + System.Environment.NewLine);
-        EchoText("parsegameonly=" + m_oConfigSettings.ParseGameOnly.ToString() + System.Environment.NewLine);
-        EchoText("prompt=" + m_oConfigSettings.Prompt + System.Environment.NewLine);
-        EchoText("promptbreak=" + m_oConfigSettings.PromptBreak + System.Environment.NewLine);
-        EchoText("promptforce=" + m_oConfigSettings.PromptForce + System.Environment.NewLine);
-        EchoText("condensed=" + m_oConfigSettings.Condensed + System.Environment.NewLine);
-        EchoText("reconnect=" + m_oConfigSettings.Reconnect.ToString() + System.Environment.NewLine);
-        EchoText("roundtimeoffset=" + m_oConfigSettings.RTOffset + System.Environment.NewLine);
-        EchoText("showlinks=" + m_oConfigSettings.ShowLinks.ToString() + System.Environment.NewLine);
-        EchoText("showimages=" + m_oConfigSettings.ShowImages.ToString() + System.Environment.NewLine);
-        EchoText("artdir=" + m_oConfigSettings.ArtDir + System.Environment.NewLine);
-        EchoText("logdir=" + m_oConfigSettings.LogDir + System.Environment.NewLine);
-        EchoText("configdir=" + m_oConfigSettings.ConfigDir + System.Environment.NewLine);
-        EchoText("plugindir=" + m_oConfigSettings.PluginDir + System.Environment.NewLine);
-        EchoText("mapdir=" + m_oConfigSettings.MapDir + System.Environment.NewLine);
-        EchoText("scriptdir=" + m_oConfigSettings.ScriptDir + System.Environment.NewLine);
-        EchoText("sounddir=" + m_oConfigSettings.SoundDir + System.Environment.NewLine);
-        EchoText("scriptchar=" + m_oConfigSettings.ScriptChar.ToString() + System.Environment.NewLine);
-        EchoText("scriptrepo=" + m_oConfigSettings.ScriptRepo + System.Environment.NewLine);
-        EchoText("maprepo=" + m_oConfigSettings.MapRepo + System.Environment.NewLine);
-        EchoText("updatemapperscripts=" + m_oConfigSettings.UpdateMapperScripts.ToString() + System.Environment.NewLine);
-        EchoText("pluginrepo=" + m_oConfigSettings.PluginRepo + System.Environment.NewLine);
-        EchoText("scriptextension=" + m_oConfigSettings.ScriptExtension + System.Environment.NewLine);
-        EchoText("scripttimeout=" + m_oConfigSettings.ScriptTimeout.ToString() + System.Environment.NewLine);
-        EchoText("separatorchar=" + m_oConfigSettings.SeparatorChar.ToString() + System.Environment.NewLine);
-        EchoText("spelltimer=" + m_oConfigSettings.ShowSpellTimer.ToString() + System.Environment.NewLine);
-        EchoText("triggeroninput=" + m_oConfigSettings.TriggerOnInput.ToString() + System.Environment.NewLine);
-        EchoText("servertimeout=" + m_oConfigSettings.ServerActivityTimeout.ToString() + System.Environment.NewLine);
-        EchoText("servertimeoutcommand=" + m_oConfigSettings.ServerActivityCommand.ToString() + System.Environment.NewLine);
-        EchoText("usertimeout=" + m_oConfigSettings.UserActivityTimeout.ToString() + System.Environment.NewLine);
-        EchoText("usertimeoutcommand=" + m_oConfigSettings.UserActivityCommand.ToString() + System.Environment.NewLine);
-        EchoText("connectscript=" + m_oConfigSettings.ConnectScript.ToString() + System.Environment.NewLine);
-        EchoText("checkforupdates=" + m_oConfigSettings.CheckForUpdates.ToString() + System.Environment.NewLine);
-        EchoText("autoupdate=" + m_oConfigSettings.AutoUpdate.ToString() + System.Environment.NewLine);
-        EchoText("autoupdatelamp=" + m_oConfigSettings.AutoUpdateLamp.ToString() + System.Environment.NewLine);
-        EchoText("automapperalpha=" + m_oConfigSettings.AutoMapperAlpha.ToString() + System.Environment.NewLine);
-        EchoText("weblinksafety=" + m_oConfigSettings.WebLinkSafety.ToString() + System.Environment.NewLine);
-    }
-
     private void ListColors()
     {
         EchoText("Available colors: " + System.Environment.NewLine);
@@ -2962,6 +2902,12 @@ public class Command
             EchoText(s + System.Environment.NewLine);
     }
 
+    public string ListSettings(string sPattern = "")
+    {
+        string allVars = ConfigSettings.Instance.ListAll(sPattern);
+        if (!string.IsNullOrEmpty(allVars)) EchoText(allVars);
+        return allVars;
+    }
     public string ListPresets(string sPattern)
     {
         string allVars = Presets.Instance.ListAll(sPattern);

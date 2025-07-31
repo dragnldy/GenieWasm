@@ -20,8 +20,8 @@ public class AutoMapper
     public static AutoMapper GetInstance() => _m_oAutoMapper ?? new AutoMapper();
     private static AutoMapper _m_oAutoMapper;
     Globals m_oGlobals = Globals.Instance;    
-    Config m_oConfig = Config.GetInstance();
-    ConfigSettings m_oConfigSettings = ConfigSettings.GetInstance();
+    Config m_oConfig = Config.Instance;
+    ConfigSettings m_oConfigSettings = ConfigSettings.Instance;
     private NodeList m_Nodes = new NodeList();
     private Node m_LastNode = null;
     private bool m_Recording = false;
