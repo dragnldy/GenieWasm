@@ -32,6 +32,10 @@ public class Presets : SortedList
             bSaveToFile = Conversions.ToBoolean(_bSaveToFile);
             bHighlightLine = highlightLine;
         }
+        public string ToFormattedString(string sValuePattern)
+        {
+            return $"Key: {sKey} ColorName: {sColorName} HighlightLine: {bHighlightLine} BgColor {BgColor.ToString()} FgColor: {FgColor.ToString()}";
+        }
     }
 
     public void Add(string sKey, string sColorName, bool bSaveToFile = true, bool highlightLine = false)
@@ -218,5 +222,14 @@ public class Presets : SortedList
         Add("ui.button", "Black, Silver");
         Add("whispers", "Magenta");
     }
+    public string ListSubset(string keyPattern = "", string valuePattern = "")
+    {
+        return ListArray("Presets", keyPattern, valuePattern);
+    }
+    public string ListAll(string keyPattern)
+    {
+        return ListSubset(keyPattern);
+    }
+
 }
 

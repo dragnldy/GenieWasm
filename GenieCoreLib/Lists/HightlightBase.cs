@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
+﻿using System.Drawing;
 using System.Text;
-using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace GenieCoreLib;
 public class HighlightBase
@@ -16,6 +13,11 @@ public class HighlightBase
     public string ClassName = string.Empty;
     public bool IsActive = true;
     public string SoundFile = string.Empty;
+    public string ToFormattedString(string sValuePattern)
+    {
+        return $"Color: {ColorName}, FgColor: {FgColor}, BgColor: {BgColor}, CaseSensitive: {CaseSensitive}, HighlightWholeRow: {HighlightWholeRow}" +
+            $"SoundFile: {SoundFile}, ClassName: {ClassName}, IsActive: {IsActive}";
+    }
 
     public static bool SaveHighlights()
     {

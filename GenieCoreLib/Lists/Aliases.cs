@@ -1,4 +1,6 @@
-﻿using System.Text;
+﻿using System.Collections;
+using System.Text;
+using static GenieCoreLib.Variables;
 
 namespace GenieCoreLib;
 
@@ -111,5 +113,23 @@ public class Aliases : SortedList
         {
             return false;
         }
+    }
+    public string ToString(string key, object value, string valueFilter = "", string prefix = "")
+    {
+        if (value == null || string.IsNullOrEmpty(key))
+        {
+            return "";
+        }
+        string sValue = $"{prefix}${key}={value.ToString()}";
+        return sValue;
+    }
+
+    public string ListSubset(string keyPattern)
+    {
+        return ListArray("Aliases", keyPattern, "");
+    }
+    public string ListAll(string keyPattern, string valuePattern = "")
+    {
+        return ListSubset(keyPattern);
     }
 }

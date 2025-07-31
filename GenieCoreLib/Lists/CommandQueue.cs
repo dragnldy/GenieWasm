@@ -4,7 +4,7 @@ namespace GenieCoreLib;
 
 public class CommandQueue
 {
-    public struct CommandRestrictions 
+    public record struct CommandRestrictions 
     {
         public bool WaitForRoundtime = false;
         public bool WaitForStunned = false;
@@ -12,51 +12,8 @@ public class CommandQueue
         public CommandRestrictions() { }
     }
 
-    public Queue EventList = new Queue();
     private object m_oThreadLock = new object(); // Thread safety
-    private DateTime m_oNextTime;
-
-    public class Queue : ArrayList
-    {
-        public class EventItem
-        {
-            public double Delay;
-            public string Action;
-            public CommandRestrictions Restrictions;
-
-            public EventItem(double InDelay, string InAction, CommandRestrictions InRestrictions)
-            {
-                Delay = InDelay;
-                Action = InAction;
-                Restrictions = InRestrictions;
-            }
-
-            public bool IsRestricted(bool InRoundtime, bool IsWebbed, bool IsStunned)
-            {
-                if (Restrictions.WaitForRoundtime && InRoundtime) return true;
-                if (Restrictions.WaitForStunned && IsStunned) return true;
-                if (Restrictions.WaitForWebbed && IsWebbed) return true;
-                return false;
-            }
-        }
-
-        public int Add(double dDelay, bool bWaitForRoundtime, string sAction, bool WaitForWebbed, bool WaitForStunned)
-        {
-            CommandRestrictions restrictions = new CommandRestrictions();
-            restrictions.WaitForRoundtime = bWaitForRoundtime;
-            restrictions.WaitForWebbed = WaitForWebbed; 
-            restrictions.WaitForStunned = WaitForStunned;
-            object argvalue = new EventItem(dDelay, sAction, restrictions);
-            Add(argvalue);
-            return default;
-        }
-        public int Add(double Delay, string Action, CommandRestrictions Restrictions)
-        {
-            object argvalue = new EventItem(Delay, Action, Restrictions);
-            Add(argvalue);
-            return default;
-        }
-    }
+    private DateTime? m_oNextTime;
 
 
     public int AddToQueue(double Delay, string Action, bool WaitForRoundtime, bool WaitForWebbed, bool WaitForStunned)
@@ -65,17 +22,16 @@ public class CommandQueue
         {
             try
             {
-                CommandRestrictions restrictions = new CommandRestrictions 
-                { 
-                    WaitForRoundtime = WaitForRoundtime, 
-                    WaitForStunned = WaitForStunned, 
-                    WaitForWebbed = WaitForWebbed 
-                };
-                EventList.Add(Delay, Action, restrictions);
-                if (EventList.Count == 1) // Only item in list. Set the timer!
+                QueueList.EventList.Add(Delay, Action, WaitForRoundtime, WaitForWebbed, WaitForStunned);
+                if (QueueList.EventList.Count == 1) // Only item in list. Set the timer!
                 {
                     SetNextTime(Delay);
                 }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Error adding to command queue: " + ex.Message);
+                return -1; // Indicate failure
             }
             finally
             {
@@ -95,7 +51,7 @@ public class CommandQueue
         {
             try
             {
-                EventList.Clear();
+                QueueList.EventList.Clear();
             }
             finally
             {
@@ -108,7 +64,7 @@ public class CommandQueue
         }
     }
 
-    // Called on regular intervals to see if our Queue has anything ready to be checked out
+    // Called on regular intervals to see if our QueueList has anything ready to be checked out
     public string Poll(bool InRoundtime, bool IsWebbed, bool IsStunned)
     {
         string sReturn = string.Empty;
@@ -116,26 +72,21 @@ public class CommandQueue
         {
             try
             {
-                if (EventList.Count > 0)
+                if (QueueList.EventList.Count > 0)
                 {
-                    if (Information.IsNothing(m_oNextTime))
+                    if (m_oNextTime.HasValue && DateTime.Now >= m_oNextTime.Value)
                     {
-                        throw new Exception("Queue time is NULL!");
-                    }
-
-                    if (DateTime.Now >= m_oNextTime)
-                    {
-                        Queue.EventItem ei = (Queue.EventItem)EventList.get_Item(0);
+                        QueueList.EventItem ei = (QueueList.EventItem)QueueList.EventList.get_Item(0);
                         if (!ei.IsRestricted(InRoundtime, IsWebbed, IsStunned))
                         {
                             sReturn = ei.Action;
                             Debug.WriteLine("Now: " + DateTime.Now);
                             Debug.WriteLine("Send: " + sReturn);
                             double i1 = ei.Delay;
-                            EventList.RemoveAt(0);
-                            if (EventList.Count > 0)
+                            QueueList.EventList.RemoveAt(0);
+                            if (QueueList.EventList.Count > 0)
                             {
-                                SetNextTime(((Queue.EventItem)EventList.get_Item(0)).Delay);
+                                SetNextTime(((QueueList.EventItem)QueueList.EventList.get_Item(0)).Delay);
                             }
                         }
                     }
@@ -156,7 +107,7 @@ public class CommandQueue
 
     private void SetNextTime(double dDelay)
     {
-        if (EventList.Count > 0)
+        if (QueueList.EventList.Count > 0)
         {
             m_oNextTime = DateTime.Now.AddSeconds(dDelay);
             Debug.WriteLine("Now: " + DateTime.Now);
@@ -165,7 +116,7 @@ public class CommandQueue
         }
         else
         {
-            m_oNextTime = default;
+            m_oNextTime = null;
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Text;
 
 namespace GenieCoreLib;
 
@@ -172,5 +173,56 @@ public class SortedList : System.Collections.SortedList
                 throw new Exception("Unable to aquire writer lock.");
             }
         }
+    }
+    public string ListArray(string itemName, string sKeyPattern = "", string sValuePattern = "")
+    {
+        StringBuilder sb = new();
+        sb.AppendLine(System.Environment.NewLine + $"Active {itemName}: ");
+        bool bUsePattern = false;
+        if (sKeyPattern.Length > 0)
+        {
+            bUsePattern = true;
+            sb.AppendLine("Filter: " + sKeyPattern);
+        }
+
+        if (AcquireReaderLock())
+        {
+            try
+            {
+                int i = 0;
+                foreach (DictionaryEntry de in this)
+                {
+                    if (bUsePattern == false | de.Key.ToString().Contains(sKeyPattern))
+                    {
+                        string text = FormatVariable(de.Value, itemName, sValuePattern);
+                        if (!string.IsNullOrEmpty(text))
+                        {
+                            string stext = $"{itemName}${de.Key.ToString()}={text}";
+                            sb.AppendLine(stext); i++;
+                        }
+                    }
+                }
+
+                if (i == 0)
+                {
+                    sb.AppendLine("None.");
+                }
+                return (sb.ToString());
+            }
+            finally
+            {
+                ReleaseReaderLock();
+            }
+        }
+        else
+        {
+            GenieError.Error("ListVariables", "Unable to aquire reader lock.");
+            return string.Empty;
+        }
+    }
+
+    private string FormatVariable(object? value, string itemName, string sValuePattern)
+    {
+        return ArrayList.FormatVariable(value, itemName, sValuePattern);
     }
 }

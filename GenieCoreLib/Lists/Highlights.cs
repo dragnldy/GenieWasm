@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.Text;
 using System.Text.RegularExpressions;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace GenieCoreLib;
 
@@ -15,6 +16,27 @@ public class HighlightsList : SortedList
     {
         m_Highlights = this;
     }
+
+    public class Highlight : HighlightBase
+    {
+        public Highlight(Color oColor, string sColorName, Color oBgColor, bool bHighlightWholeRow, bool CaseSensitive = true, string SoundFile = "", string ClassName = "", bool IsActive = true)
+        {
+            HighlightWholeRow = bHighlightWholeRow;
+            FgColor = oColor;
+            BgColor = oBgColor;
+            ColorName = sColorName;
+            this.CaseSensitive = CaseSensitive;
+            this.SoundFile = SoundFile;
+            this.ClassName = ClassName;
+            this.IsActive = IsActive;
+        }
+        public string ToFormattedString(string sValuePattern)
+        {
+            return $"Regular Expression: {base.ToFormattedString(sValuePattern)}";
+        }
+
+    }
+
 
     private Regex m_oRegexString = null;
     private Regex m_oRegexLine = null;
@@ -71,21 +93,6 @@ public class HighlightsList : SortedList
         else
         {
             throw new Exception("Unable to aquire reader lock.");
-        }
-    }
-
-    public class Highlight : HighlightBase
-    {
-        public Highlight(Color oColor, string sColorName, Color oBgColor, bool bHighlightWholeRow, bool CaseSensitive = true, string SoundFile = "", string ClassName = "", bool IsActive = true)
-        {
-            FgColor = oColor;
-            BgColor = oBgColor;
-            HighlightWholeRow = bHighlightWholeRow;
-            ColorName = sColorName;
-            this.CaseSensitive = CaseSensitive;
-            this.SoundFile = SoundFile;
-            this.ClassName = ClassName;
-            this.IsActive = IsActive;
         }
     }
 

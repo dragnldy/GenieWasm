@@ -39,6 +39,10 @@ public class SubstituteRegExp : ArrayList
             this.ClassName = ClassName;
             this.IsActive = IsActive;
         }
+        public string ToFormattedString(string sValuePattern)
+        {
+            return $"Text: {sText}, ReplaceBy: {sReplaceBy}, IgnoreCase: {bIgnoreCase}, ClassName: {ClassName}, IsActive: {IsActive}";
+        }
     }
 
     public bool Add(string sText, string ReplaceBy, bool IgnoreCase = false, string ClassName = "", bool IsActive = true)
@@ -244,4 +248,13 @@ public class SubstituteRegExp : ArrayList
             return false;
         }
     }
+    public string ListSubset(string keyPattern = "", string valuePattern = "")
+    {
+        return ListArray("Substitutes", keyPattern, valuePattern);
+    }
+    public string ListAll(string keyPattern = "", string valuePattern = "")
+    {
+        return ListSubset("");
+    }
+
 }

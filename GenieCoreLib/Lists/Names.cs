@@ -1,6 +1,7 @@
 ﻿using System.Drawing;
 using System.Text;
 using System.Text.RegularExpressions;
+using static GenieCoreLib.Names;
 
 namespace GenieCoreLib;
 
@@ -39,6 +40,11 @@ public class Names : SortedList
             FgColor = oColor;
             BgColor = oBgColor;
             ColorName = sColorName;
+        }
+        public string ToFormattedString(string sValuePattern)
+        {
+            return $"{BgColor.ToString()} {FgColor.ToString()} {ColorName}";
+
         }
     }
 
@@ -192,4 +198,13 @@ public class Names : SortedList
             return false;
         }
     }
+    public string ListSubset(string keyPattern)
+    {
+        return ListArray("Names", keyPattern, "");
+    }
+    public string ListAll(string keyPattern, string valuePattern = "")
+    {
+        return ListSubset(keyPattern);
+    }
+
 }

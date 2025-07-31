@@ -16,6 +16,11 @@ public class Globals : IGlobals
     public static Globals Instance => GetInstance();
     private static Globals _m_oGlobals;
 
+    public string GenieKey = string.Empty;
+    public string GenieAccount = string.Empty;
+    public List<VolatileHighlight> VolatileHighlights = new List<VolatileHighlight>();
+    public List<VolatileHighlight> RoomObjects = new List<VolatileHighlight>();
+
     //public Presets PresetList = Presets.Instance;
     //public Aliases AliasList = Aliases.Instance;
     //public Names NameList = Names.Instance;
@@ -26,34 +31,32 @@ public class Globals : IGlobals
     //public Highlights HighlightList = Highlights.Instance;
     //public SubstituteRegExp SubstituteList = SubstituteRegExp.Instance;
     //public GagRegExp GagList = GagRegExp.Instance;
+    //public QueueList Events = QueueList.Instance;
 
     public Globals()
     {
         _m_oGlobals = this;
 
-        //m_oOutputMain = new FormSkin("main", "Game", ref _m_oGlobals);
-        //m_oLegacyPluginHost = new LegacyPluginHost(this, ref _m_oGlobals);
-        //m_oPluginHost = new PluginHost(this, ref _m_oGlobals);
-        //m_PluginDialog = new FormPlugins(ref _m_oGlobals.PluginList);
-        // This call is required by the Windows Form Designer.
-        //InitializeComponent();
-        //RecolorUI();
-        //MapperSettings = new FormMapperSettings(ref _m_oGlobals) { MdiParent = this };
-        //MapperSettings.EventVariableChanged += ClassCommand_EventVariableChanged;
-        //MapperSettings.EventClassChange += Command_EventClassChange;
+    //m_oOutputMain = new FormSkin("main", "Game", ref _m_oGlobals);
+    //m_oLegacyPluginHost = new LegacyPluginHost(this, ref _m_oGlobals);
+    //m_oPluginHost = new PluginHost(this, ref _m_oGlobals);
+    //m_PluginDialog = new FormPlugins(ref _m_oGlobals.PluginList);
+    // This call is required by the Windows Form Designer.
+    //InitializeComponent();
+    //RecolorUI();
+    //MapperSettings = new FormMapperSettings(ref _m_oGlobals) { MdiParent = this };
+    //MapperSettings.EventVariableChanged += ClassCommand_EventVariableChanged;
+    //MapperSettings.EventClassChange += Command_EventClassChange;
 
-        // Add any initialization after the InitializeComponent() call.
-        FileDirectory.CheckUserDirectory();
+    // Add any initialization after the InitializeComponent() call.
+    FileDirectory.CheckUserDirectory();
         //bool bCustomConfigFile = false;
 
 
         //        AppendText("Loading Presets...");
     }
 
-    public Events Events = new Events();
     public CommandQueue CommandQueue = new CommandQueue();
-    public string GenieKey = string.Empty;
-    public string GenieAccount = string.Empty;
     public ArrayList PluginList = new ArrayList();
     public bool PluginsEnabled = true;
     public Hashtable PluginVerifiedKeyList = new Hashtable();
@@ -66,8 +69,6 @@ public class Globals : IGlobals
     }
 
     public List<string> MonsterList = new List<string>();
-    public List<VolatileHighlight> VolatileHighlights = new List<VolatileHighlight>();
-    public List<VolatileHighlight> RoomObjects = new List<VolatileHighlight>();
     public Regex MonsterListRegEx;
 
     public void UpdateMonsterListRegEx()

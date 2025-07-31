@@ -213,4 +213,13 @@ public class Classes : SortedList
             return false;
         }
     }
+    public string ListSubset(string keyPattern = "", string valuePattern = "")
+    {
+        return ListArray("Classes", keyPattern, valuePattern);
+    }
+    public string ListAll(string keyPattern)
+    {
+        return ListSubset(keyPattern);
+    }
+
 }

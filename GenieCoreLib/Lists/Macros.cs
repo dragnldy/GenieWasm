@@ -23,6 +23,10 @@ public class Macros : SortedList
             this.sKey = sKey;
             sAction = sMacro;
         }
+        public string ToFormattedString(string sValuePattern = "")
+        {
+            return $"Key: {sKey} Action: {sAction}";
+        }
     }
 
     public bool Add(string sKey, string sMacro)
@@ -142,4 +146,13 @@ public class Macros : SortedList
             return false;
         }
     }
+    public string ListSubset(string keyPattern = "", string valuePattern = "")
+    {
+        return ListArray("Macros", keyPattern, valuePattern);
+    }
+    public string ListAll(string keyPattern)
+    {
+        return ListSubset(keyPattern);
+    }
+
 }

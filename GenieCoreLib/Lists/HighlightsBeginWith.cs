@@ -27,6 +27,11 @@ public class HighlightBeginsWithList : SortedList
             this.ClassName = ClassName;
             this.IsActive = IsActive;
         }
+        public string ToFormattedString(string sValuePattern)
+        {
+            return $"Line Begins With: {Text} {base.ToFormattedString(sValuePattern)}";
+        }
+
     }
 
     public void ToggleClass(string ClassName, bool Value)

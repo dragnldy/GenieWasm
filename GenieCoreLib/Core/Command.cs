@@ -917,7 +917,8 @@ public class Command
 
                                                     default:
                                                         {
-                                                            ListVariables(Utility.ArrayToString(oArgs, 1));
+                                                            string textToEcho = Variables.Instance.ListAll("");
+                                                            if (!string.IsNullOrEmpty(textToEcho)) EchoText(textToEcho);
                                                             break;
                                                         }
                                                 }
@@ -1109,14 +1110,14 @@ public class Command
                                             if (sAction.Trim().Length > 0)
                                             {
                                                 double argdSeconds = Utility.StringToDouble(oArgs[1].ToString());
-                                                Globals.Instance.Events.AddToQueue(argdSeconds, sAction);
+                                                QueueList.Instance.AddToQueue(argdSeconds, sAction);
                                             }
                                         }
                                         else if (oArgs.Count == 2)
                                         {
                                             if ((oArgs[1].ToString().ToLower() ?? "") == "clear")
                                             {
-                                                Globals.Instance.Events.EventList.Clear();
+                                                QueueList.Instance.Clear();
                                             }
                                             else
                                             {
@@ -1147,7 +1148,7 @@ public class Command
                                         {
                                             if ((oArgs[1].ToString().ToLower() ?? "") == "clear")
                                             {
-                                                // EchoText("Queue Cleared" & vbNewLine)
+                                                // EchoText("QueueList Cleared" & vbNewLine)
                                                 Globals.Instance.CommandQueue.Clear();
                                             }
                                             else
@@ -1206,7 +1207,7 @@ public class Command
 
                                                     default:
                                                         {
-                                                            ListAliases(Utility.ArrayToString(oArgs, 1));
+                                                            Aliases.Instance.ListSubset(Utility.ArrayToString(oArgs, 1));
                                                             break;
                                                         }
                                                 }
@@ -2978,629 +2979,96 @@ public class Command
             EchoText(s + System.Environment.NewLine);
     }
 
-    private void ListVariables(string sPattern)
+    private void ListAliases(string sPattern)
     {
-        EchoText(System.Environment.NewLine + "Active variables: " + System.Environment.NewLine);
-        bool bUsePattern = false;
-        if (sPattern.Length > 0)
-        {
-            bUsePattern = true;
-            EchoText("Filter: " + sPattern + System.Environment.NewLine);
-        }
-
-        if (Variables.Instance.AcquireReaderLock())
-        {
-            try
-            {
-                int I = 0;
-                foreach (DictionaryEntry de in Variables.Instance)
-                {
-                    if (bUsePattern == false | de.Key.ToString().Contains(sPattern))
-                    {
-                        if (((Variables.Variable)de.Value).oType == Variables.VariablesType.SaveToFile)
-                        {
-                            EchoText("$" + de.Key.ToString() + "=" + ((Variables.Variable)de.Value).sValue + System.Environment.NewLine);
-                            I += 1;
-                        }
-                    }
-                }
-
-                foreach (DictionaryEntry de in Variables.Instance)
-                {
-                    if (bUsePattern == false | de.Key.ToString().Contains(sPattern))
-                    {
-                        if (((Variables.Variable)de.Value).oType == Variables.VariablesType.Temporary)
-                        {
-                            EchoText("(temporary) $" + de.Key.ToString() + "=" + ((Variables.Variable)de.Value).sValue + System.Environment.NewLine);
-                            I += 1;
-                        }
-                    }
-                }
-
-                foreach (DictionaryEntry de in Variables.Instance)
-                {
-                    if (bUsePattern == false | de.Key.ToString().Contains(sPattern))
-                    {
-                        if (((Variables.Variable)de.Value).oType == Variables.VariablesType.Reserved)
-                        {
-                            EchoText("(reserved) $" + de.Key.ToString() + "=" + ((Variables.Variable)de.Value).sValue + System.Environment.NewLine);
-                            I += 1;
-                        }
-                    }
-                }
-
-                foreach (DictionaryEntry de in Variables.Instance)
-                {
-                    if (bUsePattern == false | de.Key.ToString().Contains(sPattern))
-                    {
-                        if (((Variables.Variable)de.Value).oType == Variables.VariablesType.Server)
-                        {
-                            EchoText("(server) $" + de.Key.ToString() + "=" + ((Variables.Variable)de.Value).sValue + System.Environment.NewLine);
-                            I += 1;
-                        }
-                    }
-                }
-
-                if (I == 0)
-                {
-                    EchoText("None." + System.Environment.NewLine);
-                }
-            }
-            finally
-            {
-                Variables.Instance.ReleaseReaderLock();
-            }
-        }
-        else
-        {
-            GenieError.Error("ListVariables", "Unable to aquire reader lock.");
-        }
+        string allVars = Aliases.Instance.ListAll(sPattern);
+        if (!string.IsNullOrEmpty(allVars)) EchoText(allVars);
     }
-
     private void ListSubstitutes(string sPattern)
     {
-        EchoText(System.Environment.NewLine + "Active substitutes: " + System.Environment.NewLine);
-        // bool bUsePattern = false;
-        if (sPattern.Length > 0)
-        {
-            // bUsePattern = true;
-            EchoText("Filter: " + sPattern + System.Environment.NewLine);
-        }
-
-        if (SubstituteRegExp.Instance.AcquireReaderLock())
-        {
-            try
-            {
-                int I = 0;
-                var myEnumeratorWords = SubstituteRegExp.Instance.GetEnumerator();
-                while (myEnumeratorWords.MoveNext())
-                {
-                    SubstituteRegExp.Substitute o = (SubstituteRegExp.Substitute)myEnumeratorWords.Current;
-                    EchoText(o.sText + " => " + o.sReplaceBy + System.Environment.NewLine);
-                    I += 1;
-                }
-
-                if (I == 0)
-                {
-                    EchoText("None." + System.Environment.NewLine);
-                }
-            }
-            finally
-            {
-                SubstituteRegExp.Instance.ReleaseReaderLock();
-            }
-        }
-        else
-        {
-            GenieError.Error("ListSubstitutes", "Unable to aquire reader lock.");
-        }
+        string allVars = SubstituteRegExp.Instance.ListAll(sPattern);
+        if (!string.IsNullOrEmpty(allVars)) EchoText(allVars);
     }
-
+    private void ListVariables(string sPattern)
+    {
+        string allVars = Variables.Instance.ListAll(sPattern);
+        if (!string.IsNullOrEmpty(allVars)) EchoText(allVars);
+    }
     private void ListGags(string sPattern)
     {
-        EchoText(System.Environment.NewLine + "Active gags: " + System.Environment.NewLine);
-        // bool bUsePattern = false;
-        if (sPattern.Length > 0)
-        {
-            // bUsePattern = true;
-            EchoText("Filter: " + sPattern + System.Environment.NewLine);
-        }
-
-        if (GagRegExp.Instance.AcquireReaderLock())
-        {
-            try
-            {
-                int I = 0;
-                var myEnumeratorWords = GagRegExp.Instance.GetEnumerator();
-                while (myEnumeratorWords.MoveNext())
-                {
-                    GagRegExp.Gag o = (GagRegExp.Gag)myEnumeratorWords.Current;
-                    EchoText(o.Text + System.Environment.NewLine);
-                    I += 1;
-                }
-
-                if (I == 0)
-                {
-                    EchoText("None." + System.Environment.NewLine);
-                }
-            }
-            finally
-            {
-                GagRegExp.Instance.ReleaseReaderLock();
-            }
-        }
-        else
-        {
-            GenieError.Error("ListGags", "Unable to aquire reader lock.");
-        }
+        string allVars = GagRegExp.Instance.ListAll(sPattern);
+        if (!string.IsNullOrEmpty(allVars)) EchoText(allVars);
     }
-
     private void ListNames(string sPattern)
     {
-        EchoText(System.Environment.NewLine + "Active names: " + System.Environment.NewLine);
-        bool bUsePattern = false;
-        if (sPattern.Length > 0)
-        {
-            bUsePattern = true;
-            EchoText("Filter: " + sPattern + System.Environment.NewLine);
-        }
-
-        if (Names.Instance.AcquireReaderLock())
-        {
-            try
-            {
-                int I = 0;
-                foreach (DictionaryEntry de in Names.Instance)
-                {
-                    if (bUsePattern == false | de.Value.ToString().Contains(sPattern))
-                    {
-                        string argsText = Conversions.ToString(de.Key) + System.Environment.NewLine;
-                        EchoColorText(argsText, ((Names.Name)de.Value).FgColor, ((Names.Name)de.Value).BgColor);
-                        I += 1;
-                    }
-                }
-
-                if (I == 0)
-                {
-                    EchoText("None." + System.Environment.NewLine);
-                }
-            }
-            finally
-            {
-                Names.Instance.ReleaseReaderLock();
-            }
-        }
-        else
-        {
-            GenieError.Error("ListNames", "Unable to aquire reader lock.");
-        }
+        string allVars = Names.Instance.ListAll(sPattern);
+        if (!string.IsNullOrEmpty(allVars)) EchoText(allVars);
     }
 
     private void ListPresets(string sPattern)
     {
-        EchoText(System.Environment.NewLine + "Active presets: " + System.Environment.NewLine);
-        bool bUsePattern = false;
-        if (sPattern.Length > 0)
-        {
-            bUsePattern = true;
-            EchoText("Filter: " + sPattern + System.Environment.NewLine);
-        }
-
-        if (Presets.Instance.AcquireReaderLock())
-        {
-            try
-            {
-                int I = 0;
-                foreach (DictionaryEntry de in Presets.Instance)
-                {
-                    if (bUsePattern == false | de.Value.ToString().Contains(sPattern))
-                    {
-                        string argsText = Conversions.ToString(de.Key) + System.Environment.NewLine;
-                        EchoColorText(argsText, ((Presets.Preset)de.Value).FgColor, ((Presets.Preset)de.Value).BgColor);
-                        I += 1;
-                    }
-                }
-
-                if (I == 0)
-                {
-                    EchoText("None." + System.Environment.NewLine);
-                }
-            }
-            finally
-            {
-                Presets.Instance.ReleaseReaderLock();
-            }
-        }
-        else
-        {
-            GenieError.Error("ListPresets", "Unable to aquire reader lock.");
-        }
+        string allVars = Presets.Instance.ListAll(sPattern);
+        if (!string.IsNullOrEmpty(allVars)) EchoText(allVars);
     }
 
     private void ListHighlights(string sPattern)
     {
-        EchoText(System.Environment.NewLine + "Active highlights: " + System.Environment.NewLine);
-        bool bUsePattern = false;
-        if (sPattern.Length > 0)
+        string allVars = Presets.Instance.ListAll(sPattern);
+        if (!string.IsNullOrEmpty(allVars)) EchoText(allVars);
+        /*
+        if (((HighlightBase)de.Value).HighlightWholeRow == false)
         {
-            bUsePattern = true;
-            EchoText("Filter: " + sPattern + System.Environment.NewLine);
-        }
-
-        if (HighlightsList.Instance.AcquireReaderLock())
-        {
-            try
-            {
-                EchoText("Highlight Strings: " + System.Environment.NewLine);
-                /* TODO ERROR: Skipped IfDirectiveTrivia *//* TODO ERROR: Skipped DisabledTextTrivia *//* TODO ERROR: Skipped EndIfDirectiveTrivia */
-                int I = 0;
-                foreach (DictionaryEntry de in HighlightsList.Instance)
-                {
-                    if (bUsePattern == false | de.Value.ToString().Contains(sPattern))
-                    {
-                        if (((HighlightBase)de.Value).HighlightWholeRow == false)
-                        {
-                            string argsText = Conversions.ToString("[" + ((HighlightBase)de.Value).ClassName + ":" + Interaction.IIf(((HighlightBase)de.Value).IsActive, "ON", "OFF") + "] " + Conversions.ToString(de.Key) + System.Environment.NewLine);
-                            EchoColorText(argsText, ((HighlightBase)de.Value).FgColor, ((HighlightBase)de.Value).BgColor);
-                        }
-
-                        I += 1;
-                    }
-                }
-
-                if (I == 0)
-                {
-                    EchoText("None." + System.Environment.NewLine);
-                }
-            }
-            finally
-            {
-                HighlightsList.Instance.ReleaseReaderLock();
-            }
-        }
-        else
-        {
-            GenieError.Error("ListHighlights", "Unable to aquire reader lock.");
-        }
-
-        if (HighlightsList.Instance.AcquireReaderLock())
-        {
-            try
-            {
-                int I = 0;
-                EchoText("Highlight Lines: " + System.Environment.NewLine);
-                /* TODO ERROR: Skipped IfDirectiveTrivia *//* TODO ERROR: Skipped DisabledTextTrivia *//* TODO ERROR: Skipped EndIfDirectiveTrivia */
-                foreach (DictionaryEntry de in HighlightsList.Instance)
-                {
-                    if (bUsePattern == false | de.Value.ToString().Contains(sPattern))
-                    {
+            string argsText = Conversions.ToString("[" + ((HighlightBase)de.Value).ClassName + ":" + Interaction.IIf(((HighlightBase)de.Value).IsActive, "ON", "OFF") + "] " + Conversions.ToString(de.Key) + System.Environment.NewLine);
+            EchoColorText(argsText, ((HighlightBase)de.Value).FgColor, ((HighlightBase)de.Value).BgColor);
+        
                         if (((HighlightBase)de.Value).HighlightWholeRow == true)
                         {
                             string argsText1 = Conversions.ToString("[" + ((HighlightBase)de.Value).ClassName + ":" + Interaction.IIf(((HighlightBase)de.Value).IsActive, "ON", "OFF") + "] " + Conversions.ToString(de.Key) + System.Environment.NewLine);
                             EchoColorText(argsText1, ((HighlightBase)de.Value).FgColor, ((HighlightBase)de.Value).BgColor);
                         }
 
-                        I += 1;
-                    }
-                }
-
-                if (I == 0)
-                {
-                    EchoText("None." + System.Environment.NewLine);
-                }
-            }
-            finally
-            {
-               HighlightsList.Instance.ReleaseReaderLock();
-            }
-        }
-        else
-        {
-            GenieError.Error("ListHighlights", "Unable to aquire reader lock.");
-        }
-
-        if (HighlightBeginsWithList.Instance.AcquireReaderLock())
-        {
-            try
-            {
-                int I = 0;
-                EchoText("Highlight BeginsWith: " + System.Environment.NewLine);
-                foreach (DictionaryEntry de in HighlightBeginsWithList.Instance)
-                {
-                    if (bUsePattern == false | de.Value.ToString().Contains(sPattern))
+                            if (bUsePattern == false | de.Value.ToString().Contains(sPattern))
                     {
                         HighlightBeginsWithList.Highlight oHighlight = (HighlightBeginsWithList.Highlight)de.Value;
                         string argsText2 = Conversions.ToString("[" + oHighlight.ClassName + ":" + Interaction.IIf(oHighlight.IsActive, "ON", "OFF") + "] " + Conversions.ToString(de.Key) + System.Environment.NewLine);
                         EchoColorText(argsText2, oHighlight.FgColor, oHighlight.BgColor);
                         I += 1;
-                    }
-                }
-
-                if (I == 0)
-                {
-                    EchoText("None." + System.Environment.NewLine);
-                }
-            }
-            finally
-            {
-                HighlightBeginsWithList.Instance.ReleaseReaderLock();
-            }
-        }
-        else
-        {
-            GenieError.Error("ListHighlights", "Unable to aquire reader lock.");
-        }
-
-        if (HighlightRegExpList.Instance.AcquireReaderLock())
-        {
-            try
-            {
-                int I = 0;
-                EchoText("Highlight RegExp: " + System.Environment.NewLine);
-                foreach (DictionaryEntry de in HighlightRegExpList.Instance)
-                {
-                    if (bUsePattern == false | de.Value.ToString().Contains(sPattern))
-                    {
                         HighlightRegExpList.Highlight oHighlight = (HighlightRegExpList.Highlight)de.Value;
                         string argsText3 = Conversions.ToString("[" + oHighlight.ClassName + ":" + Interaction.IIf(oHighlight.IsActive, "ON", "OFF") + "] " + Conversions.ToString(de.Key) + System.Environment.NewLine);
                         EchoColorText(argsText3, oHighlight.FgColor, oHighlight.BgColor);
-                        I += 1;
                     }
-                }
-
-                if (I == 0)
-                {
-                    EchoText("None." + System.Environment.NewLine);
-                }
-            }
-            finally
-            {
-                HighlightRegExpList.Instance.ReleaseReaderLock();
-            }
-        }
-        else
-        {
-            GenieError.Error("ListHighlights", "Unable to aquire reader lock.");
-        }
+        }*/
     }
 
     private void ListMacros(string sPattern)
     {
-        EchoText(System.Environment.NewLine + "Active macros: " + System.Environment.NewLine);
-        bool bUsePattern = false;
-        if (sPattern.Length > 0)
-        {
-            bUsePattern = true;
-            EchoText("Filter: " + sPattern + System.Environment.NewLine);
-        }
-
-        if (Macros.Instance.AcquireReaderLock())
-        {
-            try
-            {
-                int I = 0;
-                foreach (DictionaryEntry de in Macros.Instance)
-                {
-                    if (bUsePattern == false | de.Value.ToString().Contains(sPattern))
-                    {
-                        EchoText(((Keys)Conversions.ToInteger(de.Key)).ToString() + "=" + ((Macros.Macro)de.Value).sAction + System.Environment.NewLine);
-                        I += 1;
-                    }
-                }
-
-                if (I == 0)
-                {
-                    EchoText("None." + System.Environment.NewLine);
-                }
-            }
-            finally
-            {
-                Macros.Instance.ReleaseReaderLock();
-            }
-        }
-        else
-        {
-            GenieError.Error("ListMacros", "Unable to aquire reader lock.");
-        }
+        string allVars = Macros.Instance.ListAll(sPattern);
+        if (!string.IsNullOrEmpty(allVars)) EchoText(allVars);
     }
-
     private void ListTriggers(string sPattern)
     {
-        EchoText(System.Environment.NewLine + "Active triggers: " + System.Environment.NewLine);
-        bool bUsePattern = false;
-        if (sPattern.Length > 0)
-        {
-            bUsePattern = true;
-            EchoText("Filter: " + sPattern + System.Environment.NewLine);
-        }
-
-        if (Triggers.Instance.AcquireReaderLock())
-        {
-            try
-            {
-                int I = 0;
-                foreach (DictionaryEntry de in Triggers.Instance)
-                {
-                    if (bUsePattern == false | de.Key.ToString().Contains(sPattern))
-                    {
-                        EchoText(de.Key.ToString() + "=" + ((Triggers.Trigger)de.Value).sAction + System.Environment.NewLine);
-                        I += 1;
-                    }
-                }
-
-                if (I == 0)
-                {
-                    EchoText("None." + System.Environment.NewLine);
-                }
-            }
-            finally
-            {
-                Triggers.Instance.ReleaseReaderLock();
-            }
-        }
-        else
-        {
-            GenieError.Error("ListTriggers", "Unable to aquire reader lock.");
-        }
+        string allVars = Macros.Instance.ListAll(sPattern);
+        if (!string.IsNullOrEmpty(allVars)) EchoText(allVars);
     }
-
-    private void ListAliases(string sPattern)
-    {
-        EchoText(System.Environment.NewLine + "Active aliases: " + System.Environment.NewLine);
-        bool bUsePattern = false;
-        if (sPattern.Length > 0)
-        {
-            bUsePattern = true;
-            EchoText("Filter: " + sPattern + System.Environment.NewLine);
-        }
-
-        if (Aliases.Instance.AcquireReaderLock())
-        {
-            try
-            {
-                int I = 0;
-                foreach (DictionaryEntry de in Aliases.Instance)
-                {
-                    if (bUsePattern == false | de.Key.ToString().Contains(sPattern))
-                    {
-                        EchoText(de.Key.ToString() + "=" + de.Value.ToString() + System.Environment.NewLine);
-                        I += 1;
-                    }
-                }
-
-                if (I == 0)
-                {
-                    EchoText("None." + System.Environment.NewLine);
-                }
-            }
-            finally
-            {
-                Aliases.Instance.ReleaseReaderLock();
-            }
-        }
-        else
-        {
-            GenieError.Error("ListAliases", "Unable to aquire reader lock.");
-        }
-    }
-
     private void ListClasses(string sPattern)
     {
-        EchoText(System.Environment.NewLine + "Active classes: " + System.Environment.NewLine);
-        bool bUsePattern = false;
-        if (sPattern.Length > 0)
-        {
-            bUsePattern = true;
-            EchoText("Filter: " + sPattern + System.Environment.NewLine);
-        }
-
-        if (Classes.Instance.AcquireReaderLock())
-        {
-            try
-            {
-                int I = 0;
-                foreach (DictionaryEntry de in Classes.Instance)
-                {
-                    if (bUsePattern == false | de.Key.ToString().Contains(sPattern))
-                    {
-                        EchoText(de.Key.ToString() + "=" + Conversions.ToBoolean(de.Value).ToString() + System.Environment.NewLine);
-                        I += 1;
-                    }
-                }
-
-                if (I == 0)
-                {
-                    EchoText("None." + System.Environment.NewLine);
-                }
-            }
-            finally
-            {
-                Classes.Instance.ReleaseReaderLock();
-            }
-        }
-        else
-        {
-            GenieError.Error("ListClasses", "Unable to aquire reader lock.");
-        }
+        string allVars = Classes.Instance.ListAll(sPattern);
+        if (!string.IsNullOrEmpty(allVars)) EchoText(allVars);
     }
-
     private void ListEvents(string sPattern)
     {
-        EchoText(System.Environment.NewLine + "Active event queue: " + System.Environment.NewLine);
-        bool bUsePattern = false;
-        if (sPattern.Length > 0)
+        string allVars = QueueList.Instance.ListAll(sPattern);
+        if (!string.IsNullOrEmpty(allVars)) EchoText(allVars);
+        /*
+        if (bUsePattern == false | ((Events.Queue.EventItem)m_oGlobals.Events.EventList.get_Item(I)).sAction.Contains(sPattern))
         {
-            bUsePattern = true;
-            EchoText("Filter: " + sPattern + System.Environment.NewLine);
-        }
+            EchoText("(" + ((Events.Queue.EventItem)m_oGlobals.Events.EventList.get_Item(I)).oDate + ") " + ((Events.Queue.EventItem)m_oGlobals.Events.EventList.get_Item(I)).sAction + System.Environment.NewLine);
 
-        if (m_oGlobals.Events.EventList.AcquireReaderLock())
-        {
-            try
-            {
-                int J = 0;
-                for (int I = 0, loopTo = m_oGlobals.Events.EventList.Count - 1; I <= loopTo; I++)
-                {
-                    if (bUsePattern == false | ((Events.Queue.EventItem)m_oGlobals.Events.EventList.get_Item(I)).sAction.Contains(sPattern))
-                    {
-                        EchoText("(" + ((Events.Queue.EventItem)m_oGlobals.Events.EventList.get_Item(I)).oDate + ") " + ((Events.Queue.EventItem)m_oGlobals.Events.EventList.get_Item(I)).sAction + System.Environment.NewLine);
-                        J += 1;
-                    }
-                }
-
-                if (J == 0)
-                {
-                    EchoText("None." + System.Environment.NewLine);
-                }
-            }
-            finally
-            {
-                m_oGlobals.Events.EventList.ReleaseReaderLock();
-            }
-        }
-        else
-        {
-            GenieError.Error("ListEvents", "Unable to aquire reader lock.");
-        }
+        }*/
     }
-
     private void ListCommandQueue(string sPattern)
     {
-        EchoText(System.Environment.NewLine + "Active command queue: " + System.Environment.NewLine);
-        bool bUsePattern = false;
-        if (sPattern.Length > 0)
-        {
-            bUsePattern = true;
-            EchoText("Filter: " + sPattern + System.Environment.NewLine);
-        }
-
-        if (m_oGlobals.CommandQueue.EventList.AcquireReaderLock())
-        {
-            try
-            {
-                int J = 0;
-                for (int I = 0, loopTo = m_oGlobals.CommandQueue.EventList.Count - 1; I <= loopTo; I++)
-                {
-                    if (bUsePattern == false | ((CommandQueue.Queue.EventItem)m_oGlobals.CommandQueue.EventList.get_Item(I)).Action.Contains(sPattern))
-                    {
-                        EchoText("(" + ((CommandQueue.Queue.EventItem)m_oGlobals.CommandQueue.EventList.get_Item(I)).Delay + ") " + ((CommandQueue.Queue.EventItem)m_oGlobals.CommandQueue.EventList.get_Item(I)).Action + System.Environment.NewLine);
-                        J += 1;
-                    }
-                }
-
-                if (J == 0)
-                {
-                    EchoText("None." + System.Environment.NewLine);
-                }
-            }
-            finally
-            {
-                m_oGlobals.CommandQueue.EventList.ReleaseReaderLock();
-            }
-        }
-        else
-        {
-            GenieError.Error("ListCommandQueue", "Unable to aquire reader lock.");
-        }
+        ListEvents(sPattern);
+//        EchoText("(" + ((QueueList.EventItem)QueueList.EventList.get_Item(I)).Delay + ") " + ((QueueList.EventItem)QueueList.EventList.get_Item(I)).Action + System.Environment.NewLine);
     }
 }

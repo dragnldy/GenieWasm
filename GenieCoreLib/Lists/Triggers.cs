@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using static GenieCoreLib.Macros;
 
 namespace GenieCoreLib;
 public class Triggers : SortedList
@@ -46,6 +41,12 @@ public class Triggers : SortedList
             }
 
             ClassName = _ClassName;
+        }
+        public string ToFormattedString(string sValuePattern)
+        {
+            string evalPrefix = bIsEvalTrigger ? "e/" : "";
+            string ignoreCaseSuffix = bIgnoreCase ? "/i" : "";
+            return $"{evalPrefix}{sTrigger}{ignoreCaseSuffix} Action: {sAction} Class: {ClassName}";
         }
     }
 
@@ -262,5 +263,12 @@ public class Triggers : SortedList
 
         return Add(sTrigger, sAction, bIgnoreCase, bIsEvalTrigger, ClassName);
     }
-
+    public string ListSubset(string keyPattern = "", string valuePattern = "")
+    {
+        return ListArray("Triggers", keyPattern, valuePattern);
+    }
+    public string ListAll(string keyPattern)
+    {
+        return ListSubset(keyPattern);
+    }
 }

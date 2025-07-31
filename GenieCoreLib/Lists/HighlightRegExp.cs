@@ -41,6 +41,10 @@ public class HighlightRegExpList : SortedList
             this.ClassName = ClassName;
             this.IsActive = IsActive;
         }
+        public string ToFormattedString(string sValuePattern)
+        {
+            return $"Regular Expression: {Text} {base.ToFormattedString(sValuePattern)}";
+        }
     }
 
     public void ToggleClass(string ClassName, bool Value)

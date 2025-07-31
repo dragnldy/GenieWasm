@@ -32,6 +32,11 @@ public class GagRegExp : ArrayList
                 RegexGag = new Regex(Text, bIgnoreCase ? (MyRegexOptions.options | RegexOptions.IgnoreCase) : MyRegexOptions.options);
             }
         }
+        public string ToFormattedString(string sValuePattern)
+        {
+            return $"Text: {Text}, IgnoreCase: {bIgnoreCase}, ClassName: {ClassName}, IsActive: {IsActive}";
+        }
+
     }
 
     public bool Add(string sText, bool IgnoreCase = false, string ClassName = "", bool IsActive = true)
@@ -233,5 +238,13 @@ public class GagRegExp : ArrayList
         {
             return false;
         }
+    }
+    public string ListSubset(string keyPattern = "", string valuePattern = "")
+    {
+        return ListArray("Gags", keyPattern, valuePattern);
+    }
+    public string ListAll(string keyPattern)
+    {
+        return ListSubset(keyPattern);
     }
 }

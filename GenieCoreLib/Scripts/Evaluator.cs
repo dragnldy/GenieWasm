@@ -363,7 +363,7 @@ public class Evaluator
         }
     }
 
-    // Parse the Queue after it's been added to array
+    // Parse the QueueList after it's been added to array
     private int ParseQueue(int start = 0)
     {
         for (int j = start, loopTo = oSections.Count - 1; j <= loopTo; j++)

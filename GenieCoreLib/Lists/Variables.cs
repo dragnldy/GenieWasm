@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Text;
 using static GenieCoreLib.Presets;
+using static GenieCoreLib.Variables;
 
 namespace GenieCoreLib;
 public class Variables : SortedList
@@ -61,6 +62,10 @@ public class Variables : SortedList
             sKey = _sKey;
             sValue = _sValue;
             oType = _oType;
+        }
+        public string ToFormattedString(string sValuePattern)
+        {
+            return (oType.ToString().Equals(sValuePattern) ? sValue : string.Empty);
         }
     }
 
@@ -347,5 +352,18 @@ public class Variables : SortedList
         Add("scriptlist", "none", Variables.VariablesType.Reserved);
         Add("repeatregex", @"^\.\.\.wait|^Sorry\, you may only type ahead|^You are still stunned|^You can\'t do that while|^You don\'t seem to be able", Variables.VariablesType.Reserved);
 
+    }
+    public string ListSubset(string keyPattern = "", string valuePattern = "")
+    {
+        return ListArray("Variables", keyPattern, valuePattern);
+    }
+    public string ListAll(string keyPattern = "", string valuePattern = "")
+    {
+        StringBuilder sb = new();
+        sb.Append(ListSubset(keyPattern, "SaveToFile"));
+        sb.Append(ListSubset(keyPattern, "Temporary"));
+        sb.Append(ListSubset(keyPattern, "Reserved"));
+        sb.Append(ListSubset(keyPattern, "Server"));
+        return sb.ToString();
     }
 }
