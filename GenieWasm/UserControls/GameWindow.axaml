@@ -11,19 +11,20 @@
 	<Design.DataContext>
 		<!-- This only sets the DataContext for the previewer in an IDE,
             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
-		<uc:GameWindow/>
 	</Design.DataContext>
-	<Border BorderThickness="2" BorderBrush="Blue" CornerRadius="5">
-		<StackPanel>
+	<Border Name="GameBorder" BorderThickness="2" BorderBrush="Blue" CornerRadius="5" Height="200" MaxHeight="200" SizeChanged="Border_SizeChanged">
+		<StackPanel Name="GameStacker" Margin="0,0,2,0" SizeChanged="StackPanel_SizeChanged" Height="200" VerticalAlignment="Top">
 			<TextBlock Background="DarkGray" Text="{Binding GameWindowName}" FontSize="8" HorizontalAlignment="Stretch" Margin="2,0,0,0" Height="12" TextAlignment="Left"/>
-			<SelectableTextBlock Name="mainTextBlock" Text="{Binding BodyContent}" HorizontalAlignment="Stretch" TextAlignment="Left">
-				<SelectableTextBlock.ContextMenu>
-					<ContextMenu>
-						<MenuItem Header="Copy" Command="{Binding CopyCommand}"/>
-						<MenuItem Header="Select All" Command="{Binding SelectAllCommand}"/>
-					</ContextMenu>
-				</SelectableTextBlock.ContextMenu>
-			</SelectableTextBlock>
+			<ScrollViewer Height="188" Name="GameScroller" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" AllowAutoHide="True">
+				<SelectableTextBlock Name="GameTextBlock" Text="{Binding BodyContent}" TextWrapping="Wrap"  VerticalAlignment="Top" HorizontalAlignment="Stretch" TextAlignment="Left">
+					<SelectableTextBlock.ContextMenu>
+						<ContextMenu>
+							<MenuItem Header="Copy" Command="{Binding CopyCommand}"/>
+							<MenuItem Header="Select All" Command="{Binding SelectAllCommand}"/>
+						</ContextMenu>
+					</SelectableTextBlock.ContextMenu>
+				</SelectableTextBlock>
+			</ScrollViewer>
 		</StackPanel>
 	</Border>
 </UserControl>

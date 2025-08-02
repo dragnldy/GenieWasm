@@ -3,12 +3,12 @@ using System.Text.RegularExpressions;
 
 namespace GenieCoreLib;
 
-public class HighlightRegExpList : SortedList
+public class HighlightsRegExpList : SortedList
 {
-    public static HighlightRegExpList Instance => m_Highlights ??= new HighlightRegExpList();
-    private static HighlightRegExpList m_Highlights;
+    public static HighlightsRegExpList Instance => m_Highlights ??= new HighlightsRegExpList();
+    private static HighlightsRegExpList m_Highlights;
 
-    public HighlightRegExpList()
+    public HighlightsRegExpList()
     {
         m_Highlights = this;
     }

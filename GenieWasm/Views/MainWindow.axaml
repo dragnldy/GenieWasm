@@ -8,6 +8,8 @@
         x:Class="GenieWasm.Views.MainWindow"
         Icon="/Assets/avalonia-logo.ico"
         Title="GenieWasm"
+		Width="1280"
+		Height="800"
 	    TransparencyLevelHint="AcrylicBlur"
 	    Background="Transparent"
 		ExtendClientAreaToDecorationsHint="True">

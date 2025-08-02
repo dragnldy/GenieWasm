@@ -466,6 +466,7 @@ public class Utility
 
     public static bool MoveFile(string sSourceFileName, string sDestFileName)
     {
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
         try
         {
             File.Move(sSourceFileName, sDestFileName);
@@ -484,12 +485,14 @@ public class Utility
             // The caller does not have the required permission. 
             return false;
         }
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 
         return true;
     }
 
     public static bool DeleteFile(string sourceFileName)
     {
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
         try
         {
             File.Delete(sourceFileName);
@@ -507,12 +510,14 @@ public class Utility
             // The caller does not have the required permission. 
             return false;
         }
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 
         return true;
     }
 
     public static bool CreateDirectory(string sourceDirectoryName)
     {
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
         try
         {
             if (!Directory.Exists(sourceDirectoryName))
@@ -526,13 +531,12 @@ public class Utility
         {
             return false;
         }
-        #pragma warning disable CS0168
         catch (UnauthorizedAccessException ex)
-        #pragma warning restore CS0168
         {
             // The caller does not have the required permission. 
             return false;
         }
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 
         return true;
     }
@@ -626,9 +630,7 @@ public class Utility
         {
             return File.GetLastWriteTime(a.Location);
         }
-        #pragma warning disable CS0168
-        catch (Exception ex)
-        #pragma warning restore CS0168
+        catch (Exception)
         {
             return DateTime.MaxValue;
         }
@@ -882,7 +884,7 @@ public class Utility
         int I = strRow.IndexOf(' ');
         if (I > -1)
         {
-            return strRow.Substring(I + 1);
+            return strRow[(I + 1)..];
         }
         else
         {

@@ -355,11 +355,11 @@ public bool AcquireWriterLock()
                 return trigger.ToFormattedString(sValuePattern);
 
             case "HighlightsBeginWith":
-                HighlightBeginsWithList.Highlight beginsWithList = value as HighlightBeginsWithList.Highlight;
+                HighlightsBeginWithList.Highlight beginsWithList = value as HighlightsBeginWithList.Highlight;
                 if (beginsWithList is null) return string.Empty;
                 return beginsWithList.ToFormattedString(sValuePattern);
             case "HighlightsRegExp":
-                HighlightRegExpList.Highlight regExpList = value as HighlightRegExpList.Highlight;
+                HighlightsRegExpList.Highlight regExpList = value as HighlightsRegExpList.Highlight;
                 if (regExpList is null) return string.Empty;
                 return regExpList.ToFormattedString(sValuePattern);
             case "Highlights":

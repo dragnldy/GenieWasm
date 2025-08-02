@@ -1,17 +1,13 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GenieCoreLib;
 
 public class TextMessage
 {
-    public string Text { get; set; }
-    public string TargetPanel { get; set; }
+    public string Text { get; set; } = string.Empty;
+    public string TargetPanel { get; set; } = "Game";
+    public TextMessage() { }
     public TextMessage(string text, string targetPanel)
     {
         Text = text;
@@ -48,7 +44,7 @@ public static class TextFunctions
             }
             if (string.IsNullOrEmpty(sWindow))
             {
-                sWindow = "GameWindow"; // Default to GameWindow if no window is specified
+                sWindow = "Game"; // Default to GameWindow if no window is specified
             }
 
             bool bMono = false;

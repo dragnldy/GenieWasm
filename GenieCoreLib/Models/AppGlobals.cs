@@ -13,7 +13,6 @@ public static class AppGlobals
     public static string LocalUserPath { get; set; } = string.Empty;
     public static string AppVersion { get; set; } = string.Empty;
     public static ConcurrentQueue<TextMessage> LogQueue = new();
-
 }
 
 public enum OperatingPlatform

@@ -376,7 +376,7 @@ public class HighlightsList : SortedList
                                             var arg1 = oArgs[1].ToString();
                                             var arg2 = oArgs[2].ToString();
                                             var arg3 = oArgs[3].ToString();
-                                            HighlightBeginsWithList.Instance.Add(arg3, arg2, true, sSound, sClass);
+                                            HighlightsBeginWithList.Instance.Add(arg3, arg2, true, sSound, sClass);
                                         }
 
                                         break;
@@ -393,7 +393,7 @@ public class HighlightsList : SortedList
                                                 var arg1 = oArgs[1].ToString();
                                                 var arg2 = oArgs[2].ToString();
                                                 var arg3 = oArgs[3].ToString();
-                                                HighlightRegExpList.Instance.Add(arg3, arg2, true, sSound, sClass);
+                                                HighlightsRegExpList.Instance.Add(arg3, arg2, true, sSound, sClass);
                                             }
                                         }
 
@@ -426,14 +426,14 @@ public class HighlightsList : SortedList
                 HighlightsList.Highlight oHighlight = (HighlightsList.Highlight)HighlightsList.Instance[sKey];
                 sb.AppendLine(oHighlight.ToFileString(sKey));
             }
-            foreach (string sKey in HighlightBeginsWithList.Instance.Keys)
+            foreach (string sKey in HighlightsBeginWithList.Instance.Keys)
             {
-                HighlightBeginsWithList.Highlight oHighlight = (HighlightBeginsWithList.Highlight)HighlightBeginsWithList.Instance[sKey];
+                HighlightsBeginWithList.Highlight oHighlight = (HighlightsBeginWithList.Highlight)HighlightsBeginWithList.Instance[sKey];
                 sb.AppendLine(oHighlight.ToFileString(sKey));
             }
-            foreach (string sKey in HighlightRegExpList.Instance.Keys)
+            foreach (string sKey in HighlightsRegExpList.Instance.Keys)
             {
-                HighlightRegExpList.Highlight oHighlight = (HighlightRegExpList.Highlight)HighlightRegExpList.Instance[sKey];
+                HighlightsRegExpList.Highlight oHighlight = (HighlightsRegExpList.Highlight)HighlightsRegExpList.Instance[sKey];
                 sb.AppendLine(oHighlight.ToFileString(sKey));
             }
             File.WriteAllText(sFileName, sb.ToString());

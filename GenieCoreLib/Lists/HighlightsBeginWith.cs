@@ -2,12 +2,12 @@
 
 namespace GenieCoreLib;
 
-public class HighlightBeginsWithList : SortedList
+public class HighlightsBeginWithList : SortedList
 {
-    public static HighlightBeginsWithList Instance => m_HighlightLineBeginsWith ??= new HighlightBeginsWithList();
-    private static HighlightBeginsWithList m_HighlightLineBeginsWith;
+    public static HighlightsBeginWithList Instance => m_HighlightLineBeginsWith ??= new HighlightsBeginWithList();
+    private static HighlightsBeginWithList m_HighlightLineBeginsWith;
 
-    public HighlightBeginsWithList()
+    public HighlightsBeginWithList()
     {
         m_HighlightLineBeginsWith = this;
     }

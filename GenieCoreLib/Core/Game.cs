@@ -26,73 +26,59 @@ public class Game : IGame
     public Game()
     {
         _m_oGame = this;
-        m_oSocket = new Connection();
+        m_oSocket = Connection.Instance;
     }
 
     public event EventAddImageEventHandler EventAddImage;
     public delegate void EventAddImageEventHandler(string filename, string window, int width, int height);
-    public event EventPrintTextEventHandler EventPrintText;
 
+    public event EventPrintTextEventHandler EventPrintText;
     public delegate void EventPrintTextEventHandler(string text, Color color, Color bgcolor, WindowTarget targetwindow, string targetwindowstring, bool mono, bool isprompt, bool isinput);
 
     public event EventPrintErrorEventHandler EventPrintError;
-
     public delegate void EventPrintErrorEventHandler(string text);
 
     public event EventClearWindowEventHandler EventClearWindow;
-
     public delegate void EventClearWindowEventHandler(string sWindow);
 
     public event EventDataRecieveEndEventHandler EventDataRecieveEnd;
-
     public delegate void EventDataRecieveEndEventHandler();
 
     public event EventRoundTimeEventHandler EventRoundTime;
-
     public delegate void EventRoundTimeEventHandler(int time);
 
     public event EventCastTimeEventHandler EventCastTime;
-
     public delegate void EventCastTimeEventHandler();
 
     public event EventSpellTimeEventHandler EventSpellTime;
-
     public delegate void EventSpellTimeEventHandler();
 
     public event EventClearSpellTimeEventHandler EventClearSpellTime;
-
     public delegate void EventClearSpellTimeEventHandler();
 
     public event EventTriggerParseEventHandler EventTriggerParse;
-
     public delegate void EventTriggerParseEventHandler(string text);
 
     public event EventTriggerMoveEventHandler EventTriggerMove;
-
     public delegate void EventTriggerMoveEventHandler();
 
     public event EventTriggerPromptEventHandler EventTriggerPrompt;
-
     public delegate void EventTriggerPromptEventHandler();
 
     public event EventStatusBarUpdateEventHandler EventStatusBarUpdate;
-
     public delegate void EventStatusBarUpdateEventHandler();
 
     public event EventVariableChangedEventHandler EventVariableChanged;
-
     public delegate void EventVariableChangedEventHandler(string sVariable);
 
     public event EventParseXMLEventHandler EventParseXML;
-
     public delegate void EventParseXMLEventHandler(string xml);
 
     public event EventStreamWindowEventHandler EventStreamWindow;
-
     public delegate void EventStreamWindowEventHandler(object sID, object sTitle, object sIfClosed);
 
-    private Connection _m_oSocket;
 
+    private Connection _m_oSocket;
     private Connection m_oSocket
     {
         [MethodImpl(MethodImplOptions.Synchronized)]
@@ -104,20 +90,6 @@ public class Game : IGame
         [MethodImpl(MethodImplOptions.Synchronized)]
         set
         {
-            if (_m_oSocket != null)
-            {
-                _m_oSocket.EventConnected -= GameSocket_EventConnected;
-                _m_oSocket.EventDisconnected -= GameSocket_EventDisconnected;
-                _m_oSocket.EventConnectionLost -= GameSocket_EventConnectionLost;
-
-                _m_oSocket.EventParseRow -= GameSocket_EventParseRow;
-                _m_oSocket.EventParsePartialRow -= GameSocket_EventParsePartialRow;
-                _m_oSocket.EventDataRecieveEnd -= GameSocket_EventDataRecieveEnd;
-
-                _m_oSocket.EventPrintText -= GameSocket_EventPrintText;
-                _m_oSocket.EventPrintError -= GameSocket_EventPrintError;
-            }
-
             _m_oSocket = value;
             if (_m_oSocket != null)
             {
@@ -2733,13 +2705,13 @@ public class Game : IGame
             //}
 
             // Line begins with
-            if (HighlightBeginsWithList.Instance.AcquireReaderLock())
+            if (HighlightsBeginWithList.Instance.AcquireReaderLock())
             {
                 try
                 {
-                    foreach (DictionaryEntry de in HighlightBeginsWithList.Instance)
+                    foreach (DictionaryEntry de in HighlightsBeginWithList.Instance)
                     {
-                        HighlightBeginsWithList.Highlight o = (HighlightBeginsWithList.Highlight)de.Value;
+                        HighlightsBeginWithList.Highlight o = (HighlightsBeginWithList.Highlight)de.Value;
                         if (o.IsActive)
                         {
                             if (sText.StartsWith(o.Text, !o.CaseSensitive, null) == true)
@@ -2756,7 +2728,7 @@ public class Game : IGame
                 }
                 finally
                 {
-                    HighlightBeginsWithList.Instance.ReleaseReaderLock();
+                    HighlightsBeginWithList.Instance.ReleaseReaderLock();
                 }
             }
             else

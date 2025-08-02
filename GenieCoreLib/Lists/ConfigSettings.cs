@@ -542,7 +542,7 @@ public partial class ConfigSettings : INotifyPropertyChanged, IConfigSettings, I
     #region Events and Methods
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    public ConfigSettings LoadSettings()
+    public ConfigSettings Load()
     {
         return LoadSettings("settings");
     }

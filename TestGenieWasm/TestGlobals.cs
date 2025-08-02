@@ -11,14 +11,14 @@ public class TestGlobals
     [TestMethod]
     public void CanLoadConfigSettings()
     {
-        string path = AppGlobals.LocalDirectoryPath;
+        var _ = AppGlobals.LocalDirectoryPath;
         ConfigSettings config = LoadConfigSettings();
         Assert.IsTrue(config is not null, "ConfigSettings should have been loaded successfully.");
     }
-    internal ConfigSettings LoadConfigSettings()
+    internal static ConfigSettings LoadConfigSettings()
     {
         GenieWasm.Desktop.LocalSetup.InitLocalDirectory();
-        ConfigSettings config = ConfigSettings.Instance.LoadSettings();
+        ConfigSettings config = ConfigSettings.Instance.Load();
         return config;
     }
 
@@ -53,10 +53,10 @@ public class TestGlobals
         LoadPresets(variables);
         Assert.IsTrue(Presets.Instance.Count > 0, $"Custom {variables} should have been loaded successfully.");
     }
-    internal void LoadPresets(string variables)
+    internal static void LoadPresets(string variables)
     {
         GenieWasm.Desktop.LocalSetup.InitLocalDirectory();
-        string path = AppGlobals.LocalDirectoryPath;
+        var _ = AppGlobals.LocalDirectoryPath;
         Presets Presetlist = Presets.Instance;
         // Check to make sure defaults installed
         Assert.IsTrue(Presetlist.Count > 0, $"Default {variables} should have been initialized");
@@ -91,13 +91,13 @@ public class TestGlobals
     public void CanLoadGlobalAliases()
     {
         string variables = "aliases";
-        LoadAliases(variables);
+        LoadAliases();
         Assert.IsTrue(Aliases.Instance.Count > 0, $"Custom {variables} should have been loaded successfully.");
     }
-    internal void LoadAliases(string variables)
+    internal static void LoadAliases()
     {
         GenieWasm.Desktop.LocalSetup.InitLocalDirectory();
-        string path = AppGlobals.LocalDirectoryPath;
+        var _ = AppGlobals.LocalDirectoryPath;
         Aliases AliasList = Aliases.Instance;
         Assert.IsTrue(AliasList.Load()); // should supply the default filename and load
     }
@@ -105,14 +105,14 @@ public class TestGlobals
     public void CanSaveGlobalAliases()
     {
         string variables = "aliases";
-        LoadAliases(variables);
+        LoadAliases();
         Assert.IsTrue(Aliases.Instance.Save($"{variables}.test.cfg"));
     }
     [TestMethod]
     public void CanListGlobalAliases()
     {
         string variables = "Aliases";
-        LoadAliases(variables);
+        LoadAliases();
         string allvars = Aliases.Instance.ListAll("");
         Assert.IsTrue(allvars.Length > 0, $"Custom {variables} should have been listed successfully.");
         allvars = Command.Instance.ListAliases("");
@@ -130,10 +130,10 @@ public class TestGlobals
         LoadNames(variables);
         Assert.IsTrue(Names.Instance.Count > 0, $"Custom {variables} should have been loaded successfully.");
     }
-    internal void LoadNames(string variables)
+    internal static void LoadNames(string variables)
     {
         GenieWasm.Desktop.LocalSetup.InitLocalDirectory();
-        string path = AppGlobals.LocalDirectoryPath;
+        var _ = AppGlobals.LocalDirectoryPath;
         Names NameList = Names.Instance;
         // No defaults to initialize
         Assert.IsTrue(NameList.Count == 0, $"Default {variables} should have NOT been initialized");
@@ -168,10 +168,10 @@ public class TestGlobals
         LoadMacros(variables);
         Assert.IsTrue(Macros.Instance.Count > 0, $"Custom {variables} should have been loaded successfully.");
     }
-    internal void LoadMacros(string variables)
+    internal static void LoadMacros(string variables)
     {
         GenieWasm.Desktop.LocalSetup.InitLocalDirectory();
-        string path = AppGlobals.LocalDirectoryPath;
+        var _ = AppGlobals.LocalDirectoryPath;
         Macros MacroList = Macros.Instance;
         // No defaults to initialize
         Assert.IsTrue(MacroList.Count == 0, $"Default {variables} should have NOT been initialized");
@@ -206,10 +206,10 @@ public class TestGlobals
         LoadClasses(variables);
         Assert.IsTrue(Classes.Instance.Count > 0, $"Custom {variables} should have been loaded successfully.");
     }
-    internal void LoadClasses(string variables)
+    internal static void LoadClasses(string variables)
     {
         GenieWasm.Desktop.LocalSetup.InitLocalDirectory();
-        string path = AppGlobals.LocalDirectoryPath;
+        var _ = AppGlobals.LocalDirectoryPath;
         Classes ClassList = Classes.Instance;
         // No defaults to initialize
         Assert.IsTrue(ClassList.Count == 0, $"Default {variables} should have NOT been initialized");
@@ -228,7 +228,6 @@ public class TestGlobals
         string variables = "Classes";
         LoadClasses(variables);
         string allvars = Classes.Instance.ListAll("");
-        allvars = Command.Instance.ListClasses("");
         Assert.IsTrue(allvars.Length > 0, $"Custom {variables} should have been listed successfully.");
         string filtered = Command.Instance.ListClasses("default");
         Assert.IsFalse(filtered.Contains("None"), $"Custom {variables} 'default' should have been listed successfully.");
@@ -243,10 +242,10 @@ public class TestGlobals
         LoadTriggers(variables);
         Assert.IsTrue(Triggers.Instance.Count > 0, $"Custom {variables} should have been loaded successfully.");
     }
-    internal void LoadTriggers(string variables)
+    internal static void LoadTriggers(string variables)
     {
         GenieWasm.Desktop.LocalSetup.InitLocalDirectory();
-        string path = AppGlobals.LocalDirectoryPath;
+        var _ = AppGlobals.LocalDirectoryPath;
         Triggers TriggerList = Triggers.Instance;
         // No defaults to initialize
         Assert.IsTrue(TriggerList.Count == 0, $"Default {variables} should have NOT been initialized");
@@ -281,10 +280,10 @@ public class TestGlobals
         LoadGags(variables);
         Assert.IsTrue(GagRegExp.Instance.Count > 0, $"Custom {variables} should have been loaded successfully.");
     }
-    internal void LoadGags(string variables)
+    internal static void LoadGags(string variables)
     {
         GenieWasm.Desktop.LocalSetup.InitLocalDirectory();
-        string path = AppGlobals.LocalDirectoryPath;
+        var _ = AppGlobals.LocalDirectoryPath;
         GagRegExp GagList = GagRegExp.Instance;
         // No defaults to initialize
         Assert.IsTrue(GagList.Count == 0, $"Default {variables} should have NOT been initialized");
@@ -322,10 +321,11 @@ public class TestGlobals
         int iDefaults = LoadVariables(variables);
         Assert.IsTrue(Variables.Instance.Count > iDefaults, $"Custom {variables} should have been loaded successfully.");
     }
-    internal int LoadVariables(string variables)
+    internal static int LoadVariables(string variables)
     {
         GenieWasm.Desktop.LocalSetup.InitLocalDirectory();
-        string path = AppGlobals.LocalDirectoryPath;
+        // We just do this to force the local directory instance to be created
+        var _ = AppGlobals.LocalDirectoryPath;
         Variables VariableList = Variables.Instance;
         int iDefault = VariableList.Count; // this is the number of defaults just loaded
         // No defaults to initialize
@@ -368,7 +368,7 @@ public class TestGlobals
         LoadEvents(variables);
         Assert.IsTrue(QueueList.Instance.Count > 0, $"Custom {variables} should have been loaded successfully.");
     }
-    internal void LoadEvents(string variables)
+    internal static void LoadEvents(string variables)
     {
         // There is nothing in a file that represents an event- they are memory only
         QueueList queueList = QueueList.Instance;
@@ -402,10 +402,11 @@ public class TestGlobals
         LoadSubstitutes(variables);
         Assert.IsTrue(SubstituteRegExp.Instance.Count > 0, $"Custom {variables} should have been loaded successfully.");
     }
-    internal void LoadSubstitutes(string variables)
+    internal static void LoadSubstitutes(string variables)
     {
         GenieWasm.Desktop.LocalSetup.InitLocalDirectory();
-        string path = AppGlobals.LocalDirectoryPath;
+        // We just do this to force the local directory instance to be created
+        var _ = AppGlobals.LocalDirectoryPath;
         SubstituteRegExp SubstituteList = SubstituteRegExp.Instance;
         // No defaults to initialize
         Assert.IsTrue(SubstituteList.Count == 0, $"Default {variables} should have NOT been initialized");
@@ -440,13 +441,13 @@ public class TestGlobals
     public void CanLoadGlobalHightlights()
     {
         string variables = "Highlights";
-        LoadHighlights(variables);
+        LoadHighlights();
         Assert.IsTrue(HighlightsList.Instance.Count > 0, $"Custom {variables} should have been loaded successfully.");
     }
-    internal void LoadHighlights(string variables)
+    internal static void LoadHighlights()
     {
         GenieWasm.Desktop.LocalSetup.InitLocalDirectory();
-        string path = AppGlobals.LocalDirectoryPath;
+        var _ = AppGlobals.LocalDirectoryPath;
         HighlightsList highlightlist = HighlightsList.Instance;
         // Check to make sure can load the existing files
         Assert.IsTrue(highlightlist.Load()); // should supply the default filename and load
@@ -456,14 +457,14 @@ public class TestGlobals
     public void CanSaveGlobalHightlights()
     {
         string variables = "Hightlights";
-        LoadHighlights(variables);
+        LoadHighlights();
         Assert.IsTrue(HighlightsList.Instance.Save($"{variables}.test.cfg"));
     }
     [TestMethod]
     public void CanListGlobalHightlights()
     {
         string variables = "Hightlights";
-        LoadHighlights(variables);
+        LoadHighlights();
         string filtered = Command.Instance.ListHighlights("you open");
         Assert.IsTrue(filtered.Length > 0, $"Custom {variables} 'Whispers' should have been listed successfully.");
         string filtered2 = Command.Instance.ListHighlights("junkxx");

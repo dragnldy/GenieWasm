@@ -8,6 +8,12 @@ namespace GenieCoreLib;
 
 public class Connection
 {
+    public static Connection Instance => m_oConnection ?? new Connection();
+    public static Connection m_oConnection;
+    public Connection()
+    {
+        m_oConnection = this;
+    }
 
     public event EventConnectedEventHandler EventConnected;
 

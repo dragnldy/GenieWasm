@@ -7,200 +7,153 @@ namespace GenieCoreLib;
 public class Command
 {
     #region Events
-    public event EventReconnectEventHandler EventReconnect;
-
+    public event EventReconnectEventHandler? EventReconnect;
     public delegate void EventReconnectEventHandler();
 
-    public event EventConnectEventHandler EventConnect;
-
+    public event EventConnectEventHandler? EventConnect;
     public delegate void EventConnectEventHandler(string sAccountName, string sPassword, string sCharacter, string sGame, bool isLich);
 
-    public event EventDisconnectEventHandler EventDisconnect;
-
+    public event EventDisconnectEventHandler? EventDisconnect;
     public delegate void EventDisconnectEventHandler();
 
-    public event EventExitEventHandler EventExit;
-
+    public event EventExitEventHandler? EventExit;
     public delegate void EventExitEventHandler();
 
-    public event EventAddImageHandler EventAddImage;
-
+    public event EventAddImageHandler? EventAddImage;
     public delegate void EventAddImageHandler(string filename, string window, int width, int height);
 
-    public event EventEchoTextEventHandler EventEchoText;
-
+    public event EventEchoTextEventHandler? EventEchoText;
     public delegate void EventEchoTextEventHandler(string sText, string sWindow);
 
-    public event EventLinkTextEventHandler EventLinkText;
-
+    public event EventLinkTextEventHandler? EventLinkText;
     public delegate void EventLinkTextEventHandler(string sText, string sLink, string sWindow);
 
-    public event EventEchoColorTextEventHandler EventEchoColorText;
-
+    public event EventEchoColorTextEventHandler? EventEchoColorText;
     public delegate void EventEchoColorTextEventHandler(string sText, Color oColor, Color oBgColor, string sWindow);
 
-    public event EventSendTextEventHandler EventSendText;
-
+    public event EventSendTextEventHandler? EventSendText;
     public delegate void EventSendTextEventHandler(string sText, bool bUserInput, string sOrigin);
 
-    public event EventRunScriptEventHandler EventRunScript;
-
+    public event EventRunScriptEventHandler? EventRunScript;
     public delegate void EventRunScriptEventHandler(string sText);
 
-    public event EventClearWindowEventHandler EventClearWindow;
-
+    public event EventClearWindowEventHandler? EventClearWindow;
     public delegate void EventClearWindowEventHandler(string sWindow);
 
-    public event EventVariableChangedEventHandler EventVariableChanged;
-
+    public event EventVariableChangedEventHandler? EventVariableChanged;
     public delegate void EventVariableChangedEventHandler(string sVariable);
 
-    public event EventParseLineEventHandler EventParseLine;
-
+    public event EventParseLineEventHandler? EventParseLine;
     public delegate void EventParseLineEventHandler(string sText);
 
-    public event EventStatusBarEventHandler EventStatusBar;
-
+    public event EventStatusBarEventHandler? EventStatusBar;
     public delegate void EventStatusBarEventHandler(string sText, int iIndex);
 
-    public event EventCopyDataEventHandler EventCopyData;
-
+    public event EventCopyDataEventHandler? EventCopyData;
     public delegate void EventCopyDataEventHandler(string sDestination, string sData);
 
-    public event EventListScriptsEventHandler EventListScripts;
-
+    public event EventListScriptsEventHandler? EventListScripts;
     public delegate void EventListScriptsEventHandler(string sFilter);
 
-    public event EventScriptTraceEventHandler EventScriptTrace;
-
+    public event EventScriptTraceEventHandler? EventScriptTrace;
     public delegate void EventScriptTraceEventHandler(string sScript);
 
-    public event EventScriptAbortEventHandler EventScriptAbort;
-
+    public event EventScriptAbortEventHandler? EventScriptAbort;
     public delegate void EventScriptAbortEventHandler(string sScript);
 
-    public event EventScriptPauseEventHandler EventScriptPause;
-
+    public event EventScriptPauseEventHandler? EventScriptPause;
     public delegate void EventScriptPauseEventHandler(string sScript);
 
-    public event EventScriptPauseOrResumeEventHandler EventScriptPauseOrResume;
-
+    public event EventScriptPauseOrResumeEventHandler? EventScriptPauseOrResume;
     public delegate void EventScriptPauseOrResumeEventHandler(string sScript);
 
-    public event EventScriptResumeEventHandler EventScriptReload;
-
+    public event EventScriptResumeEventHandler? EventScriptReload;
     public delegate void EventScriptReloadEventHandler(string sScript);
 
-    public event EventScriptResumeEventHandler EventScriptResume;
-
+    public event EventScriptResumeEventHandler? EventScriptResume;
     public delegate void EventScriptResumeEventHandler(string sScript);
 
-    public event EventScriptDebugEventHandler EventScriptDebug;
-
+    public event EventScriptDebugEventHandler? EventScriptDebug;
     public delegate void EventScriptDebugEventHandler(int iDebugLevel, string sScript);
 
-    public event EventScriptVariablesEventHandler EventScriptVariables;
-
+    public event EventScriptVariablesEventHandler? EventScriptVariables;
     public delegate void EventScriptVariablesEventHandler(string sScript, string sFilter);
 
-    public event EventPresetChangedEventHandler EventPresetChanged;
-
+    public event EventPresetChangedEventHandler? EventPresetChanged;
     public delegate void EventPresetChangedEventHandler(string sPreset);
 
-    public event EventShowScriptExplorerEventHandler EventShowScriptExplorer;
-
+    public event EventShowScriptExplorerEventHandler? EventShowScriptExplorer;
     public delegate void EventShowScriptExplorerEventHandler();
 
-    public event EventLoadLayoutEventHandler EventLoadLayout;
-
+    public event EventLoadLayoutEventHandler? EventLoadLayout;
     public delegate void EventLoadLayoutEventHandler(string sFile);
 
-    public event EventSaveLayoutEventHandler EventSaveLayout;
-
+    public event EventSaveLayoutEventHandler? EventSaveLayout;
     public delegate void EventSaveLayoutEventHandler(string sFile);
 
-    public event EventLoadProfileEventHandler EventLoadProfile;
-
+    public event EventLoadProfileEventHandler? EventLoadProfile;
     public delegate void EventLoadProfileEventHandler();
 
-    public event EventSaveProfileEventHandler EventSaveProfile;
-
+    public event EventSaveProfileEventHandler? EventSaveProfile;
     public delegate void EventSaveProfileEventHandler();
 
-    public event EventFlashWindowEventHandler EventFlashWindow;
-
+    public event EventFlashWindowEventHandler? EventFlashWindow;
     public delegate void EventFlashWindowEventHandler();
 
-    public event EventClassChangeEventHandler EventClassChange;
-
+    public event EventClassChangeEventHandler? EventClassChange;
     public delegate void EventClassChangeEventHandler();
 
-    public event EventMapperCommandEventHandler EventMapperCommand;
-
+    public event EventMapperCommandEventHandler? EventMapperCommand;
     public delegate void EventMapperCommandEventHandler(string cmd);
 
-    public event EventAddWindowEventHandler EventAddWindow;
-
+    public event EventAddWindowEventHandler? EventAddWindow;
     public delegate void EventAddWindowEventHandler(string sWindow, int sWidth, int sHeight, int? sTop, int? sLeft);
 
-    public event EventPositionWindowEventHandler EventPositionWindow;
-
+    public event EventPositionWindowEventHandler? EventPositionWindow;
     public delegate void EventPositionWindowEventHandler(string sWindow, int? sWidth, int? sHeight, int? sTop, int? sLeft);
 
-    public event EventRemoveWindowEventHandler EventRemoveWindow;
-
+    public event EventRemoveWindowEventHandler? EventRemoveWindow;
     public delegate void EventRemoveWindowEventHandler(string sWindow);
 
-    public event EventCloseWindowEventHandler EventCloseWindow;
-
+    public event EventCloseWindowEventHandler? EventCloseWindow;
     public delegate void EventCloseWindowEventHandler(string sWindow);
 
-    public event EventChangeWindowTitleEventHandler EventChangeWindowTitle;
-
+    public event EventChangeWindowTitleEventHandler? EventChangeWindowTitle;
     public delegate void EventChangeWindowTitleEventHandler(string sWindow, string sComment);
 
-    public event EventRawToggleEventHandler EventRawToggle;
-
+    public event EventRawToggleEventHandler? EventRawToggle;
     public delegate void EventRawToggleEventHandler(string sToggle);
 
-    public event EventSendRawEventHandler EventSendRaw;
-
+    public event EventSendRawEventHandler? EventSendRaw;
     public delegate void EventSendRawEventHandler(string sText);
 
-    public event EventChangeIconEventHandler EventChangeIcon;
-
+    public event EventChangeIconEventHandler? EventChangeIcon;
     public delegate void EventChangeIconEventHandler(string sPath);
 
-    public event LoadPluginEventHandler LoadPlugin;
-
+    public event LoadPluginEventHandler? LoadPlugin;
     public delegate void LoadPluginEventHandler(string filename);
 
-    public event UnloadPluginEventHandler UnloadPlugin;
-
+    public event UnloadPluginEventHandler? UnloadPlugin;
     public delegate void UnloadPluginEventHandler(string filename);
 
-    public event EnablePluginEventHandler EnablePlugin;
-
+    public event EnablePluginEventHandler? EnablePlugin;
     public delegate void EnablePluginEventHandler(string filename);
 
-    public event DisablePluginEventHandler DisablePlugin;
-
+    public event DisablePluginEventHandler? DisablePlugin;
     public delegate void DisablePluginEventHandler(string filename);
 
-    public event LaunchBrowserEventHandler LaunchBrowser;
+    public event LaunchBrowserEventHandler? LaunchBrowser;
     public delegate void LaunchBrowserEventHandler(string url);
 
-    public event ReloadPluginsEventHandler ReloadPlugins;
-
+    public event ReloadPluginsEventHandler? ReloadPlugins;
     public delegate void ReloadPluginsEventHandler();
 
-    public event ListPluginsEventHandler ListPlugins;
-
+    public event ListPluginsEventHandler? ListPlugins;
     public delegate void ListPluginsEventHandler();
     #endregion Events
 
     public static Command Instance => _m_oCommand ?? new Command();
-    private static Command _m_oCommand;
+    private static Command? _m_oCommand;
 
     private Game m_oGame;
     private Globals m_oGlobals = Globals.Instance;
@@ -253,16 +206,15 @@ public class Command
                 }
 
                 sResult = string.Empty;
-                if (sRow.Trim().StartsWith(Conversions.ToString(ConfigSettings.Instance.CommandChar)))
+                if (sRow.Trim().StartsWith(ConfigSettings.Instance.CommandChar))
                 {
                     // Get result from function then send result to game
-                    var oArgs = new ArrayList();
-                    oArgs = Utility.ParseArgs(sRow);
-                    if (oArgs.Count > 0)
+                    var oArgs = Utility.ParseArgs(sRow);
+                    if (oArgs is not null && oArgs.Count > 0)
                     {
-                        if (Conversions.ToString(oArgs[0]).Length > 0)
+                        if (!string.IsNullOrEmpty(oArgs[0].ToString()))
                         {
-                            string switchExpr = Conversions.ToString(oArgs[0]).Substring(1).ToLower();
+                            string switchExpr = oArgs[0].ToString().Substring(1).ToLower();
                             switch (switchExpr)
                             {
                                 case "echo":
@@ -695,7 +647,7 @@ public class Command
                                                     case "settings":
                                                         {
                                                             EchoText("Settings Loaded" + System.Environment.NewLine);
-                                                            ConfigSettings.Instance.LoadSettings();
+                                                            ConfigSettings.Instance.Load();
                                                             break;
                                                         }
 
@@ -734,8 +686,8 @@ public class Command
                                                     case "highlights":
                                                         {
                                                             HighlightsList.Instance.Clear();
-                                                            HighlightRegExpList.Instance.Clear();
-                                                            HighlightBeginsWithList.Instance.Clear();
+                                                            HighlightsRegExpList.Instance.Clear();
+                                                            HighlightsBeginWithList.Instance.Clear();
                                                             EchoText("Highlights Loaded" + System.Environment.NewLine);
                                                             HighlightBase.LoadHighlights();
                                                             break;
@@ -789,7 +741,7 @@ public class Command
                                                             Triggers.Instance.Clear();
                                                             Triggers.Instance.Load();
                                                             EchoText("Settings Loaded" + System.Environment.NewLine);
-                                                            ConfigSettings.Instance.LoadSettings();
+                                                            ConfigSettings.Instance.Load();
                                                             EchoText("Macros Loaded" + System.Environment.NewLine);
                                                             Macros.Instance.Clear();
                                                             Macros.Instance.Load();
@@ -800,8 +752,8 @@ public class Command
                                                             GagRegExp.Instance.Clear();
                                                             GagRegExp.Instance.Load();
                                                             HighlightsList.Instance.Clear();
-                                                            HighlightRegExpList.Instance.Clear();
-                                                            HighlightBeginsWithList.Instance.Clear();
+                                                            HighlightsRegExpList.Instance.Clear();
+                                                            HighlightsBeginWithList.Instance.Clear();
                                                             HighlightBase.LoadHighlights();
                                                             EchoText("Highlights Loaded" + System.Environment.NewLine);
                                                             EchoText("Names Loaded" + System.Environment.NewLine);
@@ -1470,7 +1422,7 @@ public class Command
                                                 case "load":
                                                     {
                                                         EchoText("Settings Loaded" + System.Environment.NewLine);
-                                                        ConfigSettings.Instance.LoadSettings();
+                                                        ConfigSettings.Instance.Load();
                                                         break;
                                                     }
 
@@ -1908,8 +1860,8 @@ public class Command
                                                     {
                                                         EchoText("Highlights Cleared" + System.Environment.NewLine);
                                                         HighlightsList.Instance.Clear();
-                                                        HighlightRegExpList.Instance.Clear();
-                                                        HighlightBeginsWithList.Instance.Clear();
+                                                        HighlightsRegExpList.Instance.Clear();
+                                                        HighlightsBeginWithList.Instance.Clear();
                                                         HighlightsList.Instance.RebuildLineIndex();
                                                         break;
                                                     }
@@ -1968,7 +1920,7 @@ public class Command
                                                             string soundFile = oArgs.Count > 5 ? oArgs[5].ToString() : string.Empty;
                                                             string className = oArgs.Count > 6 ? oArgs[6].ToString() : string.Empty;
                                                             bool isActive = oArgs.Count > 7 ? oArgs[7].ToString().ToUpper() == "TRUE" : true;
-                                                            HighlightBeginsWithList.Instance.Add(beginsWithText, color, caseSensitive, soundFile, className, isActive);
+                                                            HighlightsBeginWithList.Instance.Add(beginsWithText, color, caseSensitive, soundFile, className, isActive);
                                                         }
 
                                                         break;
@@ -1988,7 +1940,7 @@ public class Command
                                                                 string soundFile = oArgs.Count > 5 ? oArgs[5].ToString() : string.Empty;
                                                                 string className = oArgs.Count > 6 ? oArgs[6].ToString() : string.Empty;
                                                                 bool isActive = oArgs.Count > 7 ? oArgs[7].ToString().ToUpper() == "TRUE" : true;
-                                                                HighlightRegExpList.Instance.Add(regexPattern, color, caseSensitive, soundFile, className, isActive);
+                                                                HighlightsRegExpList.Instance.Add(regexPattern, color, caseSensitive, soundFile, className, isActive);
                                                             }
                                                             else
                                                             {
@@ -2973,9 +2925,9 @@ public class Command
         StringBuilder sb = new();
         string allVars = HighlightsList.Instance.ListAll(sPattern);
         sb.Append(allVars);
-        allVars = HighlightBeginsWithList.Instance.ListAll(sPattern);
+        allVars = HighlightsBeginWithList.Instance.ListAll(sPattern);
         sb.Append(allVars);
-        allVars = HighlightRegExpList.Instance.ListAll(sPattern);
+        allVars = HighlightsRegExpList.Instance.ListAll(sPattern);
         sb.Append(allVars);
         return sb.ToString();
     }

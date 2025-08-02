@@ -14,14 +14,15 @@ public class TestConfigSettings
         string configPath = System.IO.Path.Combine(path, "config","settings.cfg");
         Assert.IsTrue(File.Exists(configPath));
         string configData = File.ReadAllText(configPath);
-        Assert.IsTrue(!string.IsNullOrEmpty(configData));
-        ConfigSettings settings = ConfigSettings.Instance;
+        Assert.IsFalse(string.IsNullOrEmpty(configData));
+        ConfigSettings? settings = ConfigSettings.Instance;
         Assert.IsNotNull(settings);
         settings.IgnoreMonsterList = "JUNK"; // Set it so we can make sure is changed after load
 
         ConfigSettings.LoadLegacySettings(settings, configData);
-        Assert.IsTrue(!settings.IgnoreMonsterList.Equals("JUNK"));
+        Assert.IsFalse(settings.IgnoreMonsterList.Equals("JUNK"));
     }
+    readonly JsonSerializerOptions jsonOptions = new() { WriteIndented = true };
     [TestMethod]
     public void CanSaveSettings()
     {
@@ -29,13 +30,13 @@ public class TestConfigSettings
         GenieWasm.Desktop.LocalSetup.InitLocalDirectory();
         string path = AppGlobals.LocalDirectoryPath;
         string configPath = System.IO.Path.Combine(path, "config", "settings.cfg");
-        ConfigSettings settings = ConfigSettings.Instance;
+        ConfigSettings? settings = ConfigSettings.Instance;
         Assert.IsNotNull(settings);
         settings.LoadSettings(configPath);
-        string jsonBeforeWrite = JsonSerializer.Serialize(settings, new JsonSerializerOptions{ WriteIndented = true });
+        string jsonBeforeWrite = JsonSerializer.Serialize(settings, jsonOptions);
         settings.SaveSettings(configPath.Replace("settings","settings.test"));
         settings.LoadSettings(configPath.Replace("settings","settings.test"));
-        string jsonAfterWrite = JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true });
+        string jsonAfterWrite = JsonSerializer.Serialize(settings, jsonOptions);
         Assert.IsTrue(jsonBeforeWrite.Equals(jsonAfterWrite), "Settings were not saved correctly.");
     }
 }
