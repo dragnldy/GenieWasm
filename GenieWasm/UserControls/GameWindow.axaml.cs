@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
+using ReactiveUI;
 using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -40,6 +41,21 @@ public partial class GameWindow : UserControl
         get => mainGameTextBlock ?? this.FindControl<SelectableTextBlock>("GameTextBlock");
         set => mainGameTextBlock = value;
     }
+    private double borderHeight = 200;
+    public double BorderHeight {
+        get => borderHeight; 
+        set { if (borderHeight != value) { borderHeight = value; NotifyPropertyChanged(); } } 
+    }
+
+    private double maxBorderHeight = 600;
+    public double MaxBorderHeight
+    {
+        get => maxBorderHeight;
+        set { if (maxBorderHeight != value) { maxBorderHeight = value; NotifyPropertyChanged(); } }
+    }
+
+    public double MinBorderHeight { get; private set; } = 100;
+
     public GameWindow()
     {
         InitializeComponent();
@@ -72,10 +88,6 @@ public partial class GameWindow : UserControl
     }
     private void StackPanel_SizeChanged(object sender, SizeChangedEventArgs e)
     {
-        if (this.GameWindowName.Equals("Game"))
-        {
-
-        }
         // Handle size changes if needed
         // This can be used to adjust the layout dynamically
         if (sender is StackPanel stackPanel)
@@ -143,4 +155,97 @@ public partial class GameWindow : UserControl
         }
     }
 
+    private Rect? GetControlBounds(Control control)
+    {
+        if (control?.Bounds == null)
+        {
+            return null;
+        }
+        // The Bounds property of TransformedBounds gives the position relative to the top-level window
+        Rect positionInWindow = control.Bounds;
+        return positionInWindow;
+    }
+
+    Border? originalSender = null;
+    bool bBorderSizing = false;
+    double visualPositionX = 0;
+    double visualPositionY = 0;
+
+    private void Border_PointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+    {
+        if (e.KeyModifiers != Avalonia.Input.KeyModifiers.Control &&
+            /*e.ClickCount == 1 && */
+            !e.GetCurrentPoint(this).Properties.IsRightButtonPressed) return;
+        if (sender is Border border)
+        {
+            if (border.Name.Equals("GameBorder", StringComparison.OrdinalIgnoreCase))
+            {
+                bBorderSizing = true;
+                originalSender = border;
+                // get the position relative to the main window
+                var position = e.GetPosition(this as Control);
+                visualPositionX = position.X;
+                visualPositionY = position.Y;
+
+                e.Handled = true;
+            }
+        }
+    }
+    private void Border_PointerReleased(object? sender, Avalonia.Input.PointerReleasedEventArgs e)
+    {
+        if (!bBorderSizing) return;
+        if (sender is Border border)
+        {
+            if (border.Name.Equals("GameBorder", StringComparison.OrdinalIgnoreCase))
+            {
+                if (originalSender == border)
+                {
+                    // get the position relative to the main window
+                    var position = e.GetPosition(this as Control);
+                    double newPositionX = position.X;
+                    double newPositionY = position.Y;
+                    double diffX = newPositionX - visualPositionX;
+                    double diffY = newPositionY - visualPositionY;
+                    if (diffY > 0)
+                        BorderHeight = Math.Min(originalSender.Height + diffY, MaxBorderHeight);
+                    else
+                        BorderHeight = Math.Max(originalSender.Height + diffY,MinBorderHeight);
+
+                    StackPanel panel = originalSender.FindControl<StackPanel>("GameStacker");
+                    ScrollViewer scroller = originalSender.FindControl<ScrollViewer>("GameScroller");
+                    panel.Height = BorderHeight - 20;
+                    scroller.Height = BorderHeight - 12;
+                    originalSender.Height = BorderHeight;
+                    originalSender.InvalidateMeasure();
+                    panel.InvalidateMeasure(); // InvalidateArrange();//
+                    scroller.InvalidateMeasure();
+                }
+                bBorderSizing = false;
+            }
+        }
+    }
+
+    private void Border_PointerMoved(object? sender, Avalonia.Input.PointerEventArgs e)
+    {
+        if (!bBorderSizing) return;
+        if (sender is Border border)
+        {
+            if (border.Name.Equals("GameBorder", StringComparison.OrdinalIgnoreCase))
+            {
+                e.Handled = true;
+            }
+        }
+    }
+
+    private void Border_PointerCaptureLost(object? sender, Avalonia.Input.PointerCaptureLostEventArgs e)
+    {
+        if (bBorderSizing && sender is Border border)
+        {
+            if (border.Name.Equals("GameBorder", StringComparison.OrdinalIgnoreCase))
+            {
+                bBorderSizing = false;
+                e.Handled = true;
+            }
+        }
+    }
 }
