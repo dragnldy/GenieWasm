@@ -21,16 +21,10 @@
 			BorderThickness="2" BorderBrush="Blue" CornerRadius="5" 
 			Height="{Binding BorderHeight, Mode=TwoWay}" 
 			MaxHeight="{Binding MaxBorderHeight}">
-		<StackPanel Name="GameStacker" Margin="0,0,2,0" SizeChanged="StackPanel_SizeChanged" Height="200" VerticalAlignment="Top">
+		<StackPanel Name="GameStacker" Margin="0,0,2,0" Height="200" VerticalAlignment="Top">
 			<TextBlock Background="DarkGray" Text="{Binding GameWindowName}" FontSize="8" HorizontalAlignment="Stretch" Margin="2,0,0,0" Height="12" TextAlignment="Left"/>
 			<ScrollViewer Height="188" Name="GameScroller" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" AllowAutoHide="True">
 				<SelectableTextBlock Name="GameTextBlock" Text="{Binding BodyContent}" TextWrapping="Wrap"  VerticalAlignment="Top" HorizontalAlignment="Stretch" TextAlignment="Left">
-					<SelectableTextBlock.ContextMenu>
-						<ContextMenu>
-							<MenuItem Header="Copy" Command="{Binding CopyCommand}"/>
-							<MenuItem Header="Select All" Command="{Binding SelectAllCommand}"/>
-						</ContextMenu>
-					</SelectableTextBlock.ContextMenu>
 				</SelectableTextBlock>
 			</ScrollViewer>
 		</StackPanel>

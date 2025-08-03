@@ -2,16 +2,16 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
-using ReactiveUI;
 using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Windows.Input;
 
 namespace GenieWasm.UserControls;
 
 public partial class GameWindow : UserControl
 {
-
+    #region Styled Properties (for passing parameters from the parent control)
     public static readonly StyledProperty<string> GameWindowNameProperty =
         AvaloniaProperty.Register<GameWindow, string>(nameof(GameWindowName));
     public static readonly StyledProperty<string> BodyContentProperty =
@@ -34,7 +34,17 @@ public partial class GameWindow : UserControl
         get => GetValue(WindowLocationProperty);
         set { SetValue(WindowLocationProperty, value); NotifyPropertyChanged(); }
     }
+    #endregion
 
+    #region Command Properties
+    // Add ICommand properties
+    public ICommand CopyCommand { get; }
+    public ICommand SelectAllCommand { get; }
+    public ICommand ScrollToEndCommand { get; }
+    #endregion Command Properties
+
+
+    #region Properties for controlling size and position of the game window
     SelectableTextBlock? mainGameTextBlock = null;
     public SelectableTextBlock? MainGameTextBlock
     {
@@ -55,9 +65,16 @@ public partial class GameWindow : UserControl
     }
 
     public double MinBorderHeight { get; private set; } = 100;
+    #endregion Properties for controlling size and position of the game window
 
+    #region Constructor
     public GameWindow()
     {
+        // Initialize commands
+        CopyCommand = new RelayCommand(_ => CopyText());
+        SelectAllCommand = new RelayCommand(_ => SelectAllText());
+        ScrollToEndCommand = new RelayCommand(_ => ScrollGameToEnd());
+
         InitializeComponent();
         DataContext = this;
         Loaded += LoadedEventHandler;
@@ -67,41 +84,20 @@ public partial class GameWindow : UserControl
     {
         Loaded -= LoadedEventHandler;
         mainGameTextBlock = this.FindControl<SelectableTextBlock>("GameTextBlock");
-        if (mainGameTextBlock is null)
-        {
-            throw new InvalidOperationException("Main Textblock not found in game window");
-        }
-        Border border = this.FindControl<Border>("GameBorder");
-
-        StackPanel owner = mainGameTextBlock.Parent.Parent as StackPanel;
-        if (owner is null)
-        {
-            throw new InvalidOperationException("Main Textblock owner is not stack panel");
-        }
-        SetTextWindowDimensions(owner, mainGameTextBlock);
     }
+    #endregion Constructor
+
+    #region Methods to manage size of the game window
     private void Border_SizeChanged(object sender, SizeChangedEventArgs e)
     {
         Border border = sender as Border;
         StackPanel panel = border.FindControl<StackPanel>("GameStacker");
         panel.Height = border.Bounds.Height - 20;
     }
-    private void StackPanel_SizeChanged(object sender, SizeChangedEventArgs e)
-    {
-        // Handle size changes if needed
-        // This can be used to adjust the layout dynamically
-        if (sender is StackPanel stackPanel)
-        {
-            SetTextWindowDimensions(sender as StackPanel, mainGameTextBlock?? this.FindControl<SelectableTextBlock>("GameSelectableTextBlock"));
-        }
-    }
-    private void SetTextWindowDimensions(StackPanel parent, SelectableTextBlock textBlock)
-    {
+    #endregion Methods to manage size of the game window
 
-        //// Example: Adjust the width of the text block based on the stack panel's width
-        //textBlock.Width = parent.Bounds.Width - 60; // Leave some padding
-        //textBlock.Height = parent.Bounds.Height - 20;
-    }
+
+    #region Commands for TextBlock
     public void Close()
     {
         // Get rid of the window by removing it from Parent collection
@@ -112,14 +108,20 @@ public partial class GameWindow : UserControl
         }
         parent.Children.Remove(this);
     }
-
-    public void CopyCommand()
+    private void CopyText()
     {
-        // Implement copy command logic here
+        // Copy text to the clipboard
+        MainGameTextBlock.Copy();
     }
-    public void SelectAllCommand()
+
+    private void SelectAllText()
     {
-        // Implement select all command logic here
+        // Implement your select all logic here
+        MainGameTextBlock?.SelectAll();
+    }
+    private void ScrollGameToEnd()
+    {
+        this.GameScroller.ScrollToEnd();
     }
     internal void ClearTextBlock()
     {
@@ -137,7 +139,9 @@ public partial class GameWindow : UserControl
         }
         mainGameTB.Text = string.Empty;
     }
+    #endregion Commands for TextBlock
 
+    #region Property Changed Notification
     public event PropertyChangedEventHandler PropertyChanged;
 
     // This method is called by the Set accessor of each property.
@@ -150,36 +154,40 @@ public partial class GameWindow : UserControl
         {
             Dispatcher.UIThread.Post(() =>
             {
-                this.GameScroller.ScrollToEnd();
+                // Otherwise, just append the new content
+                // MainGameTextBlock?.AppendText(BodyContent);
+                if (IsAtBottom)
+                {
+                    // If the scroll viewer is already at the bottom, scroll to the end
+                    // Otherise leave position as is- user maybe reading something
+                    this.GameScroller.ScrollToEnd();
+                }
             });
         }
     }
+    #endregion Property Changed Notification
 
-    private Rect? GetControlBounds(Control control)
-    {
-        if (control?.Bounds == null)
-        {
-            return null;
-        }
-        // The Bounds property of TransformedBounds gives the position relative to the top-level window
-        Rect positionInWindow = control.Bounds;
-        return positionInWindow;
-    }
-
+    #region Border Sizing and Context Menu
     Border? originalSender = null;
     bool bBorderSizing = false;
     double visualPositionX = 0;
     double visualPositionY = 0;
+    bool bContextMenu = false;
 
     private void Border_PointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
     {
-        if (e.KeyModifiers != Avalonia.Input.KeyModifiers.Control &&
-            /*e.ClickCount == 1 && */
-            !e.GetCurrentPoint(this).Properties.IsRightButtonPressed) return;
+        if (e.KeyModifiers != Avalonia.Input.KeyModifiers.Control || e.Properties.IsRightButtonPressed)
+        {
+            // Checking for context menu
+            bContextMenu = e.Properties.IsRightButtonPressed;
+            bBorderSizing = false;
+            return;
+        }
         if (sender is Border border)
         {
             if (border.Name.Equals("GameBorder", StringComparison.OrdinalIgnoreCase))
             {
+                bContextMenu = false;
                 bBorderSizing = true;
                 originalSender = border;
                 // get the position relative to the main window
@@ -193,7 +201,19 @@ public partial class GameWindow : UserControl
     }
     private void Border_PointerReleased(object? sender, Avalonia.Input.PointerReleasedEventArgs e)
     {
-        if (!bBorderSizing) return;
+        // If asking for a context menu
+        if (bContextMenu)
+        {
+            SelectableTextBlock textBlock = this.MainGameTextBlock;
+            var contextMenu = new ContextMenu();
+            contextMenu.Items.Add(new MenuItem { Header = "Copy", Command = CopyCommand });
+            contextMenu.Items.Add(new MenuItem { Header = "Select All", Command = SelectAllCommand });
+            contextMenu.Items.Add(new MenuItem { Header = "Scroll To End", Command = ScrollToEndCommand });
+            contextMenu.Open(textBlock);
+            e.Handled = true;
+            return;
+        }
+        if (!bBorderSizing) { e.Handled = false; return; }
         if (sender is Border border)
         {
             if (border.Name.Equals("GameBorder", StringComparison.OrdinalIgnoreCase))
@@ -248,4 +268,24 @@ public partial class GameWindow : UserControl
             }
         }
     }
+    #endregion
+
+    #region Scrollviewer Position Monitor
+    public bool IsAtBottom => GameScroller.Offset.Y >= (GameScroller.Extent.Height - GameScroller.Viewport.Height);
+
+    //sv.GetObservable(ScrollViewer.OffsetProperty)
+    //.Subscribe(offset =>
+    //{
+    //    // Calculate the maximum possible vertical offset
+    //    var maxVerticalOffset = sv.Extent.Height - sv.Viewport.Height;
+
+    //    // Check if the current vertical offset is at or very close to the maximum
+    //    if (Math.Abs(maxVerticalOffset - offset.Y) <= Double.Epsilon)
+    //    {
+    //        Console.WriteLine("ScrollViewer is at the bottom!");
+    //        // Perform actions when at the bottom, e.g., load more data
+    //    }
+    //})
+    //.DisposeWith(disposables); // Remember to dispose of the subscription when the control is no longer needed
+    #endregion Scrollviewer Position Monitor
 }
