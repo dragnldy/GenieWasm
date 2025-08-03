@@ -1,0 +1,75 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="GenieWasm.ConnectView"
+		xmlns:vm="clr-namespace:GenieWasm.ViewModels"
+		x:DataType="vm:ConnectViewModel"
+        Title="Simultronics Game Connect"
+		Width="400"
+		Height="400"
+		WindowStartupLocation="CenterOwner"
+		TransparencyLevelHint="AcrylicBlur"
+        ExtendClientAreaToDecorationsHint="True">
+	<Design.DataContext>
+		<!-- This only sets the DataContext for the previewer in an IDE,
+             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+	</Design.DataContext>
+	<StackPanel Width="400" Background="Transparent">
+		<HeaderedContentControl Width="400">
+			<HeaderedContentControl.Header>
+				<Border Background="Black" Padding="5,0,5,0">
+					<TextBlock Text="Play.net" />
+				</Border>
+			</HeaderedContentControl.Header>
+			<Border BorderBrush="Blue" BorderThickness="1" CornerRadius="4" Padding="2" >
+				<StackPanel>
+					<Grid Width="390" Height="300" Background="LightGray"
+						  VerticalAlignment="Top"
+						  ColumnDefinitions="4,*,4,*,4"
+						  RowDefinitions="auto,auto,auto,auto,auto,auto,auto,auto">
+						<Label Content="Account Name" Grid.Column="1" Grid.Row="0"
+							   Foreground="Black"/>
+						<Label Content="Password" Grid.Column="3" Grid.Row="0" FontSize="12" Foreground="Black"/>
+						<TextBox MaxLength="30" Text="{Binding AccountName}"
+								 BorderThickness="0,0,0,1" BorderBrush="Black"
+								 Grid.Column="1" Grid.Row="1"/>
+						<TextBox PasswordChar="*" MaxLength="30" Text="{Binding Password}"
+								 BorderThickness="0,0,0,1" BorderBrush="Black"
+								 Grid.Column="3" Grid.Row="1"/>
+						<Label Content="Character Name" Grid.Column="1" Grid.Row="2" FontSize="12" Foreground="Black"/>
+						<Label Content="Game" Grid.Column="3" Grid.Row="2" FontSize="12" Foreground="Black"/>
+						<TextBox MaxLength="30" Text="{Binding CharacterName}"
+								 BorderThickness="0,0,0,1" BorderBrush="Black"
+								 Grid.Column="1" Grid.Row="3"/>
+						<ComboBox Name="GameComboBox" Grid.Column="3" Grid.Row="3"
+								  ItemsSource="{Binding Games}"
+								  SelectedItem="{Binding SelectedGame}"
+								  HorizontalAlignment="Stretch">
+		
+						</ComboBox>
+					</Grid>
+					<Grid Width="390" ColumnDefinitions="4,90,100,*,4" RowDefinitions="auto,auto">
+						<Label Content="Remember?" Grid.Row="0" Grid.Column="1" Margin="0,0,0,5" VerticalAlignment="Center" />
+						<StackPanel Orientation="Horizontal" Grid.Column="2" Grid.Row="0">
+							<CheckBox IsChecked="{Binding RememberAccount}" Margin="5,0,0,0" />
+							<Label Content="Account" Margin="0,0,0,5" VerticalAlignment="Center" />
+						</StackPanel>
+						<StackPanel Orientation="Horizontal" Grid.Column="2" Grid.Row="2">
+							<CheckBox IsChecked="{Binding RememberPassword}" Margin="5,0,0,0"/>
+							<Label Content="Password" Margin="0,0,0,5" VerticalAlignment="Center" />
+						</StackPanel>
+						<StackPanel Orientation="Horizontal" Grid.Column="3"
+									Grid.RowSpan="2" Grid.Row="0" HorizontalAlignment="Center">
+							<Button Content="Connect" Command="{Binding ConnectCommand}"
+									Margin="20,0,7,2" VerticalAlignment="Center" />
+							<Button Content="Cancel" Command="{Binding CancelCommand}"
+									Margin="10,0,0,2" VerticalAlignment="Center"/>
+						</StackPanel>
+					</Grid>
+				</StackPanel>
+			</Border>
+		</HeaderedContentControl>
+	</StackPanel>
+</Window>

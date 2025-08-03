@@ -6,9 +6,9 @@ using GenieCoreLib.Core;
 using GenieWasm.UserControls;
 using System;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Input;
 
 namespace GenieWasm.Views;
 
@@ -20,9 +20,52 @@ public partial class MainView : UserControl
         get => _GameWindowText;
         set => _GameWindowText = value;
     }
+    #region Command Properties
+    // Add ICommand properties
+    public ICommand ConnectCommand { get; }
+    private void OnConnectCommandExecuted(object? parameter)
+    {
+        Task.Run(async () =>
+        {
+            try
+            {
+                await ShowConnectDialogAsync();
+            }
+            catch (Exception ex)
+            {
+                // Handle any exceptions that occur during dialog display
+                TextFunctions.EchoText($"Error showing connect dialog: {ex.Message}", "Game");
+            }
+        });
+    }
+    public async Task ShowConnectDialogAsync()
+    {
+        await Dispatcher.UIThread.InvokeAsync(async () =>
+        {
+            var dialog = new ConnectView();
+            var result = await dialog.ShowDialog<bool>((Window)(Window)this.GetVisualRoot());
+            if (result)
+            {
+                // Dialog returned true (e.g., "Save" was clicked)
+                // Perform actions based on the result
+                // Handle successful connection logic here
+                TextFunctions.EchoText("Connected successfully", "Game");
+            }
+            else
+            {
+                // Dialog returned false (e.g., "Cancel" was clicked)
+                // Handle connection failure logic here
+                TextFunctions.EchoText("Connection failed", "Game");
+            }
+        });
+    }
+    #endregion Command Properties
+
 
     public MainView()
     {
+        ConnectCommand = new RelayCommand(OnConnectCommandExecuted);
+
         InitializeComponent();
         Loaded += MainView_Loaded;
         DataContext = this;

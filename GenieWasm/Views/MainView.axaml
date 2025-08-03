@@ -14,13 +14,10 @@
   </Design.DataContext>
 	<DockPanel VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
 		<StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
-			<uc:MainMenu HorizontalAlignment="Left"/>
-			<Button HorizontalAlignment = "Right" VerticalAlignment="Top" Content="Account">
+			<Button HorizontalAlignment = "Left" VerticalAlignment="Top" Content="Account" Command="{Binding ConnectCommand}">
 				<PathIcon Data = "{StaticResource person_accounts_regular}" />
 			</Button>
-			<Button  HorizontalAlignment="Right" VerticalAlignment="Center" Content="PLay"
-					 Command="{Binding PlaySoundCommand}">
-			</Button>
+			<uc:MainMenu HorizontalAlignment="Left"/>
 		</StackPanel>
 		<Grid DockPanel.Dock="Top" ColumnDefinitions="*, 4, 4*, 4, *" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 				<ScrollViewer Name="Scroller1" Grid.Column="0" Grid.Row="0" AllowAutoHide="False" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
