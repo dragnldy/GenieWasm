@@ -10,6 +10,7 @@ public class Connection
 {
     public static Connection Instance => m_oConnection ?? new Connection();
     public static Connection m_oConnection;
+    public static bool IsTesting = false;
     public Connection()
     {
         m_oConnection = this;
@@ -195,7 +196,10 @@ public class Connection
                 sslStream = new SslStream(_client.GetStream(), true, new RemoteCertificateValidationCallback(Utility.ValidateServerCertificate), null);
                 try
                 {
-                    sslStream.AuthenticateAsClient(m_sHostname, null, SslProtocols.Tls12, false);
+                    if (!IsTesting)
+                    {
+                        sslStream.AuthenticateAsClient(m_sHostname, null, SslProtocols.Tls12, false);
+                    }
                 }
                 catch (AuthenticationException e)
                 {
@@ -233,6 +237,11 @@ public class Connection
     private AuthState CurrentAuthState = AuthState.Unauthenticated;
     public AuthState Authenticate(string account, string password)
     {
+        if (Connection.IsTesting)
+        {
+            CurrentAuthState = AuthState.KeyAuthenticated;
+            return CurrentAuthState; //testing, skip authentication
+        }
         if (!_client.Connected || sslStream == null)
         {
             CurrentAuthState = AuthState.Disconnected;
@@ -292,6 +301,10 @@ public class Connection
 
     public string GetLoginKey(string instance, string character)
     {
+        if (IsTesting)
+        {
+            return ("FAKE key");
+        }
                     // Sanity checks
         if (!IsConnected || sslStream == null)
         {

@@ -1,4 +1,5 @@
 ﻿using System.Drawing;
+using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text;
 using static GenieCoreLib.Game;
@@ -143,10 +144,14 @@ public class GameConnection
         Variables.Instance["game"] = Profile.Game;
         Variables.Instance["account"] = Profile.Account.ToUpper();
         IsLich = isLich;
-        DoConnect("eaccess.play.net", 7910);
+        if (isTesting)
+            DoConnect("127.0.0.1", 8888, isTesting);
+        else
+            DoConnect("eaccess.play.net", 7910);
     }
-    private void DoConnect(string sHostName, int iPort)
+    private void DoConnect(string sHostName, int iPort, bool isTesting = false)
     {
+        Connection.IsTesting = isTesting;
         m_oConnectState = ConnectStates.ConnectingKeyServer;
         Connection.Instance.ConnectAndAuthenticate(sHostName, iPort);
     }

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace GenieWasm.ViewModels;
 
@@ -24,8 +25,51 @@ public class ConnectViewModel: INotifyPropertyChanged
     }
     private void ConnectRequest()
     {
-        ConnectionRequest.IsValid = true;
-        DialogResult = "Connected";
+        CharacterProfile profile = new CharacterProfile
+        {
+            Account = AccountName,
+            Character = CharacterName,
+            EncryptedPassword = CharacterProfile.GetEncryptedPassword(AccountName, Password),
+            Game = Game,
+            Layout = string.Empty
+        };
+
+        if (!profile.CheckValid())
+        {
+            // Send error message to the user
+            return;
+        }
+
+        if (GameConnection.Instance.IsConnectedToGame)
+        {
+            // If already connected, disconnect first
+            GameConnection.Instance.Disconnect();
+        }
+        GameConnection.Instance.Connect(profile, false, false);
+        if (GameConnection.Instance.IsConnectedToGame)
+        {
+            // Save the potentially new or updated profile
+            profiles = (new CharacterProfiles(useLegacy: false)).Profiles;
+            if (profiles.FirstOrDefault(p => p.Account == profile.Account && p.Character == profile.Character && p.Game == profile.Game) is null)
+            {
+                profiles.Add(profile);
+            }
+            else
+            {
+                // Update existing profile
+                var existingProfile = profiles.First(p => p.Account == profile.Account && p.Character == profile.Character && p.Game == profile.Game);
+                existingProfile.EncryptedPassword = profile.EncryptedPassword;
+                existingProfile.Layout = profile.Layout;
+                CharacterProfiles.SaveProfiles(profiles);
+            }
+
+            ConnectionRequest.IsValid = true;
+            DialogResult = "Connected";
+        }
+        else
+        {
+            /// Handle connection failure
+        }
     }
     #endregion
 

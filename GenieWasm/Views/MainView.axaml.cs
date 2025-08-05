@@ -44,11 +44,8 @@ public partial class MainView : UserControl
         {
             var dialog = new ConnectView();
             var result = await dialog.ShowDialog<ConnectionRequest>((Window)(Window)this.GetVisualRoot());
-            if (result is not null && result.IsValid)
+            if (result is not null && result.IsValid && GameConnection.Instance.IsConnectedToGame)
             {
-                // Dialog returned true (e.g., "Save" was clicked)
-                // Perform actions based on the result
-                // Handle successful connection logic here
                 TextFunctions.EchoNewLine("Connected successfully", "Game");
             }
             else

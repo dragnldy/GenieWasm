@@ -1,4 +1,7 @@
-﻿using System.Text.Json;
+﻿using System;
+using System.Security.Principal;
+using System.Text;
+using System.Text.Json;
 
 namespace GenieCoreLib;
 
@@ -82,6 +85,12 @@ public class CharacterProfile
         return false; // Custom config file does not exist
     }
 
+    public static string GetEncryptedPassword(string accountName, string password)
+    {
+        string argsPassword = "G3" + accountName.ToUpper();
+        string argsText = password;
+        return Utility.EncryptString(argsPassword, argsText);
+    }
 }
 
 public class CharacterProfiles
