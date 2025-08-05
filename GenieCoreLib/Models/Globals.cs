@@ -16,10 +16,12 @@ public class Globals : IGlobals
     public static Globals Instance => GetInstance();
     private static Globals _m_oGlobals;
 
-    public string GenieKey = string.Empty;
-    public string GenieAccount = string.Empty;
     public List<VolatileHighlight> VolatileHighlights = new List<VolatileHighlight>();
     public List<VolatileHighlight> RoomObjects = new List<VolatileHighlight>();
+    public DateTime SpellTimeStart;
+    public DateTime RoundTimeEnd;
+    private static DateTime m_oBlankTimer = DateTime.Parse("0001-01-01");
+
 
     //public Presets PresetList = Presets.Instance;
     //public Aliases AliasList = Aliases.Instance;
@@ -93,12 +95,6 @@ public class Globals : IGlobals
             Debug.WriteLine(MonsterListRegEx.ToString());
         }
     }
-
-    public DateTime SpellTimeStart;
-    public DateTime RoundTimeEnd;
-    private static DateTime m_oBlankTimer = DateTime.Parse("0001-01-01");
-
-
 
     public static string ParseGlobalVars(object sVar)
     {

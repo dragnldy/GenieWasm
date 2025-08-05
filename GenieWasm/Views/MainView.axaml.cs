@@ -5,7 +5,9 @@ using GenieCoreLib;
 using GenieCoreLib.Core;
 using GenieWasm.UserControls;
 using System;
+using System.Drawing;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -23,6 +25,8 @@ public partial class MainView : UserControl
     #region Command Properties
     // Add ICommand properties
     public ICommand ConnectCommand { get; }
+    public int HandlePluginException { get; private set; }
+
     private void OnConnectCommandExecuted(object? parameter)
     {
         Task.Run(async () =>
@@ -66,6 +70,72 @@ public partial class MainView : UserControl
         InitializeComponent();
         Loaded += MainView_Loaded;
         DataContext = this;
+        DoHookups();
+    }
+    private void DoHookups()
+    {
+        Game.Instance.EventParseXML += Plugin_ParsePluginXML;
+        Game.Instance.EventVariableChanged += Game.Instance.ClassCommand_EventVariableChanged;
+        Game.Instance.EventPrintError += ViewManager.Instance.PrintError;
+        Game.Instance.EventClearWindow += ViewManager.Instance.Command_EventClearWindow;
+        Game.Instance.EventPrintText += ViewManager.Instance.Simutronics_EventPrintText;
+        Game.Instance.EventAddImage += ViewManager.Instance.AddImage;
+        Game.Instance.EventDataRecieveEnd += ViewManager.Instance.Simutronics_EventEndUpdate;
+        Game.Instance.EventStreamWindow += ViewManager.Instance.EventStreamWindow;
+        GenieError.EventGenieError += ViewManager.Instance.HandleGenieException;
+        //GenieError.EventGeniePluginError += ViewManager.Instance.HandlePluginException;
+        Game.Instance.EventTriggerParse += Game.Instance.Game_EventTriggerParse;
+        Game.Instance.EventStatusBarUpdate += Game_EventStatusBarUpdate;
+        Game.Instance.EventClearSpellTime += ViewManager.Instance.Game_EventClearSpellTime;
+        Game.Instance.EventSpellTime += Game_EventSpellTime;
+        Game.Instance.EventCastTime += Game_EventCastTime;
+        Game.Instance.EventRoundTime += Game_EventRoundtime;
+        Game.Instance.EventTriggerPrompt += Game_EventTriggerPrompt;
+        Game.Instance.EventTriggerMove += Game_EventTriggerMove;
+        Game.Instance.EventEchoText += ViewManager.Instance.ClassCommand_EchoText;
+        Game.Instance.EventGlobalVariableChanged += ViewManager.Instance.GlobalVariableChanged;
+
+        //// Hook up the PlaySoundCommand to the button in the UI
+        //var playSoundButton = this.FindControl<Button>("PlaySoundButton");
+        //if (playSoundButton is not null)
+        //{
+        //    playSoundButton.Command = new RelayCommand(PlaySoundCommand);
+        //}
+    }
+
+    private void Game_EventTriggerMove()
+    {
+        throw new NotImplementedException();
+    }
+
+    private void Game_EventTriggerPrompt()
+    {
+        throw new NotImplementedException();
+    }
+
+    private void Game_EventRoundtime(int time)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void Game_EventCastTime()
+    {
+        throw new NotImplementedException();
+    }
+
+    private void Game_EventSpellTime()
+    {
+        throw new NotImplementedException();
+    }
+
+    private void Game_EventStatusBarUpdate()
+    {
+        throw new NotImplementedException();
+    }
+
+    private void Plugin_ParsePluginXML(string xml)
+    {
+        throw new NotImplementedException();
     }
 
     private void MainView_Loaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)

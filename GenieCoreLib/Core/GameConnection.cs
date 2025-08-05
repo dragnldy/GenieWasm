@@ -35,10 +35,6 @@ public class GameConnection
         Connection.Instance.EventConnected += GameSocket_EventConnected;
         Connection.Instance.EventDisconnected += GameSocket_EventDisconnected;
         Connection.Instance.EventConnectionLost += GameSocket_EventConnectionLost;
-        Connection.Instance.EventParseRow += GameSocket_EventParseRow;
-        Connection.Instance.EventParsePartialRow += GameSocket_EventParsePartialRow;
-        Connection.Instance.EventPrintText += GameSocket_EventPrintText;
-        Connection.Instance.EventPrintError += GameSocket_EventPrintError;
     }
 
     public bool IsConnected
@@ -262,60 +258,6 @@ public class GameConnection
         m_bManualDisconnect = false;
     }
 
-    private void GameSocket_EventParseRow(StringBuilder row)
-    {
-        var rowVar = row.ToString();
-        ParseRow(rowVar, m_oConnectState);
-    }
-    private void GameSocket_EventPrintText(string text)
-    {
-        WindowTarget argoWindowTarget = 0;
-        bool argbIsRoomOutput = false;
-        Game.Instance.PrintTextWithParse(text, Color.White, Color.Transparent, oWindowTarget: argoWindowTarget, bIsRoomOutput: argbIsRoomOutput);
-    }
-
-    private void GameSocket_EventPrintError(string text)
-    {
-        Game.Instance.PrintTextToWindow(text, Color.Red, Color.Transparent);
-    }
-
-    private void GameSocket_EventParsePartialRow(string row)
-    {
-        if (m_oConnectState == ConnectStates.ConnectedKey | m_oConnectState == ConnectStates.ConnectedGameHandshake)
-        {
-            ParseRow(row, m_oConnectState);
-        }
-    }
-
-    public ConnectStates ParseRow(string sText, ConnectStates connectState)
-    {
-        return ParseRowAsync(sText, GameConnection.Instance.ConnectState).Result;
-    }
-    public async Task<ConnectStates> ParseRowAsync(string sText, ConnectStates connectState)
-    {
-        switch (connectState)
-        {
-            case ConnectStates.ConnectedKey:
-                {
-                    ParseKeyRow(sText);
-                    return ConnectStates.ConnectedKey;
-                }
-
-            case ConnectStates.ConnectedGame:
-                {
-                    Game.Instance.ParseGameRow(sText);
-                    return ConnectStates.ConnectedGame;
-                }
-
-            case ConnectStates.ConnectedGameHandshake:
-                {
-                    await Task.Delay(1000);
-                    Connection.Instance.Send(Constants.vbLf + Constants.vbLf);
-                    return ConnectStates.ConnectedGame;
-                }
-        }
-        return connectState;
-    }
 
     public void ParseKeyRow(string sText)
     {

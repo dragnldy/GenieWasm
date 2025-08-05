@@ -156,6 +156,7 @@ public class Command
     private Evaluator m_oEval;
     private MathEval m_oMathEval = new MathEval();
 
+    public bool TriggersEnabled = true;
     public Command()
     {
         _m_oCommand = this;
@@ -2615,7 +2616,7 @@ public class Command
         EventAddImage?.Invoke(filename, window, width, height);
     }
 
-    private void EchoText(string sText, string sWindow = "")
+    public void EchoText(string sText, string sWindow = "")
     {
         EventEchoText?.Invoke(sText, sWindow);
     }
@@ -2921,10 +2922,124 @@ public class Command
         return sb.ToString();
     }
 
-  
+    public void TriggerAction(string sAction, ArrayList oArgs)
+    {
+        if (Command.Instance.TriggersEnabled == true)
+        {
+            if (sAction.Contains("$") == true)
+            {
+                for (int i = 0, loopTo = ConfigSettings.Instance.ArgumentCount - 1; i <= loopTo; i++)
+                {
+                    if (i > oArgs.Count - 1)
+                    {
+                        sAction = sAction.Replace("$" + (i + 1).ToString(), "");
+                    }
+                    else
+                    {
+                        sAction = sAction.Replace("$" + (i + 1).ToString(), oArgs[i].ToString().Replace("\"", ""));
+                    }
+                }
+
+                if (oArgs.Count > 0)
+                {
+                    sAction = sAction.Replace("$0", oArgs[0].ToString().Replace("\"", ""));
+                }
+                else
+                {
+                    sAction = sAction.Replace("$0", string.Empty);
+                }
+            }
+
+            // sAction = oGlobals.ParseGlobalVars(sAction)
+
+            try
+            {
+                ParseCommand(sAction, true, false, "Trigger");
+            }
+#pragma warning disable CS0168
+            catch (Exception ex)
+#pragma warning restore CS0168
+            {
+                string argsText = "Trigger action failed: " + sAction;
+                EchoText(argsText,"Log");
+            }
+        }
+    }
+
     private void ListCommandQueue(string sPattern)
     {
         ListEvents(sPattern);
 //        EchoText("(" + ((QueueList.EventItem)QueueList.EventList.get_Item(I)).Delay + ") " + ((QueueList.EventItem)QueueList.EventList.get_Item(I)).Action + System.Environment.NewLine);
+    }
+
+    internal void TriggerVariableChanged(string sVariableName)
+    {
+        if (TriggersEnabled)
+        {
+            if (Triggers.Instance.AcquireReaderLock())
+            {
+                try
+                {
+                    foreach (Triggers.Trigger oTrigger in Triggers.Instance.Values)
+                    {
+                        if (oTrigger.IsActive)
+                        {
+                            if (oTrigger.bIsEvalTrigger)
+                            {
+                                if (oTrigger.sTrigger.Contains(sVariableName))
+                                {
+                                    string s = "1";
+                                    // If the command isn't an eval. Simply trigger it without checking.
+                                    if ((oTrigger.sTrigger ?? "") != (sVariableName ?? ""))
+                                    {
+                                        string argsText = Globals.ParseGlobalVars(oTrigger.sTrigger);
+                                        s = Eval(argsText);
+                                    }
+
+                                    if (s.Length > 0 & (s ?? "") != "0")
+                                    {
+                                        TriggerAction(oTrigger.sAction, new ArrayList());
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                finally
+                {
+                   Triggers.Instance.ReleaseReaderLock();
+                }
+            }
+            else
+            {
+                EchoText("TriggerList: Unable to acquire reader lock.","Log");
+            }
+
+            if (ScriptList.Instance.AcquireReaderLock())
+            {
+                try
+                {
+                    foreach (Script oScript in ScriptList.Instance)
+                        oScript.TriggerVariableChanged(sVariableName);
+                }
+                catch (Exception ex)
+                {
+                    EchoText("Error in TriggerVariableChange", "Debug");
+                    EchoText("---------------------", "Debug");
+                    EchoText(ex.Message, "Debug");
+                    EchoText("---------------------", "Debug");
+                    EchoText(ex.ToString(), "Debug");
+                    EchoText("---------------------", "Debug");
+                }
+                finally
+                {
+                    ScriptList.Instance.ReleaseReaderLock();
+                }
+            }
+            else
+            {
+                EchoText("TriggerVariableChanged: Unable to acquire reader lock.","Log");
+            }
+        }
     }
 }

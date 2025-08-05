@@ -65,6 +65,20 @@ public partial class GameWindow : UserControl
     }
 
     public double MinBorderHeight { get; private set; } = 100;
+
+    private bool _ifClosed = false;
+    public bool IfClosed
+    {
+        get => _ifClosed;
+        set
+        {
+            if (_ifClosed != value)
+            {
+                _ifClosed = value;
+                NotifyPropertyChanged();
+            }
+        }
+    }
     #endregion Properties for controlling size and position of the game window
 
     #region Constructor

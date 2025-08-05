@@ -6,6 +6,24 @@ using System.Text.RegularExpressions;
 using System.Xml;
 
 namespace GenieCoreLib;
+public enum WindowTarget
+{
+    Unknown,
+    Combat,
+    Portrait,
+    Main,
+    Inv,
+    Familiar,
+    Thoughts,
+    Logons,
+    Death,
+    Room,
+    Log,
+    Raw,
+    Debug,
+    ActiveSpells,
+    Other
+}
 
 public interface IGame
 {
@@ -22,55 +40,134 @@ public class Game : IGame
     public Game()
     {
         _m_oGame = this;
+        DoHookups();
+    }
+    private void DoHookups()
+    {
+        Connection.Instance.EventParseRow += GameSocket_EventParseRow;
+        Connection.Instance.EventParsePartialRow += GameSocket_EventParsePartialRow;
+        Connection.Instance.EventPrintText += GameSocket_EventPrintText;
+        Connection.Instance.EventDataRecieveEnd += GameSocket_EventDataRecieveEnd;
+        Connection.Instance.EventPrintError += GameSocket_EventPrintError;
+        Connection.Instance.EventDataRecieveEnd += GameSocket_EventDataRecieveEnd;
+    }
+    private void GameSocket_EventParseRow(StringBuilder row)
+    {
+        var rowVar = row.ToString();
+        ParseRow(rowVar, GameConnection.Instance.ConnectState);
+    }
+    private void GameSocket_EventParsePartialRow(string row)
+    {
+        if (GameConnection.Instance.ConnectState == ConnectStates.ConnectedKey | GameConnection.Instance.ConnectState == ConnectStates.ConnectedGameHandshake)
+        {
+            ParseRow(row, GameConnection.Instance.ConnectState);
+        }
+    }
+    private void GameSocket_EventPrintText(string text)
+    {
+        WindowTarget argoWindowTarget = 0;
+        bool argbIsRoomOutput = false;
+        PrintTextWithParse(text, Color.White, Color.Transparent, oWindowTarget: argoWindowTarget, bIsRoomOutput: argbIsRoomOutput);
+    }
+
+    private void GameSocket_EventPrintError(string text)
+    {
+        Game.Instance.PrintTextToWindow(text, Color.Red, Color.Transparent);
+    }
+
+
+    public ConnectStates ParseRow(string sText, ConnectStates connectState)
+    {
+        return ParseRowAsync(sText, GameConnection.Instance.ConnectState).Result;
+    }
+    public async Task<ConnectStates> ParseRowAsync(string sText, ConnectStates connectState)
+    {
+        switch (connectState)
+        {
+            case ConnectStates.ConnectedKey:
+                {
+                    GameConnection.Instance.ParseKeyRow(sText);
+                    return ConnectStates.ConnectedKey;
+                }
+
+            case ConnectStates.ConnectedGame:
+                {
+                    Game.Instance.ParseGameRow(sText);
+                    return ConnectStates.ConnectedGame;
+                }
+
+            case ConnectStates.ConnectedGameHandshake:
+                {
+                    await Task.Delay(1000);
+                    Connection.Instance.Send(Constants.vbLf + Constants.vbLf);
+                    return ConnectStates.ConnectedGame;
+                }
+        }
+        return connectState;
     }
 
     public event EventAddImageEventHandler EventAddImage;
     public delegate void EventAddImageEventHandler(string filename, string window, int width, int height);
 
     public event EventPrintTextEventHandler EventPrintText;
-    public delegate void EventPrintTextEventHandler(string text, Color color, Color bgcolor, WindowTarget targetwindow, string targetwindowstring, bool mono, bool isprompt, bool isinput);
+        public delegate void EventPrintTextEventHandler(string text, Color color, Color bgcolor, WindowTarget targetwindow, string targetwindowstring, bool mono, bool isprompt, bool isinput);
 
     public event EventPrintErrorEventHandler EventPrintError;
-    public delegate void EventPrintErrorEventHandler(string text);
+        public delegate void EventPrintErrorEventHandler(string text);
 
     public event EventClearWindowEventHandler EventClearWindow;
-    public delegate void EventClearWindowEventHandler(string sWindow);
+        public delegate void EventClearWindowEventHandler(string sWindow);
 
     public event EventDataRecieveEndEventHandler EventDataRecieveEnd;
-    public delegate void EventDataRecieveEndEventHandler();
+        public delegate void EventDataRecieveEndEventHandler();
 
     public event EventRoundTimeEventHandler EventRoundTime;
-    public delegate void EventRoundTimeEventHandler(int time);
+        public delegate void EventRoundTimeEventHandler(int time);
 
     public event EventCastTimeEventHandler EventCastTime;
-    public delegate void EventCastTimeEventHandler();
+        public delegate void EventCastTimeEventHandler();
 
     public event EventSpellTimeEventHandler EventSpellTime;
-    public delegate void EventSpellTimeEventHandler();
+        public delegate void EventSpellTimeEventHandler();
 
     public event EventClearSpellTimeEventHandler EventClearSpellTime;
-    public delegate void EventClearSpellTimeEventHandler();
+        public delegate void EventClearSpellTimeEventHandler();
 
     public event EventTriggerParseEventHandler EventTriggerParse;
-    public delegate void EventTriggerParseEventHandler(string text);
+        public delegate void EventTriggerParseEventHandler(string text);
 
     public event EventTriggerMoveEventHandler EventTriggerMove;
-    public delegate void EventTriggerMoveEventHandler();
+        public delegate void EventTriggerMoveEventHandler();
 
     public event EventTriggerPromptEventHandler EventTriggerPrompt;
-    public delegate void EventTriggerPromptEventHandler();
+        public delegate void EventTriggerPromptEventHandler();
 
     public event EventStatusBarUpdateEventHandler EventStatusBarUpdate;
-    public delegate void EventStatusBarUpdateEventHandler();
+        public delegate void EventStatusBarUpdateEventHandler();
 
     public event EventVariableChangedEventHandler EventVariableChanged;
-    public delegate void EventVariableChangedEventHandler(string sVariable);
+        public delegate void EventVariableChangedEventHandler(string sVariable);
 
     public event EventParseXMLEventHandler EventParseXML;
-    public delegate void EventParseXMLEventHandler(string xml);
+        public delegate void EventParseXMLEventHandler(string xml);
 
     public event EventStreamWindowEventHandler EventStreamWindow;
-    public delegate void EventStreamWindowEventHandler(object sID, object sTitle, object sIfClosed);
+        public delegate void EventStreamWindowEventHandler(object sTitle, object sIfClosed, bool testing=false);
+
+    public event EventEchoTextHandler EventEchoText;
+    public delegate void EventEchoTextHandler(string sText, string window);
+
+    public event EventGlobalVariableChangedHandler EventGlobalVariableChanged;
+    public delegate void EventGlobalVariableChangedHandler(string variable, object value);
+
+    public void VariableChanged(string variable, object value = null)
+    {
+        if (EventGlobalVariableChanged != null)
+        {
+            EventGlobalVariableChanged?.Invoke(variable, value);
+        }
+    }
+
 
     private bool m_bLastRowWasBlank = false;
     private bool m_bBold = false;
@@ -105,25 +202,6 @@ public class Game : IGame
     public bool IsLich = false;
 
     /* TODO ERROR: Skipped RegionDirectiveTrivia */
-    public enum WindowTarget
-    {
-        Unknown,
-        Combat,
-        Portrait,
-        Main,
-        Inv,
-        Familiar,
-        Thoughts,
-        Logons,
-        Death,
-        Room,
-        Log,
-        Raw,
-        Debug,
-        ActiveSpells,
-        Other
-    }
-
     private enum Indicator
     {
         Kneeling,
@@ -152,6 +230,11 @@ public class Game : IGame
         Up,
         Down,
         Out
+    }
+
+    public void EchoText(string sText, string sWindow)
+    {
+        EventEchoText?.Invoke(sText, sWindow);
     }
 
     private bool m_bShowRawOutput = false;
@@ -985,7 +1068,7 @@ public class Game : IGame
                                 sIfClosed = GetAttributeData(oXmlNode, argstrAttributeName8);
                             }
 
-                            EventStreamWindow?.Invoke(sID, sTitle, sIfClosed);
+                            EventStreamWindow?.Invoke(sTitle, sIfClosed);
                         }
 
                         break;
@@ -2695,10 +2778,318 @@ public class Game : IGame
         GenieError.Error(section, message, description);
     }
 
+    public void Game_EventTriggerParse(string sText)
+    {
+        try
+        {
+            ParseTriggers(sText);
+        }
+        /* TODO ERROR: Skipped IfDirectiveTrivia */
+        catch (Exception ex)
+        {
+            HandleGenieException("TriggerParse", ex.Message, ex.ToString());
+            /* TODO ERROR: Skipped ElseDirectiveTrivia *//* TODO ERROR: Skipped DisabledTextTrivia *//* TODO ERROR: Skipped EndIfDirectiveTrivia */
+        }
+    }
+    // BufferWait is since script always wait for end of buffer before setting off an action... We don't want this with #parse
+    private Match oRegMatch;
+
+    private void ParseTriggers(string sText, bool bBufferWait = true)
+    {
+        if (Command.Instance.TriggersEnabled == true)
+        {
+            if (sText.Trim().Length > 0)
+            {
+                if (Triggers.Instance.AcquireReaderLock())
+                {
+                    try
+                    {
+                        foreach (Triggers.Trigger oTrigger in Triggers.Instance.Values)
+                        {
+                            if (oTrigger.IsActive)
+                            {
+                                if (oTrigger.bIsEvalTrigger == false)
+                                {
+                                    if (!Information.IsNothing(oTrigger.oRegexTrigger))
+                                    {
+                                        oRegMatch = oTrigger.oRegexTrigger.Match(sText);
+                                        if (oRegMatch.Success == true)
+                                        {
+                                            var RegExpArg = new ArrayList();
+                                            if (oRegMatch.Groups.Count > 0)
+                                            {
+                                                int J;
+                                                var loopTo = oRegMatch.Groups.Count - 1;
+                                                for (J = 1; J <= loopTo; J++)
+                                                    RegExpArg.Add(oRegMatch.Groups[J].Value);
+                                            }
+
+                                            Command.Instance.TriggerAction(oTrigger.sAction, RegExpArg);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    /* TODO ERROR: Skipped IfDirectiveTrivia */
+                    catch (Exception ex)
+                    {
+                        EchoText("Error in TriggerAction", "Debug");
+                        EchoText("---------------------", "Debug");
+                        EchoText(ex.Message, "Debug");
+                        EchoText("---------------------", "Debug");
+                        EchoText(ex.ToString(), "Debug");
+                        EchoText("---------------------", "Debug");
+                    }
+                    /* TODO ERROR: Skipped EndIfDirectiveTrivia */
+                    finally
+                    {
+                        Triggers.Instance.ReleaseReaderLock();
+                    }
+                }
+                else
+                {
+                    EchoText("TriggerList: Unable to acquire reader lock.","Log");
+                }
+
+                // Scripts
+                if (ScriptList.Instance.AcquireReaderLock())
+                {
+                    try
+                    {
+                        foreach (Script oScript in ScriptList.Instance)
+                            oScript.TriggerParse(sText, bBufferWait);
+                    }
+                    /* TODO ERROR: Skipped IfDirectiveTrivia */
+                    catch (Exception ex)
+                    {
+                        EchoText("Error in TriggerParse", "Debug");
+                        EchoText("---------------------", "Debug");
+                        EchoText(ex.Message, "Debug");
+                        EchoText("---------------------", "Debug");
+                        EchoText(ex.ToString(), "Debug");
+                        EchoText("---------------------", "Debug");
+
+                    }
+                    /* TODO ERROR: Skipped EndIfDirectiveTrivia */
+                    finally
+                    {
+                        ScriptList.Instance.ReleaseReaderLock();
+                    }
+                }
+                else
+                {
+                    EchoText("TriggerParse:Unable to acquire reader lock.","Log");
+                }
+            }
+        }
+    }
+
+    public void TriggerVariableChanged(string sVariableName) // When variables change
+    {
+        switch (sVariableName)
+        {
+            case "$health":
+                {
+                    //int barValue = Conversions.ToInteger(m_oGlobals.VariableList["health"]);
+                    //string barText = m_oGlobals.VariableList["healthBarText"].ToString();
+                    //var bar = ComponentBarsHealth;
+                    //bar.BarText = barText;
+                    //SetBarValue(barValue, bar);
+                    break;
+                }
+
+            case "$mana":
+                {
+                    //int barValue = Conversions.ToInteger(m_oGlobals.VariableList["mana"]);
+                    //string barText = m_oGlobals.VariableList["manaBarText"].ToString();
+                    //var bar = ComponentBarsMana;
+                    //bar.BarText = barText;
+                    //SetBarValue(barValue, bar);
+                    break;
+                }
+
+            case "$stamina":
+                {
+                    //int barValue = Conversions.ToInteger(m_oGlobals.VariableList["stamina"]);
+                    //string barText = m_oGlobals.VariableList["staminaBarText"].ToString();
+                    //var bar = ComponentBarsFatigue;
+                    //bar.BarText = barText;
+                    //SetBarValue(barValue, bar);
+                    break;
+                }
+
+            case "$spirit":
+                {
+                    //int barValue = Conversions.ToInteger(m_oGlobals.VariableList["spirit"]);
+                    //string barText = m_oGlobals.VariableList["spiritBarText"].ToString();
+                    //var bar = ComponentBarsSpirit;
+                    //bar.BarText = barText;
+                    //SetBarValue(barValue, bar);
+                    break;
+                }
+
+            case "$concentration":
+                {
+                    //int barValue = Conversions.ToInteger(m_oGlobals.VariableList["concentration"]);
+                    //string barText = m_oGlobals.VariableList["concentrationBarText"].ToString();
+                    //var bar = ComponentBarsConc;
+                    //bar.BarText = barText;
+                    //SetBarValue(barValue, bar);
+                    break;
+                }
+
+            case "compass":
+            case "$north":
+            case "$northeast":
+            case "$east":
+            case "$southeast":
+            case "$south":
+            case "$southwest":
+            case "$west":
+            case "$northwest":
+            case "$up":
+            case "$down":
+            case "$out":
+                {
+//                    IconBar.PictureBoxCompass.Invalidate();
+                    return; // Block direction triggers (They clear before changing.)
+                }
+
+            case "$dead":
+            case "$standing":
+            case "$kneeling":
+            case "$sitting":
+            case "$prone":
+                {
+//                    IconBar.UpdateStatusBox();
+                    break;
+                }
+
+            case "$stunned":
+                {
+  //                  IconBar.UpdateStunned();
+                    break;
+                }
+
+            case "$bleeding":
+                {
+    //                IconBar.UpdateBleeding();
+                    break;
+                }
+
+            case "$invisible":
+                {
+      //              IconBar.UpdateInvisible();
+                    break;
+                }
+
+            case "$hidden":
+                {
+//                    IconBar.UpdateHidden();
+                    break;
+                }
+
+            case "$joined":
+                {
+ //                   IconBar.UpdateJoined();
+                    break;
+                }
+
+            case "$webbed":
+                {
+   //                 IconBar.UpdateWebbed();
+                    break;
+                }
+
+            case "$connected":
+                {
+                    //string argsValue = Conversions.ToString(m_oGlobals.VariableList["connected"]);
+                    //bool bConnected = Utility.StringToBoolean(argsValue);
+                    //ComponentBarsHealth.IsConnected = bConnected;
+                    //ComponentBarsMana.IsConnected = bConnected;
+                    //ComponentBarsFatigue.IsConnected = bConnected;
+                    //ComponentBarsSpirit.IsConnected = bConnected;
+                    //ComponentBarsConc.IsConnected = bConnected;
+                    //IconBar.IsConnected = bConnected;
+                    //oRTControl.IsConnected = bConnected;
+                    //Castbar.IsConnected = bConnected;
+                    //m_CommandSent = false;
+                    //m_oGlobals.VariableList["charactername"] = m_oGame.AccountCharacter;
+                    //m_oGlobals.VariableList["game"] = m_oGame.AccountGame;
+                    //m_oGlobals.VariableList["gamename"] = m_oGame.AccountGame;
+                    //m_oAutoMapper.CharacterName = m_oGame.AccountCharacter;
+                    //m_sCurrentProfileName = m_oGame.AccountCharacter + m_oGame.AccountGame + ".xml";
+                    //m_oGame.ResetIndicators();
+                    //IconBar.UpdateStatusBox();
+                    //IconBar.UpdateStunned();
+                    //IconBar.UpdateBleeding();
+                    //IconBar.UpdateInvisible();
+                    //IconBar.UpdateHidden();
+                    //IconBar.UpdateJoined();
+                    //IconBar.UpdateWebbed();
+                    //if (m_oGame.IsConnectedToGame)
+                    //{
+                    //    if (!string.IsNullOrWhiteSpace(m_oGlobals.Config.ConnectScript)) ClassCommand_SendText(m_oGlobals.Config.ScriptChar + m_oGlobals.Config.ConnectScript, false, "Connected");
+                    //    if (m_oGlobals.VariableList.ContainsKey("connectscript")) ClassCommand_SendText(m_oGlobals.Config.ScriptChar + m_oGlobals.Config.ConnectScript, false, "Connected");
+                    //}
+                    //SafeUpdateMainWindowTitle();
+                    break;
+                }
+
+            case "$prompt": // Safety
+                {
+//                    IconBar.UpdateBleeding();
+                    break;
+                }
+
+            case "$charactername":
+                {
+                    //SafeUpdateMainWindowTitle();
+                    //m_oAutoMapper.CharacterName = m_oGlobals.VariableList["charactername"].ToString();
+                    //m_oGame.AccountCharacter = m_oGlobals.VariableList["charactername"].ToString();
+                    //if (m_oGlobals.VariableList["charactername"].ToString().Length > 0)
+                    //{
+                    //    m_sCurrentProfileName = m_oGame.AccountCharacter + m_oGame.AccountGame + ".xml";
+                    //}
+
+                    break;
+                }
+            /* TODO ERROR: Skipped IfDirectiveTrivia *//* TODO ERROR: Skipped DisabledTextTrivia *//* TODO ERROR: Skipped EndIfDirectiveTrivia */
+            case "$gamename":
+                {
+                    // SafeLoadProfile(oGlobals.VariableList("charactername").ToString & oGlobals.VariableList("gamename").ToString & ".xml", False)
+ //                   SafeUpdateMainWindowTitle();
+                    break;
+                }
+        }
+        Command.Instance.TriggerVariableChanged(sVariableName );
+
+    }
+
+    public void ClassCommand_EventVariableChanged(string sVariable)
+    {
+        try
+        {
+            TriggerVariableChanged(sVariable);
+            // SafeParsePluginVariable(sVariable);
+        }
+        /* TODO ERROR: Skipped IfDirectiveTrivia */
+        catch (Exception ex)
+        {
+            HandleGenieException("VariableChanged", ex.Message, ex.ToString());
+            /* TODO ERROR: Skipped ElseDirectiveTrivia *//* TODO ERROR: Skipped DisabledTextTrivia *//* TODO ERROR: Skipped EndIfDirectiveTrivia */
+        }
+    }
+
 
     private void GameSocket_EventExit()
     {
         GameConnection.Instance.Disconnect(true);
+    }
+    private void GameSocket_EventDataRecieveEnd()
+    {
+        EventDataRecieveEnd?.Invoke();
     }
 
     private string ParsePluginText(string sText, string sWindow)

@@ -3,8 +3,11 @@ using GenieCoreLib;
 using GenieWasm.UserControls;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -38,11 +41,11 @@ public enum DefaultWindows
 }
 // Manages information flow between UI windows and core processes
 // Previous logic was based on Windows Forms framework
-public class ViewManager
+public class ViewManager: INotifyPropertyChanged
 {
     public static ViewManager Instance => _m_oViewManager ??= new ViewManager();
     private static ViewManager _m_oViewManager;
-    
+
     public ViewManager()
     {
         _m_oViewManager = this;
@@ -62,7 +65,7 @@ public class ViewManager
     // Add all the default windows until we can get to the user windows
     public IEnumerable<GameWindow> InitializeDefaultWindows(bool testing = false)
     {
-        List<DefaultWindows> defaultWindows = Enum.GetValues(typeof(DefaultWindows)).Cast<DefaultWindows>().ToList();  
+        List<DefaultWindows> defaultWindows = Enum.GetValues(typeof(DefaultWindows)).Cast<DefaultWindows>().ToList();
         foreach (DefaultWindows defaultWindow in defaultWindows.Order())
         {
             int order = (int)((int)defaultWindow % 100); // use the 1's and 10's digit to order the windows in the panel
@@ -70,13 +73,13 @@ public class ViewManager
             var gameWindow = CreateNewWindow(defaultWindow.ToString(), (int)defaultWindow, testing);
             RegisterWindow(gameWindow, testing);
         }
-        return testing? GameWindows.Values : null;
+        return testing ? GameWindows.Values : null;
     }
 
     private GameWindow CreateNewWindow(string windowname, int location, bool testing = false)
     {
         GameWindow newWindow = new GameWindow()
-            {GameWindowName = windowname, BodyContent = "", WindowLocation = location};
+        { GameWindowName = windowname, BodyContent = "", WindowLocation = location };
         return newWindow;
     }
 
@@ -90,9 +93,9 @@ public class ViewManager
         var id = gameWindow.GameWindowName;
         try
         {
-            if (GameWindows.ContainsKey(id))  UnregisterWindow(gameWindow,testing);
+            if (GameWindows.ContainsKey(id)) UnregisterWindow(gameWindow, testing);
 
-            GameWindows.Add(id,gameWindow);
+            GameWindows.Add(id, gameWindow);
             return true; // Successfully added the window
         }
         catch (Exception ex)
@@ -213,6 +216,7 @@ public class ViewManager
 
 
     public bool InvokeRequired { get; set; } = false; // Simulates whether invoke is required, for example in a WebAssembly context
+    public int HandlePluginException { get; internal set; }
 
     public delegate GameWindow CreateOutputFormDelegate(string sID, string sName, string sIfClosed, int iWidth, int iHeight, int iTop, int iLeft, bool bIsVisible, string fontStyle, string sColorName, bool UpdateFormList);
 
@@ -395,7 +399,20 @@ public class ViewManager
         //}
     }
 
-    private void ClassCommand_EchoText(string sText, string sWindow)
+    public void HandleGenieException(string section, string message, string description = null)
+    {
+        //if (InvokeRequired == true)
+        //{
+        //    var parameters = new[] { section, message, description };
+        //    Invoke(new PrintDialogExceptionDelegate(ShowDialogException), parameters);
+        //}
+        //else
+        //{
+        //    ShowDialogException(section, message, description);
+        //}
+    }
+
+    public void ClassCommand_EchoText(string sText, string sWindow)
     {
         //try
         //{
@@ -677,4 +694,364 @@ public class ViewManager
     {
         GameConnection.Instance.Disconnect(true);
     }
+
+    public delegate void ClearSpellTimeDelegate();
+
+    public void GlobalVariableChanged(string variableName, object value)
+    {
+        // Handle global variable changes here
+        // This method can be used to update UI or perform actions based on global variable changes
+        // For example, you can update a specific GameWindow or notify other components
+        Console.WriteLine($"Global variable '{variableName}' changed to '{value}'");
+    }
+    public void Game_EventClearSpellTime()
+    {
+        try
+        {
+            //if (InvokeRequired == true)
+            //{
+            //    Invoke(new ClearSpellTimeDelegate(ClearSpellTime));
+            //}
+            //else
+            //{
+            //    ClearSpellTime();
+            //}
+        }
+        /* TODO ERROR: Skipped IfDirectiveTrivia */
+        catch (Exception ex)
+        {
+            //            HandleGenieException("ClearSpellTime", ex.Message, ex.ToString());
+            /* TODO ERROR: Skipped ElseDirectiveTrivia *//* TODO ERROR: Skipped DisabledTextTrivia *//* TODO ERROR: Skipped EndIfDirectiveTrivia */
+        }
+    }
+    public void Simutronics_EventEndUpdate()
+    {
+        try
+        {
+            string argsText = "";
+            var argoColor = Color.Transparent;
+            var argoBgColor = Color.Transparent;
+            WindowTarget argoTargetWindow = WindowTarget.Main;
+            string argsTargetWindow = "";
+            AddText(argsText, argoColor, argoBgColor, oTargetWindow: argoTargetWindow, sTargetWindow: argsTargetWindow); // For some stupid reason we need this. Probably because EndUpdate is fired before we are ready in the other thread.
+            EndUpdate();
+            Game.Instance.SetBufferEnd();
+            if (ScriptList.Instance.AcquireReaderLock())
+            {
+                try
+                {
+                    foreach (Script oScript in ScriptList.Instance)
+                        oScript.SetBufferEnd();
+                }
+                finally
+                {
+                    ScriptList.Instance.ReleaseReaderLock();
+                }
+            }
+            else
+            {
+                Game.Instance.EchoText("EndUpdate: Unable to acquire reader lock.","Log");
+            }
+        }
+        /* TODO ERROR: Skipped IfDirectiveTrivia */
+        catch (Exception ex)
+        {
+            HandleGenieException("EndUpdate", ex.Message, ex.ToString());
+            /* TODO ERROR: Skipped ElseDirectiveTrivia *//* TODO ERROR: Skipped DisabledTextTrivia *//* TODO ERROR: Skipped EndIfDirectiveTrivia */
+        }
+    }
+    public void Command_EventClearWindow(string sWindow)
+    {
+        GameWindow? oFormSkin = GetGameWindow(sWindow);
+        if (oFormSkin is not null)
+            SafeClearWindow(oFormSkin);
+    }
+    public void SafeClearWindow(GameWindow oFormSkin)
+    { 
+        try
+        {   if (InvokeRequired == true)
+            {
+//                Invoke(new Action(() => ClearWindow(oFormSkin)));
+            }
+            else
+            {
+                oFormSkin.BodyContent = string.Empty; // Clear the content of the window
+            }
+        }
+        catch (Exception ex)
+        {
+            HandleGenieException("ClearWindow", ex.Message, ex.ToString());
+        }
+    }
+
+
+    //private void HandlePluginException(GeniePlugin.Plugins.IPlugin plugin, string section, Exception ex)
+    //{
+    //    if (InvokeRequired == true)
+    //    {
+    //        var parameters = new object[] { plugin, section, ex };
+    //        Invoke(new PrintDialogPluginExceptionDelegate(ShowDialogPluginException), parameters);
+    //    }
+    //    else
+    //    {
+    //        ShowDialogPluginException(plugin, section, ex);
+    //    }
+    //}
+
+    private GameWindow? FindGameWindow(WindowTarget? eTargetWindow = WindowTarget.Main, string sTargetWindow="")
+    {
+        if (string.IsNullOrEmpty(sTargetWindow)) sTargetWindow = eTargetWindow?.ToString();
+        GameWindow? oFormTarget = GetGameWindow(sTargetWindow);
+        oFormTarget = oFormTarget ??= GetGameWindow("Main");
+
+        if (oFormTarget is null) return null;
+        return oFormTarget;
+    }
+    private void AddText(string sText, Color oColor, Color oBgColor,
+                WindowTarget oTargetWindow = WindowTarget.Main, string sTargetWindow = "", bool bNoCache = true, bool bMono = false, bool bPrompt = false, bool bInput = false)
+    {
+        GameWindow? oFormTarget = FindGameWindow(oTargetWindow, sTargetWindow);
+        if (oFormTarget is null) return;
+
+        AddText(sText, oColor, oBgColor, oFormTarget, bNoCache, bMono, bPrompt, bInput);
+    }
+    private void AppendText(string Text)
+    {
+        WindowTarget argoTargetWindow = WindowTarget.Main;
+        AddText(Text, oTargetWindow: argoTargetWindow);
+    }
+
+    private void AddText(string sText, WindowTarget oTargetWindow = WindowTarget.Main, bool bNoCache = true, bool bMono = false, bool bPrompt = false, bool bInput = false)
+    {
+        var argoColor = Color.WhiteSmoke;
+        var argoBgColor = Color.Transparent;
+        string argsTargetWindow = Conversions.ToString(bNoCache);
+        AddText(sText, argoColor, argoBgColor, oTargetWindow, argsTargetWindow, bMono, bPrompt, bInput);
+    }
+
+    private void AddText(string sText, Color oColor, Color oBgColor, GameWindow? oTargetWindow, bool bNoCache = true, bool bMono = false, bool bPrompt = false, bool bInput = false)
+    {
+        oTargetWindow ??= GetGameWindow("main");
+        if (oTargetWindow.Name.Equals("main",StringComparison.OrdinalIgnoreCase))
+        {
+            if (bPrompt == true)
+            {
+                if (Game.Instance.LastRowWasPrompt)
+                {
+                    return;
+                }
+                Game.Instance.LastRowWasPrompt = true;
+            }
+            else if (sText.Trim().Length > 0)
+            {
+                if (Game.Instance.LastRowWasPrompt)
+                {
+                    if (!bInput)
+                    {
+                        if (!sText.StartsWith(Constants.vbNewLine) && ConfigSettings.Instance.PromptBreak)
+                        {
+                            sText = Constants.vbNewLine + sText;
+                        }
+                    }
+
+                    Game.Instance.LastRowWasPrompt = false;
+                }
+            }
+        }
+
+        if (InvokeRequired == true)
+        {
+            var parameters = new object[] { sText, oColor, oBgColor, oTargetWindow, bNoCache, bMono };
+//            Invoke(new AddTextDelegate(InvokeAddText), parameters);
+        }
+        else
+        {
+//            InvokeAddText(sText, oColor, oBgColor, oTargetWindow, bNoCache, bMono);
+        }
+    }
+
+    public void AddImage(string sImageFileName, GameWindow? oTargetWindow, int width, int height)
+    {
+        oTargetWindow ??= GetGameWindow("main");
+        if (InvokeRequired == true)
+        {
+            var parameters = new object[] { sImageFileName, oTargetWindow, width, height };
+//            Invoke(new AddImageDelegate(InvokeAddImage), parameters);
+        }
+        else
+        {
+//            InvokeAddImage(sImageFileName, oTargetWindow, width, height);
+        }
+    }
+
+    public void AddImage(string sImageFileName, string sTargetWindow, int width, int height)
+    {
+        GameWindow? oTargetWindow = FindGameWindow(WindowTarget.Portrait, sTargetWindow);
+        AddImage(sImageFileName, oTargetWindow, width, height);
+    }
+    //public void AddImage(string sImageFileName, WindowTarget? oTargetWindow = WindowTarget.Portrait,
+    //    string sTargetWindow, int width, int height)
+    //{
+    //    GameWindow? oFormTarget = FindGameWindow(oTargetWindow, sTargetWindow);
+    //    AddImage(sImageFileName, oFormTarget, width, height);
+    //}
+    public int GetWindowLocation(string sWindow)
+    {
+        int maxLocation = 0;
+        foreach (var windowLoc in Enum.GetValues(typeof(WindowTarget)))
+        {
+            if (windowLoc.ToString().Equals(sWindow, StringComparison.OrdinalIgnoreCase))
+            {
+                return (int)windowLoc;
+            }
+            maxLocation = Math.Max(maxLocation, (int)windowLoc);
+        }
+        // If we fall through, we need to create a new location for the window
+        // Get the maximum location for a new window based on existing windows
+        maxLocation = Math.Max(GameWindows.Values.Max(w => w.WindowLocation),maxLocation);
+        return maxLocation + 1; // Increment to get the next available location
+    }
+    public void EventStreamWindow(object sTitle, object sIfClosed, bool testing = false)
+    {
+        sTitle ??= "";
+        // The main window is always open
+        if (string.IsNullOrEmpty(sTitle.ToString()) || sTitle.ToString().Equals("main", StringComparison.OrdinalIgnoreCase))
+            return;
+
+        GameWindow? fo = GetGameWindow(sTitle.ToString());
+        if (fo is null)
+        {
+            fo = CreateNewWindow(sTitle.ToString(), GetWindowLocation(sTitle.ToString()),testing);
+            RegisterWindow(fo,testing);
+            // width=300 , height=200, top=10, left=10, isVisible=false
+
+            string argsText = $"Created new window: {sTitle.ToString()} {System.Environment.NewLine}";
+            WindowTarget argoTargetWindow = WindowTarget.Main;
+            AddText(argsText, oTargetWindow: argoTargetWindow);
+        }
+        else if (Information.IsNothing(fo.IfClosed) & !Information.IsNothing(sIfClosed))
+        {
+            fo.IfClosed = (bool)sIfClosed;
+            string argsText1 = Conversions.ToString("Altered window: " + sTitle + System.Environment.NewLine);
+            WindowTarget argoTargetWindow1 = WindowTarget.Main;
+            AddText(argsText1, oTargetWindow: argoTargetWindow1);
+        }
+    }
+
+    public void Simutronics_EventPrintText(string sText, Color oColor, Color oBgColor, WindowTarget oTargetWindow, string sTargetWindow, bool bMono, bool bPrompt, bool bInput)
+    {
+        try
+        {
+            AddText(sText, oColor, oBgColor, oTargetWindow, sTargetWindow, false, bMono, bPrompt, bInput); // False = Cache this
+        }
+        /* TODO ERROR: Skipped IfDirectiveTrivia */
+        catch (Exception ex)
+        {
+            HandleGenieException("PrintText", ex.Message, ex.ToString());
+        }
+    }
+    public void PrintError(string sText)
+    {
+        string argsText = sText + System.Environment.NewLine;
+        var argoColor = Color.Red;
+        var argoBgColor = Color.Transparent;
+        WindowTarget argoTargetWindow = WindowTarget.Main;
+        string argsTargetWindow = "";
+        AddText(argsText, argoColor, argoBgColor, oTargetWindow: argoTargetWindow, sTargetWindow: argsTargetWindow);
+    }
+
+    private void Game_EventStatusBarUpdate()
+    {
+        try
+        {
+            SafeSetStatusBarLabels();
+        }
+        /* TODO ERROR: Skipped IfDirectiveTrivia */
+        catch (Exception ex)
+        {
+            HandleGenieException("StatusBarUpdate", ex.Message, ex.ToString());
+            /* TODO ERROR: Skipped ElseDirectiveTrivia *//* TODO ERROR: Skipped DisabledTextTrivia *//* TODO ERROR: Skipped EndIfDirectiveTrivia */
+        }
+    }
+
+    private void SafeSetStatusBarLabels()
+    {
+        if (InvokeRequired == true)
+        {
+ //           Invoke(new SetStatusBarLabelsDelegate(SetStatusBarLabels));
+        }
+        else
+        {
+            SetStatusBarLabels();
+        }
+    }
+
+    private void SetStatusBarLabels()
+    {
+        LabelLHC = Variables.Instance["lefthand"]?.ToString();
+        LabelRHC = Variables.Instance["righthand"]?.ToString();
+
+        if (ConfigSettings.Instance.ShowSpellTimer && Globals.Instance.SpellTimeStart != DateTime.MinValue)
+        {
+            var argoDateEnd = DateTime.Now;
+            LabelSpellC = Conversions.ToString("(" + Utility.GetTimeDiffInSeconds(Globals.Instance.SpellTimeStart, argoDateEnd) + ") " + Variables.Instance["preparedspell"]);
+        }
+        else
+        {
+            LabelSpellC = Conversions.ToString(Variables.Instance["preparedspell"]);
+        }
+    }
+    private string _labelRHC = string.Empty;
+    public string LabelRHC
+    {
+        get => _labelRHC;
+        set
+        {
+            if (_labelRHC != value)
+            {
+                _labelRHC = value;
+                NotifyPropertyChanged();
+            }
+        }
+    }
+    private string _labelLHC = string.Empty;
+    public string LabelLHC
+    {
+        get => _labelLHC;
+        set
+        {
+            if (_labelLHC != value)
+            {
+                _labelLHC = value;
+                NotifyPropertyChanged();
+            }
+        }
+    }
+    private string _labelSpellC = string.Empty;
+    public string LabelSpellC
+    {
+        get => _labelSpellC;
+        set
+        {
+            if (_labelSpellC != value)
+            {
+                _labelSpellC = value;
+                NotifyPropertyChanged();
+            }
+        }
+    }
+
+    #region Property Changed Notification
+
+    // This method is called by the Set accessor of each property.
+    // The CallerMemberName attribute that is applied to the optional propertyName
+    // parameter causes the property name of the caller to be substituted as an argument.
+    public event PropertyChangedEventHandler PropertyChanged;
+
+    public void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+    #endregion Property Changed Notification
+
 }

@@ -2,7 +2,12 @@
 
 public class ScriptList : CollectionList
 {
-
+    public static ScriptList Instance => m_ScriptList ??= new ScriptList();
+    private static ScriptList m_ScriptList;
+    public ScriptList()
+    {
+        m_ScriptList = this;
+    }
     #region Threading
     private ReaderWriterLockSlim m_oRWLock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
 
