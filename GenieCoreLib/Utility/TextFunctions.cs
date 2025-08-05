@@ -34,6 +34,10 @@ public class FormattedTextMessage : TextMessage
 public static class TextFunctions
 {
     public static ConcurrentQueue<TextMessage> ConcurrentTextMessageQueue = new ConcurrentQueue<TextMessage>();
+    public static void EchoNewLine(string sText, string sWindow = "")
+    {
+        EchoText(Environment.NewLine + sText, sWindow);
+    }
     public static void EchoText(string sText, string sWindow = "")
     {
         try

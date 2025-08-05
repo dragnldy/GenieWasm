@@ -94,7 +94,7 @@ public partial class ConfigSettings : INotifyPropertyChanged, IConfigSettings, I
     private string _pluginDir = "Plugins";
     private string _mapDir = "Maps";
     private string _configDir = "Config";
-    private string _configDirProfile = "Config";
+    private string _configDirProfile = Path.Combine("Config","Profiles");
     private bool _showLinks = false;
     private bool _showImages = true;
     private string _logDir = "Logs";

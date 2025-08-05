@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using System.Drawing;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -10,9 +9,6 @@ namespace GenieCoreLib;
 
 public interface IGame
 {
-    void Connect(string sGenieKey, string sAccountName, string sPassword, string sCharacter, string sGame);
-    void DirectConnect(string Character, string Game, string Host, int Port, string Key);
-    void Disconnect(bool ExitOnDisconnect = false);
     void SendText(string sText, bool bUserInput = false, string sOrigin = "");
     void SendRaw(string text);
     void ParseGameRow(string sText);
@@ -26,7 +22,6 @@ public class Game : IGame
     public Game()
     {
         _m_oGame = this;
-        m_oSocket = Connection.Instance;
     }
 
     public event EventAddImageEventHandler EventAddImage;
@@ -77,46 +72,6 @@ public class Game : IGame
     public event EventStreamWindowEventHandler EventStreamWindow;
     public delegate void EventStreamWindowEventHandler(object sID, object sTitle, object sIfClosed);
 
-
-    private Connection _m_oSocket;
-    private Connection m_oSocket
-    {
-        [MethodImpl(MethodImplOptions.Synchronized)]
-        get
-        {
-            return _m_oSocket;
-        }
-
-        [MethodImpl(MethodImplOptions.Synchronized)]
-        set
-        {
-            _m_oSocket = value;
-            if (_m_oSocket != null)
-            {
-                _m_oSocket.EventConnected += GameSocket_EventConnected;
-                _m_oSocket.EventDisconnected += GameSocket_EventDisconnected;
-                _m_oSocket.EventConnectionLost += GameSocket_EventConnectionLost;
-                _m_oSocket.EventParseRow += GameSocket_EventParseRow;
-                _m_oSocket.EventParsePartialRow += GameSocket_EventParsePartialRow;
-                _m_oSocket.EventDataRecieveEnd += GameSocket_EventDataRecieveEnd;
-                _m_oSocket.EventPrintText += GameSocket_EventPrintText;
-                _m_oSocket.EventPrintError += GameSocket_EventPrintError;
-            }
-        }
-    }
-
-    private bool m_bShowRawOutput = false;
-    private string m_sEncryptionKey = string.Empty;
-    private string m_sAccountOwner = string.Empty;
-    private string m_sLoginKey = string.Empty;
-    private string m_sAccountName = string.Empty;
-    private string m_sAccountPassword = string.Empty;
-    private string m_sAccountCharacter = string.Empty;
-    private string m_sAccountGame = "DR"; // DR, DRX, DRF
-    private string m_sConnectHost = string.Empty;
-    private int m_sConnectPort = 0;
-    private string m_sConnectKey = string.Empty;
-    private string m_sGenieKey = string.Empty;
     private bool m_bLastRowWasBlank = false;
     private bool m_bBold = false;
     private string m_sStyle = string.Empty;
@@ -130,14 +85,11 @@ public class Game : IGame
     private int m_iStamina = 100;
     private int m_iConcentration = 100;
     private int m_iEncumbrance = 0;
-    private string m_sCharacterName = string.Empty;
-    private string m_sGameName = string.Empty;
     private int m_iRoundTime = 0;
     private int m_iSpellTime = 0;
     private int m_iCastTime = 0;
     private int m_iGameTime = 0;
     private string m_sTriggerBuffer = string.Empty;
-    private bool m_bLastRowWasPrompt = false;
     private bool m_bUpdatingRoom = false;
     private bool m_bUpdateRoomOnStreamEnd = false;
     private string m_sRoomTitle = string.Empty;
@@ -148,7 +100,6 @@ public class Game : IGame
     private WindowTarget m_oTargetWindow = WindowTarget.Main;
     private string m_sTargetWindow = string.Empty;
     private bool m_bIgnoreXMLDepth = false;
-    private ConnectStates m_oConnectState;
     private object m_oThreadLock = new object(); // Thread safety
     private bool m_bFamiliarLineParse = false;
     public bool IsLich = false;
@@ -171,16 +122,6 @@ public class Game : IGame
         Debug,
         ActiveSpells,
         Other
-    }
-
-    private enum ConnectStates
-    {
-        Disconnected,
-        ConnectingKeyServer,
-        ConnectingGameServer,
-        ConnectedKey,
-        ConnectedGameHandshake,
-        ConnectedGame
     }
 
     private enum Indicator
@@ -213,172 +154,46 @@ public class Game : IGame
         Out
     }
 
-    /* TODO ERROR: Skipped EndRegionDirectiveTrivia */
-    private Hashtable m_oBanned = new Hashtable();
-
+    private bool m_bShowRawOutput = false;
     public bool ShowRawOutput
     {
-        get
-        {
-            return m_bShowRawOutput;
-        }
-
-        set
-        {
-            m_bShowRawOutput = value;
-        }
+        get => m_bShowRawOutput;
+        set => m_bShowRawOutput = value;
     }
 
-    public bool IsConnected
-    {
-        get
-        {
-            if (Information.IsNothing(m_oSocket))
-            {
-                return false;
-            }
-            else
-            {
-                return m_oSocket.IsConnected;
-            }
-        }
-    }
-
-    public bool IsConnectedToGame
-    {
-        get
-        {
-            return m_oConnectState == ConnectStates.ConnectedGame;
-        }
-    }
+    private bool m_bLastRowWasPrompt = false;
     public bool LastRowWasPrompt
     {
-        get
-        {
-            return m_bLastRowWasPrompt;
-        }
-
-        set
-        {
-            m_bLastRowWasPrompt = value;
-        }
+        get => m_bLastRowWasPrompt;
+        set => m_bLastRowWasPrompt = value;
     }
 
-    public DateTime LastServerActivity
+    private bool m_bStatusPromptEnabled = true;
+    public bool StatusPromptEnabled
     {
-        get
-        {
-            return m_oSocket.LastServerActivity;
-        }
+        get => m_bStatusPromptEnabled;
+        set => m_bStatusPromptEnabled = value;
     }
 
-    private DateTime m_oLastUserActivity = DateTime.Now;
-
-    public DateTime LastUserActivity
+    public string Account
     {
-        get
-        {
-            return m_oLastUserActivity;
-        }
+        get => GameConnection.Instance.Profile?.Account ?? string.Empty;
     }
 
-    public string AccountName
+    public string Character
     {
-        get
-        {
-            return m_sAccountName;
-        }
-
-        set
-        {
-            m_sAccountName = value;
-        }
-    }
-
-    public string AccountPassword
-    {
-        get
-        {
-            return m_sAccountPassword;
-        }
-
-        set
-        {
-            m_sAccountPassword = value;
-        }
-    }
-
-    public string AccountCharacter
-    {
-        get
-        {
-            return m_sAccountCharacter;
-        }
-
-        set
-        {
-            m_sAccountCharacter = value;
-        }
+        get => GameConnection.Instance.Profile?.Character ?? string.Empty;
     }
 
     public string AccountGame
-    {
-        get
-        {
-            return m_sAccountGame;
-        }
-
-        set
-        {
-            m_sAccountGame = value;
-        }
-    }
-
-    public void Connect(string sGenieKeyx, string sAccountName, string sPassword, string sCharacter, string sGame)
-    {
-        m_sAccountName = sAccountName;
-        m_sAccountPassword = sPassword;
-        m_sAccountCharacter = sCharacter;
-        m_sAccountGame = sGame;
-        m_oLastUserActivity = DateTime.Now;
-        var accountName = m_sAccountName.ToUpper();
-
-        Variables.Instance["charactername"] = sCharacter;
-        Variables.Instance["game"] = sGame;
-        Variables.Instance["account"] = sAccountName;
-
-        DoConnect("eaccess.play.net", 7910);
-    }
-
-    public void DirectConnect(string Character, string Game, string Host, int Port, string Key)
-    {
-        m_sConnectKey = Key;
-        DirectConnect(Character, Game, Host, Port);
-    }
-    public void DirectConnect(string Character, string Game, string Host, int Port)
-    {
-        m_oLastUserActivity = DateTime.Now;
-        Variables.Instance["charactername"] = Character;
-        Variables.Instance["game"] = Game;
-        Variables.Instance["account"] = "Unknown";
-
-        m_sEncryptionKey = string.Empty;
-        m_oConnectState = ConnectStates.ConnectingGameServer;
-        m_oSocket.Connect(Host, Port);
-    }
-
-    public void Disconnect(bool ExitOnDisconnect = false)
-    {
-        if (m_oSocket.IsConnected)
-        {
-            m_oSocket.Disconnect(ExitOnDisconnect);
-        }
+    { 
+        get => GameConnection.Instance.Profile?.Game ?? string.Empty;
     }
 
     public void SendText(string sText, bool bUserInput = false, string sOrigin = "")
     {
         string sShowText = sText;
-        if (!m_oSocket.IsConnected)
+        if (!Connection.Instance.IsConnected)
         {
             if (!sText.StartsWith(ConfigSettings.Instance.MyCommandChar.ToString()))
             {
@@ -387,8 +202,8 @@ public class Game : IGame
         }
         else if (sText.StartsWith("qui", StringComparison.CurrentCultureIgnoreCase) | sText.StartsWith("exi", StringComparison.CurrentCultureIgnoreCase))
         {
-            m_oReconnectTime = default;
-            m_bManualDisconnect = true;
+            GameConnection.Instance.ReconnectTime = default;
+            GameConnection.Instance.ManualDisconnect = true;
         }
         else if ((sText.ToLower() ?? "") == "set !statusprompt")
         {
@@ -460,8 +275,8 @@ public class Game : IGame
 
         if (!sText.StartsWith(ConfigSettings.Instance.MyCommandChar.ToString())) // Skip user commands
         {
-            m_oLastUserActivity = DateTime.Now;
-            m_oSocket.Send(sText + Constants.vbCrLf);
+            GameConnection.Instance.LastUserActivity = DateTime.Now;
+            Connection.Instance.Send(sText + Constants.vbCrLf);
             Variables.Instance["lastcommand"] = sText;
             var lastCommandVar = "lastcommand";
             EventVariableChanged?.Invoke(lastCommandVar);
@@ -475,7 +290,7 @@ public class Game : IGame
 
     public void SendRaw(string text)
     {
-        m_oSocket.Send(text);
+        Connection.Instance.Send(text);
     }
 
     private StringBuilder m_oXMLBuffer = new StringBuilder();
@@ -946,258 +761,10 @@ public class Game : IGame
         }
     }
 
-    private async void ParseRow(string sText)
-    {
-        var switchExpr = m_oConnectState;
-        switch (switchExpr)
-        {
-            case ConnectStates.ConnectedKey:
-                {
-                    ParseKeyRow(sText);
-                    break;
-                }
-
-            case ConnectStates.ConnectedGame:
-                {
-                    ParseGameRow(sText);
-                    break;
-                }
-
-            case ConnectStates.ConnectedGameHandshake:
-                {
-                    m_oConnectState = ConnectStates.ConnectedGame;
-                    await Task.Delay(1000);
-                    m_oSocket.Send(Constants.vbLf + Constants.vbLf);
-                    break;
-                }
-        }
-    }
-
-    private ArrayList _CharacterList = new ArrayList();
-
-    public ArrayList CharacterList
-    {
-        get
-        {
-            return _CharacterList;
-        }
-    }
-
-    private void ParseKeyRow(string sText)
-    {
-        if (sText.Length == 32 & m_sEncryptionKey.Length == 0)
-        {
-
-            m_sEncryptionKey = sText;
-            m_oSocket.Send("A" + Constants.vbTab + m_sAccountName.ToUpper() + Constants.vbTab);
-            m_oSocket.Send(Utility.EncryptText(m_sEncryptionKey, m_sAccountPassword));
-            m_oSocket.Send(System.Environment.NewLine);
-        }
-        else
-        {
-            var oData = new ArrayList();
-        foreach (string strLine in sText.Split(Conversions.ToChar(Constants.vbTab)))
-            oData.Add(strLine);
-        if (oData.Count > 0)
-        {
-            var switchExpr = oData[0];
-            switch (switchExpr)
-            {
-                case "?":
-                    {
-                        string argtext = "Unable to get login key.";
-                        PrintError(argtext);
-                        m_oSocket.Disconnect();
-                        break;
-                    }
-
-                case "A":
-                    {
-                        var switchExpr1 = oData[2];
-                        switch (switchExpr1)
-                        {
-                            case "KEY":
-                                {
-                                    m_sLoginKey = Conversions.ToString(oData[3]);
-                                    m_sAccountOwner = Conversions.ToString(oData[4]);
-                                    m_oSocket.Send("G" + Constants.vbTab + m_sAccountGame.ToUpper() + System.Environment.NewLine);
-                                    break;
-                                }
-
-                            case "NORECORD":
-                                {
-                                    string argtext1 = "Account does not exist.";
-                                    PrintError(argtext1);
-                                    m_oSocket.Disconnect();
-                                    break;
-                                }
-
-                            case "PASSWORD":
-                                {
-                                    string argtext2 = "Invalid password.";
-                                    PrintError(argtext2);
-                                    m_oSocket.Disconnect();
-                                    break;
-                                }
-
-                            case "REJECT":
-                                {
-                                    string argtext3 = "Access rejected.";
-                                    PrintError(argtext3);
-                                    m_oSocket.Disconnect();
-                                    break;
-                                }
-                        }
-
-                        break;
-                    }
-
-                case "G":
-                    {
-                        m_oSocket.Send("C" + System.Environment.NewLine);
-                        break;
-                    }
-
-                case "C":
-                    {
-                        if (m_sAccountCharacter.Trim().Length == 0)
-                        {
-                            string argtext4 = "Listing characters:";
-                            PrintError(argtext4);
-                            string strUserKey = string.Empty;
-                            // bool blnFoundMatch = false;
-                            for (int i = 5, loopTo = oData.Count - 1; i <= loopTo; i++)
-                            {
-                                if (i % 2 == 0)
-                                {
-                                    _CharacterList.Clear();
-                                    _CharacterList.Add(oData[i].ToString());
-                                    var temp = oData[i].ToString();
-                                    PrintError(temp);
-                                }
-                                else
-                                {
-                                    strUserKey = Conversions.ToString(oData[i]);
-                                }
-                            }
-
-                            m_oSocket.Disconnect();
-                        }
-                        else
-                        {
-                            string strUserKey = string.Empty;
-                            string strUserKeyTemp = string.Empty;
-                            bool blnFoundMatch = false;
-                            bool bFoundBanned = false;
-                            for (int i = 5, loopTo1 = oData.Count - 1; i <= loopTo1; i++)
-                            {
-                                if (i % 2 == 0)
-                                {
-                                    string sChar = oData[i].ToString();
-                                    if (sChar.Contains(" "))
-                                        sChar = sChar.Substring(0, sChar.IndexOf(' '));
-                                    if (m_oBanned.ContainsKey(Utility.GenerateHashSHA256(sChar)))
-                                        bFoundBanned = true;
-                                    if (sChar.ToUpper().Equals(m_sAccountCharacter.ToUpper()))
-                                    {
-                                        blnFoundMatch = true;
-                                        strUserKey = strUserKeyTemp;
-                                    }
-
-                                    if (blnFoundMatch == false)
-                                    {
-                                        if (sChar.ToUpper().StartsWith(m_sAccountCharacter.ToUpper()))
-                                        {
-                                            blnFoundMatch = true;
-                                            strUserKey = strUserKeyTemp;
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    strUserKeyTemp = Conversions.ToString(oData[i]);
-                                }
-                            }
-
-                            if (bFoundBanned)
-                            {
-                                m_oSocket.Disconnect();
-                                return;
-                            }
-
-                            if (blnFoundMatch)
-                            {
-                                m_oSocket.Send("L" + Constants.vbTab + strUserKey + Constants.vbTab + "STORM" + Constants.vbLf);
-                            }
-
-                            if (blnFoundMatch == false)
-                            {
-                                string argtext5 = "Character not found.";
-                                PrintError(argtext5);
-                                m_oSocket.Disconnect();
-                            }
-                        }
-
-                        break;
-                    }
-                case "E": //Indicates an Error Message
-                    {
-                        string[] errorStrings = sText.Split("\t");
-                        for(int i = 1;i < errorStrings.Length;i++)
-                        {
-                            PrintError(errorStrings[i]);
-                        }
-                        m_oSocket.Disconnect();
-                        break;
-                    }
-
-                case "L":
-                    {
-                        if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(oData[1], "OK", false)))
-                        {
-                            foreach (string strRow in oData)
-                            {
-                                if (strRow.IndexOf("GAMEHOST=") > -1)
-                                {
-                                        m_sConnectHost = IsLich ? ConfigSettings.Instance.LichServer : strRow.Substring(9);
-
-                                    }
-                                else if (strRow.IndexOf("GAMEPORT=") > -1)
-                                {
-                                        m_sConnectPort = IsLich ? ConfigSettings.Instance.LichPort : int.Parse(strRow.Substring(9));
-                                    }
-                                else if (strRow.IndexOf("KEY=") > -1)
-                                {
-                                    m_sConnectKey = strRow.Substring(4).TrimEnd('\0');
-                                }
-                            }
-
-                            if (m_sConnectKey.Length > 0)
-                            {
-                                m_oSocket.Disconnect();
-                                m_oConnectState = ConnectStates.ConnectingGameServer;
-                                m_oSocket.Connect(m_sConnectHost, m_sConnectPort);
-                            }
-                        }
-                        else if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(oData[1], "PROBLEM", false)))
-                        {
-                            string argtext6 = "There is a problem with your account. Log in to play.net website for more information.";
-                            PrintError(argtext6);
-                            m_oSocket.Disconnect();
-                        }
-
-                        break;
-                    }
-            }
-        }
-    }
-    }
-
     private bool m_bMonoOutput = false;
     private bool m_bPresetSpeechOutput = false;
     private bool m_bPresetWhisperOutput = false;
     private bool m_bPresetThoughtOutput = false;
-    private bool m_bStatusPromptEnabled = false;
 
     private static Regex m_RoomNameRegex = new Regex(@"\[(?<roomname>[^\]]+)\](?: \((?<roomuid>\d+|[*]{2})\))?");
 
@@ -1854,26 +1421,19 @@ public class Game : IGame
                         string sTemp = GetAttributeData(oXmlNode, argstrAttributeName20);
                         if (sTemp.Length > 0)
                         {
-                            m_sCharacterName = sTemp;
+                            string characterName = sTemp;
                             string argkey22 = "charactername";
-                            Variables.Instance.Add(argkey22, m_sCharacterName, Variables.VariablesType.Reserved);
+                            Variables.Instance.Add(argkey22, characterName, Variables.VariablesType.Reserved);
                             string argsVariable20 = "$charactername";
                             VariableChanged(argsVariable20);
-                            if (m_oBanned.ContainsKey(Utility.GenerateHashSHA256(m_sCharacterName)))
-                            {
-                                m_oSocket.Disconnect();
-                                m_bManualDisconnect = true;
-                            }
-
                             string argstrAttributeName21 = "game";
-                            m_sGameName = GetAttributeData(oXmlNode, argstrAttributeName21);
-                            m_sGameName = m_sGameName.Replace(":", "").Replace(" ", "");
+                            string gameName = GetAttributeData(oXmlNode, argstrAttributeName21);
+                            gameName = gameName.Replace(":", "").Replace(" ", "");
                             string argkey23 = "gamename";
-                            Variables.Instance.Add(argkey23, m_sGameName, Variables.VariablesType.Reserved);
+                            Variables.Instance.Add(argkey23, gameName, Variables.VariablesType.Reserved);
                             string argsVariable21 = "$gamename";
                             VariableChanged(argsVariable21);
                         }
-
                         break;
                     }
 
@@ -2636,16 +2196,6 @@ public class Game : IGame
         return sReturn;
     }
 
-    // Confuse decompilers and reverse engineers by having this method in the middle of everything and no string names in it
-    private void DoConnect(string sHostName, int iPort)
-    {
-
-        m_sEncryptionKey = string.Empty;
-        m_oConnectState = ConnectStates.ConnectingKeyServer;
-        m_oSocket.ConnectAndAuthenticate(sHostName, iPort);
-        
-    }
-
     private MatchCollection m_oMatchCollection;
 
     public void PrintTextWithParse(string sText, [Optional, DefaultParameterValue(false)] bool bIsPrompt, [Optional, DefaultParameterValue(WindowTarget.Unknown)] WindowTarget oWindowTarget)
@@ -2768,7 +2318,7 @@ public class Game : IGame
     private Color m_oLastFgColor = default;
     private Color m_oEmptyColor = default;
 
-    private void PrintTextToWindow(string text, Color color, Color bgcolor, WindowTarget targetwindow = WindowTarget.Main, bool isprompt = false, bool isroomoutput = false)
+    public void PrintTextToWindow(string text, Color color, Color bgcolor, WindowTarget targetwindow = WindowTarget.Main, bool isprompt = false, bool isroomoutput = false)
     {
         if (text.Length == 0 || (!isroomoutput && ConfigSettings.Instance.Condensed && text.Trim().Length == 0))
         {
@@ -2987,8 +2537,8 @@ public class Game : IGame
 
         if (text.Trim().StartsWith("Invalid login key."))
         {
-            m_oReconnectTime = default;
-            m_bManualDisconnect = true;
+            GameConnection.Instance.ReconnectTime = default;
+            GameConnection.Instance.ManualDisconnect = true;
         }
 
         if (color == m_oEmptyColor | color == Color.Transparent)
@@ -3063,7 +2613,7 @@ public class Game : IGame
 
         return text;
     }
-    private void VariableChanged(string sVariable)
+    public void VariableChanged(string sVariable)
     {
         EventVariableChanged?.Invoke(sVariable);
     }
@@ -3077,7 +2627,7 @@ public class Game : IGame
     }
 
     // Skip all blank line/prompt checks and just print it
-    private void PrintInputText(string sText, Color oColor, Color oBgColor)
+    public void PrintInputText(string sText, Color oColor, Color oBgColor)
     {
         if (sText.Length == 0)
         {
@@ -3125,7 +2675,7 @@ public class Game : IGame
         EventStatusBarUpdate?.Invoke();
     }
 
-    private void PrintError(string text)
+    public void PrintError(string text)
     {
         // Honor prompt
         if (m_bLastRowWasPrompt)
@@ -3140,63 +2690,15 @@ public class Game : IGame
         }
     }
 
-    private void HandleGenieException(string section, string message, string description = null)
+    public void HandleGenieException(string section, string message, string description = null)
     {
         GenieError.Error(section, message, description);
     }
 
-    private void GameSocket_EventConnected()
-    {
-        var switchExpr = m_oConnectState;
-        switch (switchExpr)
-        {
-            case ConnectStates.ConnectingKeyServer:
-                {
-                    m_oConnectState = ConnectStates.ConnectedKey;
-                    m_oSocket.Authenticate(AccountName, AccountPassword);
-                    ParseKeyRow(m_oSocket.GetLoginKey(AccountGame, AccountCharacter));
-                    break;
-                }
-
-            case ConnectStates.ConnectingGameServer:
-                {
-                    m_oConnectState = ConnectStates.ConnectedGameHandshake;
-                    m_iConnectAttempts = 0;
-                    m_bManualDisconnect = false;
-                    m_oReconnectTime = default;
-                    m_oSocket.Send(m_sConnectKey + Constants.vbLf + "FE:WRAYTH /VERSION:1.0.1.22 /P:WIN_UNKNOWN /XML" + Constants.vbLf);    // TEMP
-                    string argkey = "connected";
-                    Variables.Instance["connected"] = m_oSocket.IsConnected ? "1" : "0";
-                    VariableChanged("$connected");
-                    Variables.Instance["account"] = AccountName;
-                    VariableChanged("$account");
-                    m_bStatusPromptEnabled = false;                        
-                    break;
-                }
-        }
-    }
-
-    private void GameSocket_EventDisconnected()
-    {
-        if (m_oConnectState == ConnectStates.ConnectedGame)
-        {
-            string argkey = "connected";
-            string argvalue = m_oSocket.IsConnected ? "1" : "0";
-            Variables.Instance.Add(argkey, argvalue, Variables.VariablesType.Reserved);
-            string argsVariable = "$connected";
-            VariableChanged(argsVariable);
-            m_bStatusPromptEnabled = false;
-        }
-    }
 
     private void GameSocket_EventExit()
     {
-        Disconnect(true);
-    }
-    private void GameSocket_EventParseRow(StringBuilder row)
-    {
-        var rowVar = row.ToString();
-        ParseRow(rowVar);
+        GameConnection.Instance.Disconnect(true);
     }
 
     private string ParsePluginText(string sText, string sWindow)
@@ -3205,91 +2707,4 @@ public class Game : IGame
         return sText;
     }
 
-    private void GameSocket_EventParsePartialRow(string row)
-    {
-        if (m_oConnectState == ConnectStates.ConnectedKey | m_oConnectState == ConnectStates.ConnectedGameHandshake)
-        {
-            ParseRow(row);
-        }
-    }
-
-    private void GameSocket_EventDataRecieveEnd()
-    {
-        EventDataRecieveEnd?.Invoke();
-    }
-
-    private void GameSocket_EventPrintText(string text)
-    {
-        WindowTarget argoWindowTarget = 0;
-        bool argbIsRoomOutput = false;
-        PrintTextWithParse(text, Color.White, Color.Transparent, oWindowTarget: argoWindowTarget, bIsRoomOutput: argbIsRoomOutput);
-    }
-
-    private void GameSocket_EventPrintError(string text)
-    {
-        PrintTextToWindow(text, Color.Red, Color.Transparent);
-    }
-
-    private bool m_bManualDisconnect = false;
-    private DateTime m_oReconnectTime = default;
-    private int m_iConnectAttempts = 0;
-
-    public DateTime ReconnectTime
-    {
-        get
-        {
-            return m_oReconnectTime;
-        }
-
-        set
-        {
-            m_oReconnectTime = value;
-        }
-    }
-
-    public int ConnectAttempts
-    {
-        get
-        {
-            return m_iConnectAttempts;
-        }
-
-        set
-        {
-            m_iConnectAttempts = value;
-        }
-    }
-
-    private void GameSocket_EventConnectionLost()
-    {
-        if (ConfigSettings.Instance.Reconnect == true & m_bManualDisconnect == false)
-        {
-            if (m_iConnectAttempts == 0) // Attempt to connect right away
-            {
-                m_oReconnectTime = DateTime.Now;
-                string argtext = Utility.GetTimeStamp() + " Attempting to reconnect.";
-                PrintError(argtext);
-            }
-            else if (m_iConnectAttempts > 10) // After 10 attempts wait 30 seconds
-            {
-                m_oReconnectTime = DateTime.Now.AddSeconds(30);
-                string argtext3 = Utility.GetTimeStamp() + " Attempting to reconnect in 30 seconds.";
-                PrintError(argtext3);
-            }
-            else if (m_iConnectAttempts > 5) // After 5 attempts wait 15 seconds
-            {
-                m_oReconnectTime = DateTime.Now.AddSeconds(15);
-                string argtext2 = Utility.GetTimeStamp() + " Attempting to reconnect in 15 seconds.";
-                PrintError(argtext2);
-            }
-            else if (m_iConnectAttempts > 0) // After first attempt wait 5 seconds
-            {
-                m_oReconnectTime = DateTime.Now.AddSeconds(5);
-                string argtext1 = Utility.GetTimeStamp() + " Attempting to reconnect in 5 seconds.";
-                PrintError(argtext1);
-            }
-        }
-
-        m_bManualDisconnect = false;
-    }
 }

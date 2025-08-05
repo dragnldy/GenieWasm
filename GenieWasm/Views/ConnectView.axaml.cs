@@ -1,7 +1,8 @@
 using Avalonia.Controls;
+using Avalonia.Input;
+using Avalonia.Interactivity;
 using GenieWasm.ViewModels;
 using System.ComponentModel;
-using System.Threading.Tasks.Dataflow;
 
 namespace GenieWasm;
 
@@ -22,17 +23,15 @@ public partial class ConnectView : Window
 
         // Get the interaction from the view model
         // Close the dialog with the result
-        Close(ConnectViewModel.DialogResult.Equals("Connected",System.StringComparison.OrdinalIgnoreCase));
-    }
-    public void OnSaveButtonClicked()
-    {
-        // Perform some validation or data processing
-        bool result = true; // Or get from user input
-        Close(result); // Pass the return value
-    }
 
-    public void OnCancelButtonClicked()
+        ConnectViewModel.ConnectionRequest.IsValid = ConnectViewModel.DialogResult == "Connected";
+        Close(ConnectViewModel.ConnectionRequest);
+    }
+    private void AutoCompleteBox_LostFocus(object? sender, RoutedEventArgs e)
     {
-        Close(false); // Return false on cancel
+        if (sender is AutoCompleteBox autoCompleteBox)
+        {
+            ConnectViewModel.CharacterCompleteBox_LostFocus(sender, e);
+        }
     }
 }

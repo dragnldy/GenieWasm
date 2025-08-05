@@ -1,8 +1,6 @@
-﻿using Avalonia.Controls;
-using Avalonia.Threading;
+﻿using Avalonia.Threading;
 using GenieCoreLib;
 using GenieWasm.UserControls;
-using LibVLCSharp.Shared;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -49,6 +47,8 @@ public class ViewManager
     {
         _m_oViewManager = this;
         // Initialize any required components or settings here
+        Game.Instance.EventDataRecieveEnd += EventEndUpdate;
+
     }
 
     private Dictionary<string, GameWindow> _gameWindows = new();
@@ -590,5 +590,91 @@ public class ViewManager
         //    }
         //}
 
+    }
+    private void EventEndUpdate()
+    {
+        //try
+        //{
+        //    string argsText = "";
+        //    var argoColor = Color.Transparent;
+        //    var argoBgColor = Color.Transparent;
+        //    Genie.Game.WindowTarget argoTargetWindow = Genie.Game.WindowTarget.Main;
+        //    string argsTargetWindow = "";
+        //    AddText(argsText, argoColor, argoBgColor, oTargetWindow: argoTargetWindow, sTargetWindow: argsTargetWindow); // For some stupid reason we need this. Probably because EndUpdate is fired before we are ready in the other thread.
+        //    EndUpdate();
+        //    m_oGame.SetBufferEnd();
+        //    if (m_oScriptList.AcquireReaderLock())
+        //    {
+        //        try
+        //        {
+        //            foreach (Script oScript in m_oScriptList)
+        //                oScript.SetBufferEnd();
+        //        }
+        //        finally
+        //        {
+        //            m_oScriptList.ReleaseReaderLock();
+        //        }
+        //    }
+        //    else
+        //    {
+        //        ShowDialogException("EndUpdate", "Unable to acquire reader lock.");
+        //    }
+        //}
+        ///* TODO ERROR: Skipped IfDirectiveTrivia */
+        //catch (Exception ex)
+        //{
+        //    HandleGenieException("EndUpdate", ex.Message, ex.ToString());
+        //    /* TODO ERROR: Skipped ElseDirectiveTrivia *//* TODO ERROR: Skipped DisabledTextTrivia *//* TODO ERROR: Skipped EndIfDirectiveTrivia */
+        //}
+    }
+    private void EndUpdate()
+    {
+        //FormSkin oFormSkin;
+        //var oEnumerator = m_oFormList.GetEnumerator();
+        //while (oEnumerator.MoveNext())
+        //{
+        //    oFormSkin = (FormSkin)oEnumerator.Current;
+        //    oFormSkin.RichTextBoxOutput.EndTextUpdate();
+        //}
+    }
+
+    public void ReconnectToGame()
+    {
+        try
+        {
+            if (GameConnection.Instance.Profile.CheckValid())
+            {
+                GameConnection.Instance.Reconnect();
+            }
+        }
+        /* TODO ERROR: Skipped IfDirectiveTrivia */
+        catch (Exception ex)
+        {
+            Game.Instance.HandleGenieException("ReconnectToGame", ex.Message, ex.ToString());
+            /* TODO ERROR: Skipped ElseDirectiveTrivia *//* TODO ERROR: Skipped DisabledTextTrivia *//* TODO ERROR: Skipped EndIfDirectiveTrivia */
+        }
+    }
+
+    private void ConnectToGame(CharacterProfile profile, bool isLich = false)
+    {
+        if (profile is null || !profile.CheckValid()) { Game.Instance.PrintError("Character profile must be supplied."); return; }
+        try
+        {
+            GameConnection.Instance.Connect(profile, isLich);
+        }
+        catch (Exception ex)
+        {
+            Game.Instance.HandleGenieException("ConnectToGame", ex.Message, ex.ToString());
+        }
+    }
+
+    private void DisconnectFromGame()
+    {
+        GameConnection.Instance.Disconnect();
+    }
+
+    private void DisconnectAndExit()
+    {
+        GameConnection.Instance.Disconnect(true);
     }
 }

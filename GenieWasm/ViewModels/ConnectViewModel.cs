@@ -1,38 +1,32 @@
-﻿using Avalonia.Controls;
-using ReactiveUI;
+﻿using Avalonia.Interactivity;
+using GenieCoreLib;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
+using System.Reactive.Linq;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace GenieWasm.ViewModels;
 
 public class ConnectViewModel: INotifyPropertyChanged
 {
-    public Interaction<string, string> CloseDialogInteraction { get; }
-
     #region Commands
     public ICommand CancelCommand { get; }
     public ICommand ConnectCommand { get; }
-
+    public ICommand ListCharactersCommand { get; }
     private void CancelRequest()
     {
         // Logic to handle cancellation of the connection request
-        // This could involve resetting fields or closing a dialog
-        AccountName = string.Empty;
-        Password = string.Empty;
-        CharacterName = string.Empty;
-        Game = string.Empty;
-        RememberPassword = false;
-        RememberAccount = false;
+        ConnectionRequest.IsValid = false;
         DialogResult = "Cancelled";
     }
     private void ConnectRequest()
     {
+        ConnectionRequest.IsValid = true;
         DialogResult = "Connected";
     }
-
     #endregion
 
     #region Properties
@@ -51,80 +45,209 @@ public class ConnectViewModel: INotifyPropertyChanged
         }
     }
 
-    private string _accountName = string.Empty;
+    private ConnectionRequest? _connectionRequest = new ConnectionRequest();
+    public ConnectionRequest? ConnectionRequest
+    {
+        get => _connectionRequest;
+        set
+        {
+            if (_connectionRequest != value)
+            {
+                _connectionRequest = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    private ObservableCollection<string> availableCharacters = new ObservableCollection<string>();
+        public ObservableCollection<string> AvailableCharacters
+    {
+        get => availableCharacters;
+        set
+        {
+            if (availableCharacters != value)
+            {
+                availableCharacters = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    private ObservableCollection<string> availableAccounts = new ObservableCollection<string>();
+    public ObservableCollection<string> AvailableAccounts
+    {
+        get => availableAccounts;
+        set
+        {
+            if (availableAccounts != value)
+            {
+                availableAccounts = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+    private string _selectedCharacter = string.Empty;
+    public string SelectedCharacter
+    {
+        get => _selectedCharacter;
+        set
+        {
+            if (_selectedCharacter != value)
+            {
+                _selectedCharacter = value;
+                CharacterName = _selectedCharacter;
+                OnPropertyChanged();
+            }
+        }
+    }
+    public void CharacterCompleteBox_LostFocus(object? sender, RoutedEventArgs e)
+    {
+        // Handle the LostFocus event to set the character selection state
+        if (sender is Avalonia.Controls.AutoCompleteBox autoCompleteBox)
+        {
+            _characterEntered = false; // Reset character selection state
+            string value = autoCompleteBox.Text;
+            if (!string.IsNullOrEmpty(autoCompleteBox.Text))
+            {
+                // If the selected character entry/selection is complete
+                if (!string.IsNullOrEmpty(value) && value.EndsWith(")"))
+                {
+                    // Extract character name and game from the selected item
+                    var parts = value.Split('(');
+                    if (parts.Length == 2)
+                    {
+                        string characterName = parts[0].Trim();
+                        string game = parts[1].TrimEnd(')');
+                        CharacterProfile profile = profiles.FirstOrDefault(p => p.Character == characterName && p.Game == game);
+                        if (profile is null) SelectedProfile = null;
+                        if (profile != null)
+                        {
+                            SelectedProfile = profile;
+                            // Update the connection request with the selected character's details
+                            CharacterName = profile.Character;
+                            SelectedGame = profile.Game; // Update the selected game
+                            AccountName = profile.Account;
+                            Password = Decrypt(profile.Account, profile.EncryptedPassword); // Assuming DecryptedPassword is a property that returns the decrypted password
+                            RememberAccount = true; // Set to true if you want to remember account
+                            RememberPassword = !string.IsNullOrEmpty(Password); // Set to true if you want to remember password
+                            _characterEntered = true; // Set to true if a character is selected
+                        }
+                    }
+                }
+            }
+            OnPropertyChanged(nameof(IsCharacterSelected));
+        }
+    }
+
+    CharacterProfile SelectedProfile = null;
+
+    private bool _characterEntered   = true;
+    public bool IsCharacterSelected
+    {
+        get => true; // always allow edits in order to correct mistakes or make updates
+        set
+        {
+            if (_characterEntered != value)
+            {
+                _characterEntered = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    private string Decrypt(string account, string encryptedPassword)
+    {
+        return CharacterProfile.GetDecryptedPassword(account, encryptedPassword);
+    }
     public string AccountName
     {
-        get => _accountName;
+        get => ConnectionRequest?.Account;
         set
         {
-            if (_accountName != value)
+            if (ConnectionRequest.Account != value)
             {
-                _accountName = value;
+                ConnectionRequest.Account = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(IsAccountAssigned));
             }
         }
     }
-    private string _password = string.Empty;
     public string Password
     {
-        get => _password;
+        get => ConnectionRequest.Password;
         set
         {
-            if (_password != value)
+            if (ConnectionRequest.Password != value)
             {
-                _password = value;
+                ConnectionRequest.Password = value;
+                OnPropertyChanged(nameof(IsAccountAssigned));
                 OnPropertyChanged();
             }
         }
     }
-    private string _characterName = string.Empty;
     public string CharacterName
     {
-        get => _characterName;
+        get => ConnectionRequest.Character;
         set
         {
-            if (_characterName != value)
+            if (ConnectionRequest.Character != value)
             {
-                _characterName = value;
+                ConnectionRequest.Character = value;
                 OnPropertyChanged();
             }
         }
     }
-    private string _game = string.Empty;
     public string Game
     {
-        get => _game;
+        get => ConnectionRequest.Game;
         set
         {
-            if (_game != value)
+            if (ConnectionRequest.Game != value)
             {
-                _game = value;
+                ConnectionRequest.Game = value;
+                OnPropertyChanged(nameof(IsAccountAssigned));
                 OnPropertyChanged();
             }
         }
     }
-    private bool _rememberPassword = false;
     public bool RememberPassword
     {
-        get => _rememberPassword;
+        get => ConnectionRequest.SavePassword;
         set
         {
-            if (_rememberPassword != value)
+            if (ConnectionRequest.SavePassword != value)
             {
-                _rememberPassword = value;
+                ConnectionRequest.SavePassword = value;
                 OnPropertyChanged();
             }
         }
     }
-    private bool _rememberAccount = false;
     public bool RememberAccount
     {
-        get => _rememberAccount;
+        get => ConnectionRequest.SaveAccount;
         set
         {
-            if (_rememberAccount != value)
+            if (ConnectionRequest.SaveAccount != value)
             {
-                _rememberAccount = value;
+                ConnectionRequest.SaveAccount = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+    public bool IsAccountAssigned { 
+        get =>  !string.IsNullOrEmpty(AccountName) &&
+                !string.IsNullOrEmpty(Password) &&
+                !string.IsNullOrEmpty(Game); }
+
+    public bool isInfoComplete = false;
+    public bool IsInfoComplete
+    {
+        get => isInfoComplete;
+        set
+        {
+            if (isInfoComplete != value)
+            {
+                isInfoComplete = value;
                 OnPropertyChanged();
             }
         }
@@ -146,24 +269,46 @@ public ObservableCollection<string> Games
         set => _games = value; // Use SetProperty for INotifyPropertyChanged
     }
 
-    private string _selectedGame = "DRT";
     public string SelectedGame
     {
-        get => _selectedGame;
-        set { if (value != _selectedGame) { _selectedGame = value; OnPropertyChanged(); } }
+        get => Game;
+        set { if (value != Game) { Game = value; OnPropertyChanged(); } }
     }
-    private string _selectedValue;
 
+    private bool CharacterListRequest()
+    {
+        // Fill the autocomplete box for characters based on the selected account and game
+        if (!IsAccountAssigned) return false;
+
+        AvailableCharacters.Clear();
+        profiles.ForEach(p => AvailableCharacters.Add($"{p.Character}({p.Game})"));
+        return true;
+    }
+
+    private List<CharacterProfile> profiles;
     public ConnectViewModel()
     {
         CancelCommand = new RelayCommand(_ => CancelRequest());
         ConnectCommand = new RelayCommand(_ => ConnectRequest());
-        CloseDialogInteraction = new Interaction<string, string>();
+        ListCharactersCommand = new RelayCommand(_ => CharacterListRequest());
+        // Get all the existing characters from the profiles
+        profiles = (new CharacterProfiles(useLegacy: false)).Profiles;
+        profiles.ForEach(p => AvailableCharacters.Add($"{p.Character}({p.Game})"));
+        List<string> accounts = profiles.Select(p => p.Account).Distinct().ToList();
+        accounts.ForEach(a => AvailableAccounts.Add(a));
     }
 
-     public event PropertyChangedEventHandler? PropertyChanged;
+    public event PropertyChangedEventHandler? PropertyChanged;
     protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
+        if (PropertyChanged == null) return;
+        if (!propertyName.Equals(nameof(IsInfoComplete)))
+        {
+            IsInfoComplete = !string.IsNullOrEmpty(AccountName) &&
+                              !string.IsNullOrEmpty(Password) &&
+                              !string.IsNullOrEmpty(CharacterName) &&
+                              !string.IsNullOrEmpty(Game);
+        }
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }

@@ -43,19 +43,19 @@ public partial class MainView : UserControl
         await Dispatcher.UIThread.InvokeAsync(async () =>
         {
             var dialog = new ConnectView();
-            var result = await dialog.ShowDialog<bool>((Window)(Window)this.GetVisualRoot());
-            if (result)
+            var result = await dialog.ShowDialog<ConnectionRequest>((Window)(Window)this.GetVisualRoot());
+            if (result is not null && result.IsValid)
             {
                 // Dialog returned true (e.g., "Save" was clicked)
                 // Perform actions based on the result
                 // Handle successful connection logic here
-                TextFunctions.EchoText("Connected successfully", "Game");
+                TextFunctions.EchoNewLine("Connected successfully", "Game");
             }
             else
             {
                 // Dialog returned false (e.g., "Cancel" was clicked)
                 // Handle connection failure logic here
-                TextFunctions.EchoText("Connection failed", "Game");
+                TextFunctions.EchoNewLine("Connection failed", "Game");
             }
         });
     }
