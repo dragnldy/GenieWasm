@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using System.Drawing;
 
 namespace GenieCoreLib.Core
 {
@@ -69,5 +70,6 @@ namespace GenieCoreLib.Core
             TextFunctions.EchoText("Just Kidding!" + Environment.NewLine, "Game");
             Thread.Sleep(100); // Give time for the settings to load
         }
+
     }
 }

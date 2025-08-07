@@ -13,6 +13,12 @@ public static class AppGlobals
     public static string LocalUserPath { get; set; } = string.Empty;
     public static string AppVersion { get; set; } = string.Empty;
     public static ConcurrentQueue<TextMessage> LogQueue = new();
+    public static int Port = 0;
+    public static string Host = "";
+    public static string SourceFile = "";
+    public static string MainWindow = "Game";
+    public static bool IsLocalServer() 
+        { return Host.Equals("localhost", StringComparison.OrdinalIgnoreCase) || Host.Equals("127.0.0.1"); }
 }
 
 public enum OperatingPlatform

@@ -11,6 +11,32 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="Assets\Icons\bleeding.png" />
+    <None Remove="Assets\Icons\compass.png" />
+    <None Remove="Assets\Icons\compass_down.png" />
+    <None Remove="Assets\Icons\compass_east.png" />
+    <None Remove="Assets\Icons\compass_north.png" />
+    <None Remove="Assets\Icons\compass_northeast.png" />
+    <None Remove="Assets\Icons\compass_northwest.png" />
+    <None Remove="Assets\Icons\compass_out.png" />
+    <None Remove="Assets\Icons\compass_south.png" />
+    <None Remove="Assets\Icons\compass_southeast.png" />
+    <None Remove="Assets\Icons\compass_southwest.png" />
+    <None Remove="Assets\Icons\compass_up.png" />
+    <None Remove="Assets\Icons\compass_west.png" />
+    <None Remove="Assets\Icons\dead.png" />
+    <None Remove="Assets\Icons\hidden.png" />
+    <None Remove="Assets\Icons\invisible.png" />
+    <None Remove="Assets\Icons\joined.png" />
+    <None Remove="Assets\Icons\kneeling.png" />
+    <None Remove="Assets\Icons\prone.png" />
+    <None Remove="Assets\Icons\sitting.png" />
+    <None Remove="Assets\Icons\standing.png" />
+    <None Remove="Assets\Icons\stunned.png" />
+    <None Remove="Assets\Icons\webbed.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.3.2" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)" />
     <PackageReference Include="Avalonia.Fonts.Inter" Version="$(AvaloniaVersion)" />

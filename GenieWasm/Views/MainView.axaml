@@ -6,9 +6,11 @@
              xmlns:uc="clr-namespace:GenieWasm.UserControls"
              xmlns:local="clr-namespace:GenieWasm.Views"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+			 xmlns:localuc="clr-namespace:GenieWasm"	
+			 x:CompileBindings="True"
              x:Class="GenieWasm.Views.MainView"
-             x:DataType="local:MainView">
-  <Design.DataContext>
+			 x:DataType="vm:MainViewModel" >
+	<Design.DataContext>
     <!-- This only sets the DataContext for the previewer in an IDE,
          to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
   </Design.DataContext>
@@ -19,6 +21,17 @@
 			</Button>
 			<uc:MainMenu HorizontalAlignment="Left"/>
 		</StackPanel>
+		<localuc:ProgressBars HorizontalAlignment="Stretch" DockPanel.Dock="Bottom"/>
+		<Grid DockPanel.Dock="Bottom" RowDefinitions="Auto,Auto" HorizontalAlignment="Stretch">
+			<StackPanel Grid.Row="0"  Orientation="Vertical">
+				<TextBox Name="UserInputTextBox" Text="{Binding UserInput, UpdateSourceTrigger=LostFocus}"
+						 Watermark="Your wish is my command:"
+						 Grid.Row="1" HorizontalAlignment="Stretch" MaxLength="4096"
+						 BorderBrush="Aquamarine" AcceptsReturn="False"
+						 TextAlignment="Left" KeyUp="UserInputTextBox_KeyUp" />
+				<uc:StatusBar/>
+			</StackPanel>
+		</Grid>
 		<Grid DockPanel.Dock="Top" ColumnDefinitions="*, 4, 4*, 4, *" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 				<ScrollViewer Name="Scroller1" Grid.Column="0" Grid.Row="0" AllowAutoHide="False" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
 					<StackPanel Name="StackPanel1" >

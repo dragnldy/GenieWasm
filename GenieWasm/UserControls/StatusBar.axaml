@@ -1,0 +1,24 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+			 x:CompileBindings="false"
+             x:Class="GenieWasm.UserControls.StatusBar">
+	<Grid ColumnDefinitions="auto,auto,auto,auto,auto,auto,auto,auto,auto,auto">
+		<StackPanel Grid.Row="0"  Orientation="Horizontal">
+			<Label Content="RT" Margin="10,0,2,0"/>
+			<ProgressBar  Margin="0" Height="15"
+                Minimum="0" Maximum="{Binding MaxRT}" Value="{Binding ValueRT}"
+                ShowProgressText="True"/>
+			<Image Source="{Binding IconCompass}" Width="15" Height="15"/>
+			<Label Content="L"/>
+			<Label Content="{Binding LabelLHC}" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="0,0,10,0"/>
+			<Label Content="R"/>
+			<Label Content="{Binding LabelRHC}" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="0"/>
+			<Label Content="S"/>
+			<Label Content="{Binding LabelSpellC}" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="0"/>
+		</StackPanel>
+	</Grid>
+</UserControl>
+

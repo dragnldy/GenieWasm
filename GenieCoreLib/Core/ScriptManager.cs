@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace GenieCoreLib
+﻿namespace GenieCoreLib
 {
     public class ScriptManager
     {
@@ -13,6 +7,7 @@ namespace GenieCoreLib
         private ScriptManager()
         {
             m_ScriptManager = this;
+            Game.Instance.EventTriggerMove += EventTriggerMove;
         }
         public void Game_EventTriggerPrompt()
         {
@@ -43,9 +38,9 @@ namespace GenieCoreLib
         }
         private void EchoText(string message, string logType)
         {
-            Command.Instance.EchoText(message, logType);
+            TextFunctions.EchoText(message, logType);
         }
-        private void Game_EventTriggerMove()
+        public void EventTriggerMove()
         {
             try
             {
@@ -63,12 +58,12 @@ namespace GenieCoreLib
                 }
                 else
                 {
-                    EchoText("TriggerMove: Unable to acquire reader lock.","Log");
+                    TextFunctions.EchoError("TriggerMove: Unable to acquire reader lock.","Log");
                 }
             }
             catch (Exception ex)
             {
-                EchoText($"TriggerMove: {ex.Message} {ex.ToString()}", "Log");
+                GenieException.HandleGenieException($"TriggerMove: {ex.Message} {ex.ToString()}", "Log");
             }
         }
 
@@ -107,5 +102,28 @@ namespace GenieCoreLib
             Globals.Instance.RoundTimeEnd = DateTime.Now.AddMilliseconds(iTime * 1000 + ConfigSettings.Instance.RTOffset * 1000);
         }
 
+        public void EventEndUpdate()
+        {
+            if (ScriptList.Instance.AcquireReaderLock())
+            {
+                try
+                {
+                    foreach (Script oScript in ScriptList.Instance)
+                        oScript.SetBufferEnd();
+                }
+                catch (Exception ex)
+                {
+                    GenieException.HandleGenieException("ScriptEndUpdate", ex.Message, ex.ToString());
+                }
+                finally
+                {
+                    ScriptList.Instance.ReleaseReaderLock();
+                }
+            }
+            else
+            {
+                TextFunctions.EchoError("EndUpdate: Unable to acquire reader lock.", "Log");
+            }
+        }
     }
 }

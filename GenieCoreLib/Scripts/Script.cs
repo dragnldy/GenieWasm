@@ -1,7 +1,6 @@
 ﻿using Jint;
 using System.Collections;
 using System.Drawing;
-using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 
 namespace GenieCoreLib;
@@ -1251,7 +1250,7 @@ public class Script
                 }
                 catch (Exception ex)
                 {
-                    GenieError.Error("Script WaitFor", ex.Message, ex.ToString());
+                    Game.Instance.SendGenieError("Script WaitFor", ex.Message, ex.ToString());
                 }
 
                 try
@@ -1302,7 +1301,7 @@ public class Script
                 }
                 catch (Exception ex)
                 {
-                    GenieError.Error("Script MatchWait", ex.Message, ex.ToString());
+                    Game.Instance.SendGenieError("Script MatchWait", ex.Message, ex.ToString());
                 }
 
                 try
@@ -1336,7 +1335,7 @@ public class Script
                 }
                 catch (Exception ex)
                 {
-                    GenieError.Error("Script Action", ex.Message, ex.ToString());
+                    Game.Instance.SendGenieError("Script Action", ex.Message, ex.ToString());
                 }
             }
             finally
@@ -1350,7 +1349,7 @@ public class Script
         }
     }
 
-    private string EvalString(string sText, Globals oGlobals, [Optional, DefaultParameterValue(0)] int iFileId, [Optional, DefaultParameterValue(0)] int iFileRow)
+    private string EvalString(string sText, Globals oGlobals, int iFileId = 0, int iFileRow = 0)
     {
         if (DebugLevel > 0 & m_oConfigSettings.IgnoreScriptWarnings == false)
         {
@@ -1367,7 +1366,7 @@ public class Script
         return m_oEval.EvalString(sText, oGlobals);
     }
 
-    private bool Eval(string sText, Globals oGlobals, [Optional, DefaultParameterValue(0)] int iFileId, [Optional, DefaultParameterValue(0)] int iFileRow)
+    private bool Eval(string sText, Globals oGlobals, int iFileId = 0, int iFileRow = 0)
     {
         if (DebugLevel > 0 & m_oConfigSettings.IgnoreScriptWarnings == false)
         {
@@ -1693,7 +1692,7 @@ public class Script
             /* TODO ERROR: Skipped IfDirectiveTrivia */
             catch (Exception ex)
             {
-                GenieError.Error("TickScript", ex.Message, ex.ToString());
+                Game.Instance.SendGenieError("TickScript", ex.Message, ex.ToString());
             }
             /* TODO ERROR: Skipped EndIfDirectiveTrivia */
             finally
@@ -1913,7 +1912,7 @@ public class Script
             /* TODO ERROR: Skipped IfDirectiveTrivia */
             catch (Exception ex)
             {
-                GenieError.Error("RunScript", ex.Message, ex.ToString());
+                Game.Instance.SendGenieError("RunScript", ex.Message, ex.ToString());
             }
             /* TODO ERROR: Skipped EndIfDirectiveTrivia */
             finally
@@ -3546,7 +3545,7 @@ public class Script
         }
         catch (Exception ex)
         {
-            GenieError.Error("ClearScript", ex.Message, ex.ToString());
+            Game.Instance.SendGenieError("ClearScript", ex.Message, ex.ToString());
         }
     }
 
@@ -4276,7 +4275,7 @@ public class Script
         }
     }
 
-    private void PrintError(string sText, [Optional, DefaultParameterValue(0)] int iFileId, [Optional, DefaultParameterValue(0)] int iFileRow)
+    private void PrintError(string sText, int iFileId = 0, int iFileRow = 0)
     {
         m_oLocalVarList.Add("lastscripterror", sText);
         string sErrorMessage = "[Script error";
@@ -4298,7 +4297,7 @@ public class Script
         EventPrintError?.Invoke(sErrorMessage + ": " + sText + "]" + System.Environment.NewLine);
     }
 
-    private void PrintJSError(string sText, [Optional, DefaultParameterValue(0)] int iFileId, [Optional, DefaultParameterValue(0)] int iFileRow)
+    private void PrintJSError(string sText, int iFileId = 0, int iFileRow = 0)
     {
         if (sText.Contains(" at line "))
         {
@@ -4324,7 +4323,7 @@ public class Script
         EventPrintError?.Invoke(sErrorMessage + ": " + sText + "]" + System.Environment.NewLine);
     }
 
-    private void PrintDebug(int iLevel, string sText, [Optional, DefaultParameterValue(0)] int iFileId, [Optional, DefaultParameterValue(0)] int iFileRow)
+    private void PrintDebug(int iLevel, string sText, int iFileId = 0, int iFileRow = 0)
     {
         if ((m_oScriptFiles[iFileId].ToString() ?? "") == "genie")
             return;

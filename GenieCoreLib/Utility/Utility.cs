@@ -68,7 +68,7 @@ public class Utility
             myProcess.Start();
         }catch(Exception ex)
         {
-            GenieError.Error("Utility", $"Error Starting {sFileName}", ex.Message);
+            Game.Instance.SendGenieError("Utility", $"Error Starting {sFileName}", ex.Message);
             return false;
         }
         // var myStreamReader = myProcess.StandardOutput;

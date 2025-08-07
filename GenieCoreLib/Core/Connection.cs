@@ -17,39 +17,24 @@ public class Connection
     }
 
     public event EventConnectedEventHandler EventConnected;
-
     public delegate void EventConnectedEventHandler();
 
     public event EventDisconnectedEventHandler EventDisconnected;
-
     public delegate void EventDisconnectedEventHandler();
 
     public event EventDataSentEventHandler EventDataSent;
-
     public delegate void EventDataSentEventHandler();
 
     public event EventDataRecieveEndEventHandler EventDataRecieveEnd;
-
     public delegate void EventDataRecieveEndEventHandler();
 
     public event EventParseRowEventHandler EventParseRow;
-
     public delegate void EventParseRowEventHandler(StringBuilder row);
 
     public event EventParsePartialRowEventHandler EventParsePartialRow;
-
     public delegate void EventParsePartialRowEventHandler(string row);
 
-    public event EventPrintTextEventHandler EventPrintText;
-
-    public delegate void EventPrintTextEventHandler(string text);
-
-    public event EventPrintErrorEventHandler EventPrintError;
-
-    public delegate void EventPrintErrorEventHandler(string text);
-
     public event EventConnectionLostEventHandler EventConnectionLost;
-
     public delegate void EventConnectionLostEventHandler();
 
     public enum SocketErrorCodes
@@ -135,8 +120,45 @@ public class Connection
 
     private string m_sHostname = string.Empty;
 
+    public void TestConnect()
+    {
+        try
+        {
+            BaseConnect(AppGlobals.Host, AppGlobals.Port);
+            PrintText(Utility.GetTimeStamp() + " Testing connection to " + m_sHostname + ".");
+            if (!string.IsNullOrEmpty(AppGlobals.SourceFile))
+            {
+                string messageToSend = $"ECHO Hello from Genie Test mode {Environment.NewLine}";
+                Send(messageToSend);
+                GameConnection.Instance.ConnectState = ConnectStates.ConnectedGame;
+                Task.Delay(100).Wait(); // Simulate some delay
+                messageToSend = $"SEND {AppGlobals.SourceFile}{Environment.NewLine}";
+                Send(messageToSend);
+                return;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error during test connection: {0}", ex.Message);
+        }
+    }
     public void Connect(string sHostname, int iPort)
     {
+        try
+        {
+            BaseConnect(sHostname, iPort);
+            EventConnected?.Invoke();
+        }
+        catch (SocketException ex)
+        {
+            PrintSocketError("Connect failed", ex.ErrorCode);
+            EventConnectionLost?.Invoke();
+        }
+    }
+
+    public void BaseConnect(string sHostname, int iPort)
+    {
+        // This is used to connect to the base server, which does not use SSL.
         try
         {
             m_RowBuffer.Clear(); // Reset row buffer
@@ -147,10 +169,8 @@ public class Connection
                 {
                     m_SocketClient.Disconnect(false);
                 }
-
                 m_SocketClient = null;
             }
-
             m_sHostname = sHostname;
             _client = new TcpClient();
             m_SocketClient = _client.Client;
@@ -158,7 +178,6 @@ public class Connection
             m_oLastServerActivity = DateTime.Now;
             PrintText(Utility.GetTimeStamp() + " Connected to " + m_sHostname + ".");
             Recieve(_client);
-            EventConnected?.Invoke();
         }
         catch (SocketException ex)
         {
@@ -198,7 +217,10 @@ public class Connection
                 {
                     if (!IsTesting)
                     {
-                        sslStream.AuthenticateAsClient(m_sHostname, null, SslProtocols.Tls12, false);
+                        if (!AppGlobals.IsLocalServer())
+                        {
+                            sslStream.AuthenticateAsClient(m_sHostname, null, SslProtocols.Tls12, false);
+                        }
                     }
                 }
                 catch (AuthenticationException e)
@@ -237,7 +259,7 @@ public class Connection
     private AuthState CurrentAuthState = AuthState.Unauthenticated;
     public AuthState Authenticate(string account, string password)
     {
-        if (Connection.IsTesting)
+        if (Connection.IsTesting || AppGlobals.IsLocalServer())
         {
             CurrentAuthState = AuthState.KeyAuthenticated;
             return CurrentAuthState; //testing, skip authentication
@@ -301,8 +323,10 @@ public class Connection
 
     public string GetLoginKey(string instance, string character)
     {
-        if (IsTesting)
+        if (IsTesting || AppGlobals.IsLocalServer())
         {
+            GameConnection.Instance.ConnectState = ConnectStates.ConnectingGameServer;
+            EventConnected?.Invoke();
             return ("FAKE key");
         }
                     // Sanity checks
@@ -621,13 +645,13 @@ public class Connection
 
     private void PrintText(string sText)
     {
-        EventPrintText?.Invoke(sText + System.Environment.NewLine);
+        TextFunctions.EchoNewLine(sText, "Game");
         EventDataRecieveEnd?.Invoke();
     }
 
     private void PrintError(string sText)
     {
-        EventPrintError?.Invoke(sText + System.Environment.NewLine);
+        TextFunctions.EchoError(sText, "Game");
         EventDataRecieveEnd?.Invoke();
     }
 

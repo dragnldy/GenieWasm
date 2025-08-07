@@ -39,7 +39,7 @@ public class Globals : IGlobals
     {
         _m_oGlobals = this;
 
-    //m_oOutputMain = new FormSkin("main", "Game", ref _m_oGlobals);
+    //m_oOutputMain = new FormSkin(AppGlobals.MainWindow, "Game", ref _m_oGlobals);
     //m_oLegacyPluginHost = new LegacyPluginHost(this, ref _m_oGlobals);
     //m_oPluginHost = new PluginHost(this, ref _m_oGlobals);
     //m_PluginDialog = new FormPlugins(ref _m_oGlobals.PluginList);
@@ -64,12 +64,6 @@ public class Globals : IGlobals
     public Hashtable PluginVerifiedKeyList = new Hashtable();
     public Hashtable PluginPremiumKeyList = new Hashtable();
     
-    private void HandleGenieException(string section, string message, string description = null) // Pass it up
-    {
-        ConfigSettings.Instance.AutoLog = false;
-        GenieError.Error(section, message, description);
-    }
-
     public List<string> MonsterList = new List<string>();
     public Regex MonsterListRegEx;
 

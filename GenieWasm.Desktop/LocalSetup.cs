@@ -11,6 +11,13 @@ public static class LocalSetup
     public static bool IsLocal = true;
 
 
+    public static void InitSettings(int port, string host, string sourcfile="")
+    {         
+        InitSettings();
+        AppGlobals.Port = port;
+        AppGlobals.Host = host;
+        AppGlobals.SourceFile = sourcfile;
+    }
     public static void InitSettings()
     {
         InitLocalDirectory();

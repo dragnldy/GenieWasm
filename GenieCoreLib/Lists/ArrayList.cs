@@ -286,7 +286,7 @@ public bool AcquireWriterLock()
         }
         else
         {
-            GenieError.Error("ListVariables", "Unable to aquire reader lock.");
+            Game.Instance.SendGenieError("ListVariables", "Unable to aquire reader lock.");
             return string.Empty;
         }
         return string.Empty;

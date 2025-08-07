@@ -55,7 +55,6 @@ public partial class App : Application
 
         // Start the concurrent message pump 
         base.OnFrameworkInitializationCompleted();
-        ProcessQueuedMessages.ProcessMessagesAsync().ConfigureAwait(false);
     }
 
     //public enum MsgBoxStyle

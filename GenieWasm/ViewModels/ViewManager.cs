@@ -1,16 +1,18 @@
 ﻿using Avalonia.Threading;
 using GenieCoreLib;
 using GenieWasm.UserControls;
+using GenieWasm.ViewModels;
+using GenieWasm.Views;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using static GenieCoreLib.Names;
 
 namespace GenieWasm;
 
@@ -50,8 +52,12 @@ public class ViewManager: INotifyPropertyChanged
     {
         _m_oViewManager = this;
         // Initialize any required components or settings here
-        Game.Instance.EventDataRecieveEnd += EventEndUpdate;
+    }
 
+    public MainViewModel m_MainViewModel = null;
+    public void SetMainVewModel(MainViewModel mainViewModel)
+    {
+        m_MainViewModel = mainViewModel;
     }
 
     private Dictionary<string, GameWindow> _gameWindows = new();
@@ -125,6 +131,10 @@ public class ViewManager: INotifyPropertyChanged
                 {
                     if (TextFunctions.ConcurrentTextMessageQueue.TryDequeue(out TextMessage textMessage))
                     {
+                        if (textMessage is ExceptionMessage)
+                        {
+
+                        }
                         if (textMessage is null || string.IsNullOrEmpty(textMessage.Text)) continue;
                         if (!string.IsNullOrEmpty(targetPanel) || textMessage.TargetPanel == targetPanel)
                         {
@@ -398,9 +408,9 @@ public class ViewManager: INotifyPropertyChanged
         //    /* TODO ERROR: Skipped ElseDirectiveTrivia *//* TODO ERROR: Skipped DisabledTextTrivia *//* TODO ERROR: Skipped EndIfDirectiveTrivia */
         //}
     }
-
     public void HandleGenieException(string section, string message, string description = null)
     {
+        GenieException.HandleGenieException(section, message, description);
         //if (InvokeRequired == true)
         //{
         //    var parameters = new[] { section, message, description };
@@ -412,55 +422,6 @@ public class ViewManager: INotifyPropertyChanged
         //}
     }
 
-    public void ClassCommand_EchoText(string sText, string sWindow)
-    {
-        //try
-        //{
-        //    FormSkin oFormSkin = null;
-        //    if (sWindow.Length > 0)
-        //    {
-        //        if ((sWindow.ToLower() ?? "") != "game" & (sWindow.ToLower() ?? "") != "main")
-        //        {
-        //            var oEnumerator = m_oFormList.GetEnumerator();
-        //            while (oEnumerator.MoveNext())
-        //            {
-        //                if ((((FormSkin)oEnumerator.Current).ID ?? "") == (sWindow.ToLower() ?? ""))
-        //                {
-        //                    oFormSkin = (FormSkin)oEnumerator.Current;
-        //                    break;
-        //                }
-        //            }
-        //        }
-        //    }
-
-        //    bool bMono = false;
-        //    if (sText.ToLower().StartsWith("mono "))
-        //    {
-        //        sText = sText.Substring(5);
-        //        bMono = true;
-        //    }
-
-        //    if (!Information.IsNothing(oFormSkin))
-        //    {
-        //        var argoColor = Color.WhiteSmoke;
-        //        var argoBgColor = Color.Transparent;
-        //        AddText(sText, argoColor, argoBgColor, oFormSkin, true, bMono);
-        //    }
-        //    else if (sWindow.Length == 0)
-        //    {
-        //        var argoColor1 = Color.WhiteSmoke;
-        //        var argoBgColor1 = Color.Transparent;
-        //        string argsTargetWindow = "";
-        //        AddText(sText, argoColor1, argoBgColor1, Genie.Game.WindowTarget.Main, argsTargetWindow, true, bMono);
-        //    }
-        //}
-        ///* TODO ERROR: Skipped IfDirectiveTrivia */
-        //catch (Exception ex)
-        //{
-        //    HandleGenieException("EchoText", ex.Message, ex.ToString());
-        //    /* TODO ERROR: Skipped ElseDirectiveTrivia *//* TODO ERROR: Skipped DisabledTextTrivia *//* TODO ERROR: Skipped EndIfDirectiveTrivia */
-        //}
-    }
 
     private void ClassCommand_LinkText(string sText, string sLink, string sWindow)
     {
@@ -469,7 +430,7 @@ public class ViewManager: INotifyPropertyChanged
         //    FormSkin oFormSkin = null;
         //    if (sWindow.Length > 0)
         //    {
-        //        if ((sWindow.ToLower() ?? "") != "game" & (sWindow.ToLower() ?? "") != "main")
+        //        if ((sWindow.ToLower() ?? "") != "game" & (sWindow.ToLower() ?? "") != MainWindow)
         //        {
         //            var oEnumerator = m_oFormList.GetEnumerator();
         //            while (oEnumerator.MoveNext())
@@ -522,7 +483,7 @@ public class ViewManager: INotifyPropertyChanged
         //    FormSkin oFormSkin = null;
         //    if (sWindow.Length > 0)
         //    {
-        //        if ((sWindow.ToLower() ?? "") != "game" & (sWindow.ToLower() ?? "") != "main")
+        //        if ((sWindow.ToLower() ?? "") != "game" & (sWindow.ToLower() ?? "") != MainWindow)
         //        {
         //            var oEnumerator = m_oFormList.GetEnumerator();
         //            while (oEnumerator.MoveNext())
@@ -608,52 +569,6 @@ public class ViewManager: INotifyPropertyChanged
         //}
 
     }
-    private void EventEndUpdate()
-    {
-        //try
-        //{
-        //    string argsText = "";
-        //    var argoColor = Color.Transparent;
-        //    var argoBgColor = Color.Transparent;
-        //    Genie.Game.WindowTarget argoTargetWindow = Genie.Game.WindowTarget.Main;
-        //    string argsTargetWindow = "";
-        //    AddText(argsText, argoColor, argoBgColor, oTargetWindow: argoTargetWindow, sTargetWindow: argsTargetWindow); // For some stupid reason we need this. Probably because EndUpdate is fired before we are ready in the other thread.
-        //    EndUpdate();
-        //    m_oGame.SetBufferEnd();
-        //    if (m_oScriptList.AcquireReaderLock())
-        //    {
-        //        try
-        //        {
-        //            foreach (Script oScript in m_oScriptList)
-        //                oScript.SetBufferEnd();
-        //        }
-        //        finally
-        //        {
-        //            m_oScriptList.ReleaseReaderLock();
-        //        }
-        //    }
-        //    else
-        //    {
-        //        ShowDialogException("EndUpdate", "Unable to acquire reader lock.");
-        //    }
-        //}
-        ///* TODO ERROR: Skipped IfDirectiveTrivia */
-        //catch (Exception ex)
-        //{
-        //    HandleGenieException("EndUpdate", ex.Message, ex.ToString());
-        //    /* TODO ERROR: Skipped ElseDirectiveTrivia *//* TODO ERROR: Skipped DisabledTextTrivia *//* TODO ERROR: Skipped EndIfDirectiveTrivia */
-        //}
-    }
-    private void EndUpdate()
-    {
-        //FormSkin oFormSkin;
-        //var oEnumerator = m_oFormList.GetEnumerator();
-        //while (oEnumerator.MoveNext())
-        //{
-        //    oFormSkin = (FormSkin)oEnumerator.Current;
-        //    oFormSkin.RichTextBoxOutput.EndTextUpdate();
-        //}
-    }
 
     public void ReconnectToGame()
     {
@@ -667,7 +582,7 @@ public class ViewManager: INotifyPropertyChanged
         /* TODO ERROR: Skipped IfDirectiveTrivia */
         catch (Exception ex)
         {
-            Game.Instance.HandleGenieException("ReconnectToGame", ex.Message, ex.ToString());
+            HandleGenieException("ReconnectToGame", ex.Message, ex.ToString());
             /* TODO ERROR: Skipped ElseDirectiveTrivia *//* TODO ERROR: Skipped DisabledTextTrivia *//* TODO ERROR: Skipped EndIfDirectiveTrivia */
         }
     }
@@ -681,7 +596,7 @@ public class ViewManager: INotifyPropertyChanged
         }
         catch (Exception ex)
         {
-            Game.Instance.HandleGenieException("ConnectToGame", ex.Message, ex.ToString());
+            HandleGenieException("ConnectToGame", ex.Message, ex.ToString());
         }
     }
 
@@ -721,42 +636,6 @@ public class ViewManager: INotifyPropertyChanged
         catch (Exception ex)
         {
             //            HandleGenieException("ClearSpellTime", ex.Message, ex.ToString());
-            /* TODO ERROR: Skipped ElseDirectiveTrivia *//* TODO ERROR: Skipped DisabledTextTrivia *//* TODO ERROR: Skipped EndIfDirectiveTrivia */
-        }
-    }
-    public void Simutronics_EventEndUpdate()
-    {
-        try
-        {
-            string argsText = "";
-            var argoColor = Color.Transparent;
-            var argoBgColor = Color.Transparent;
-            WindowTarget argoTargetWindow = WindowTarget.Main;
-            string argsTargetWindow = "";
-            AddText(argsText, argoColor, argoBgColor, oTargetWindow: argoTargetWindow, sTargetWindow: argsTargetWindow); // For some stupid reason we need this. Probably because EndUpdate is fired before we are ready in the other thread.
-            EndUpdate();
-            Game.Instance.SetBufferEnd();
-            if (ScriptList.Instance.AcquireReaderLock())
-            {
-                try
-                {
-                    foreach (Script oScript in ScriptList.Instance)
-                        oScript.SetBufferEnd();
-                }
-                finally
-                {
-                    ScriptList.Instance.ReleaseReaderLock();
-                }
-            }
-            else
-            {
-                Game.Instance.EchoText("EndUpdate: Unable to acquire reader lock.","Log");
-            }
-        }
-        /* TODO ERROR: Skipped IfDirectiveTrivia */
-        catch (Exception ex)
-        {
-            HandleGenieException("EndUpdate", ex.Message, ex.ToString());
             /* TODO ERROR: Skipped ElseDirectiveTrivia *//* TODO ERROR: Skipped DisabledTextTrivia *//* TODO ERROR: Skipped EndIfDirectiveTrivia */
         }
     }
@@ -802,77 +681,15 @@ public class ViewManager: INotifyPropertyChanged
     {
         if (string.IsNullOrEmpty(sTargetWindow)) sTargetWindow = eTargetWindow?.ToString();
         GameWindow? oFormTarget = GetGameWindow(sTargetWindow);
-        oFormTarget = oFormTarget ??= GetGameWindow("Main");
+        oFormTarget = oFormTarget ??= GetGameWindow(AppGlobals.MainWindow);
 
         if (oFormTarget is null) return null;
         return oFormTarget;
     }
-    private void AddText(string sText, Color oColor, Color oBgColor,
-                WindowTarget oTargetWindow = WindowTarget.Main, string sTargetWindow = "", bool bNoCache = true, bool bMono = false, bool bPrompt = false, bool bInput = false)
-    {
-        GameWindow? oFormTarget = FindGameWindow(oTargetWindow, sTargetWindow);
-        if (oFormTarget is null) return;
-
-        AddText(sText, oColor, oBgColor, oFormTarget, bNoCache, bMono, bPrompt, bInput);
-    }
-    private void AppendText(string Text)
-    {
-        WindowTarget argoTargetWindow = WindowTarget.Main;
-        AddText(Text, oTargetWindow: argoTargetWindow);
-    }
-
-    private void AddText(string sText, WindowTarget oTargetWindow = WindowTarget.Main, bool bNoCache = true, bool bMono = false, bool bPrompt = false, bool bInput = false)
-    {
-        var argoColor = Color.WhiteSmoke;
-        var argoBgColor = Color.Transparent;
-        string argsTargetWindow = Conversions.ToString(bNoCache);
-        AddText(sText, argoColor, argoBgColor, oTargetWindow, argsTargetWindow, bMono, bPrompt, bInput);
-    }
-
-    private void AddText(string sText, Color oColor, Color oBgColor, GameWindow? oTargetWindow, bool bNoCache = true, bool bMono = false, bool bPrompt = false, bool bInput = false)
-    {
-        oTargetWindow ??= GetGameWindow("main");
-        if (oTargetWindow.Name.Equals("main",StringComparison.OrdinalIgnoreCase))
-        {
-            if (bPrompt == true)
-            {
-                if (Game.Instance.LastRowWasPrompt)
-                {
-                    return;
-                }
-                Game.Instance.LastRowWasPrompt = true;
-            }
-            else if (sText.Trim().Length > 0)
-            {
-                if (Game.Instance.LastRowWasPrompt)
-                {
-                    if (!bInput)
-                    {
-                        if (!sText.StartsWith(Constants.vbNewLine) && ConfigSettings.Instance.PromptBreak)
-                        {
-                            sText = Constants.vbNewLine + sText;
-                        }
-                    }
-
-                    Game.Instance.LastRowWasPrompt = false;
-                }
-            }
-        }
-
-        if (InvokeRequired == true)
-        {
-            var parameters = new object[] { sText, oColor, oBgColor, oTargetWindow, bNoCache, bMono };
-//            Invoke(new AddTextDelegate(InvokeAddText), parameters);
-        }
-        else
-        {
-//            InvokeAddText(sText, oColor, oBgColor, oTargetWindow, bNoCache, bMono);
-        }
-    }
 
     public void AddImage(string sImageFileName, GameWindow? oTargetWindow, int width, int height)
     {
-        oTargetWindow ??= GetGameWindow("main");
+        oTargetWindow ??= GetGameWindow(AppGlobals.MainWindow);
         if (InvokeRequired == true)
         {
             var parameters = new object[] { sImageFileName, oTargetWindow, width, height };
@@ -915,129 +732,47 @@ public class ViewManager: INotifyPropertyChanged
     {
         sTitle ??= "";
         // The main window is always open
-        if (string.IsNullOrEmpty(sTitle.ToString()) || sTitle.ToString().Equals("main", StringComparison.OrdinalIgnoreCase))
+        if (string.IsNullOrEmpty(sTitle.ToString()) || sTitle.ToString().Equals(AppGlobals.MainWindow, StringComparison.OrdinalIgnoreCase))
             return;
 
-        GameWindow? fo = GetGameWindow(sTitle.ToString());
-        if (fo is null)
-        {
-            fo = CreateNewWindow(sTitle.ToString(), GetWindowLocation(sTitle.ToString()),testing);
-            RegisterWindow(fo,testing);
-            // width=300 , height=200, top=10, left=10, isVisible=false
-
-            string argsText = $"Created new window: {sTitle.ToString()} {System.Environment.NewLine}";
-            WindowTarget argoTargetWindow = WindowTarget.Main;
-            AddText(argsText, oTargetWindow: argoTargetWindow);
-        }
-        else if (Information.IsNothing(fo.IfClosed) & !Information.IsNothing(sIfClosed))
-        {
-            fo.IfClosed = (bool)sIfClosed;
-            string argsText1 = Conversions.ToString("Altered window: " + sTitle + System.Environment.NewLine);
-            WindowTarget argoTargetWindow1 = WindowTarget.Main;
-            AddText(argsText1, oTargetWindow: argoTargetWindow1);
-        }
-    }
-
-    public void Simutronics_EventPrintText(string sText, Color oColor, Color oBgColor, WindowTarget oTargetWindow, string sTargetWindow, bool bMono, bool bPrompt, bool bInput)
-    {
         try
         {
-            AddText(sText, oColor, oBgColor, oTargetWindow, sTargetWindow, false, bMono, bPrompt, bInput); // False = Cache this
+            Dispatcher.UIThread.Post(() =>
+            {
+                GameWindow? fo = GetGameWindow(sTitle.ToString());
+                // Update the UI element (e.g., a TextBlock)
+                if (fo is null)
+                {
+                    fo = CreateNewWindow(sTitle.ToString(), GetWindowLocation(sTitle.ToString()), testing);
+                    RegisterWindow(fo, testing);
+                    // width=300 , height=200, top=10, left=10, isVisible=false
+
+                    string argsText = $"Created new window: {sTitle.ToString()} {System.Environment.NewLine}";
+                    WindowTarget argoTargetWindow = WindowTarget.Main;
+                    TextFunctions.EchoText(argsText, "Game");
+                }
+                else if (Information.IsNothing(fo.IfClosed) & !Information.IsNothing(sIfClosed))
+                {
+                    fo.IfClosed = (bool)sIfClosed;
+                    string argsText1 = Conversions.ToString("Altered window: " + sTitle + System.Environment.NewLine);
+                    TextFunctions.EchoText(argsText1, "Game");
+                }
+            });
         }
-        /* TODO ERROR: Skipped IfDirectiveTrivia */
         catch (Exception ex)
         {
-            HandleGenieException("PrintText", ex.Message, ex.ToString());
+            HandleGenieException("EventStreamWindow", ex.Message, ex.ToString());
         }
     }
-    public void PrintError(string sText)
-    {
-        string argsText = sText + System.Environment.NewLine;
-        var argoColor = Color.Red;
-        var argoBgColor = Color.Transparent;
-        WindowTarget argoTargetWindow = WindowTarget.Main;
-        string argsTargetWindow = "";
-        AddText(argsText, argoColor, argoBgColor, oTargetWindow: argoTargetWindow, sTargetWindow: argsTargetWindow);
-    }
-
-    private void Game_EventStatusBarUpdate()
+    public void Game_EventStatusBarUpdate()
     {
         try
         {
-            SafeSetStatusBarLabels();
+            NotifyPropertyChanged("StatusBar");
         }
-        /* TODO ERROR: Skipped IfDirectiveTrivia */
         catch (Exception ex)
         {
             HandleGenieException("StatusBarUpdate", ex.Message, ex.ToString());
-            /* TODO ERROR: Skipped ElseDirectiveTrivia *//* TODO ERROR: Skipped DisabledTextTrivia *//* TODO ERROR: Skipped EndIfDirectiveTrivia */
-        }
-    }
-
-    private void SafeSetStatusBarLabels()
-    {
-        if (InvokeRequired == true)
-        {
- //           Invoke(new SetStatusBarLabelsDelegate(SetStatusBarLabels));
-        }
-        else
-        {
-            SetStatusBarLabels();
-        }
-    }
-
-    private void SetStatusBarLabels()
-    {
-        LabelLHC = Variables.Instance["lefthand"]?.ToString();
-        LabelRHC = Variables.Instance["righthand"]?.ToString();
-
-        if (ConfigSettings.Instance.ShowSpellTimer && Globals.Instance.SpellTimeStart != DateTime.MinValue)
-        {
-            var argoDateEnd = DateTime.Now;
-            LabelSpellC = Conversions.ToString("(" + Utility.GetTimeDiffInSeconds(Globals.Instance.SpellTimeStart, argoDateEnd) + ") " + Variables.Instance["preparedspell"]);
-        }
-        else
-        {
-            LabelSpellC = Conversions.ToString(Variables.Instance["preparedspell"]);
-        }
-    }
-    private string _labelRHC = string.Empty;
-    public string LabelRHC
-    {
-        get => _labelRHC;
-        set
-        {
-            if (_labelRHC != value)
-            {
-                _labelRHC = value;
-                NotifyPropertyChanged();
-            }
-        }
-    }
-    private string _labelLHC = string.Empty;
-    public string LabelLHC
-    {
-        get => _labelLHC;
-        set
-        {
-            if (_labelLHC != value)
-            {
-                _labelLHC = value;
-                NotifyPropertyChanged();
-            }
-        }
-    }
-    private string _labelSpellC = string.Empty;
-    public string LabelSpellC
-    {
-        get => _labelSpellC;
-        set
-        {
-            if (_labelSpellC != value)
-            {
-                _labelSpellC = value;
-                NotifyPropertyChanged();
-            }
         }
     }
 

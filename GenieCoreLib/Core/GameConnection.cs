@@ -1,10 +1,4 @@
-﻿using System.Drawing;
-using System.Net;
-using System.Runtime.CompilerServices;
-using System.Text;
-using static GenieCoreLib.Game;
-
-namespace GenieCoreLib;
+﻿namespace GenieCoreLib;
 
 public enum ConnectStates
 {
@@ -132,7 +126,7 @@ public class GameConnection
     {
         if (Profile is null)
         {
-            Game.Instance.PrintError("Profile is not set. Cannot connect to key server.");
+            ConnectionError("Profile is not set. Cannot connect to key server.");
             return;
         }
         LastUserActivity = DateTime.Now;
@@ -143,7 +137,7 @@ public class GameConnection
         if (isTesting)
             DoConnect("127.0.0.1", 8888, isTesting);
         else
-            DoConnect("eaccess.play.net", 7910);
+            DoConnect(AppGlobals.Host, AppGlobals.Port);
     }
     private void DoConnect(string sHostName, int iPort, bool isTesting = false)
     {
@@ -155,6 +149,11 @@ public class GameConnection
     {
         Profile = profile;
         Connect(isLich,isTesting);
+    }
+
+    private void ConnectionError(string errorMessage, string window="")
+    {
+        TextFunctions.EchoError("Connection Error: " + errorMessage,window);
     }
 
     public void Disconnect(bool ExitOnDisconnect = false)
@@ -185,13 +184,13 @@ public class GameConnection
                     }
                     catch (Exception ex)
                     {
-                        Game.Instance.PrintError("Error connecting to key server: " + ex.Message);
+                        ConnectionError("Error connecting to key server: " + ex.Message);
                         m_oConnectState = ConnectStates.Disconnected;
                         m_iConnectAttempts++;
                         m_bManualDisconnect = false;
                         m_oReconnectTime = default;
                     }
-                    Game.Instance.PrintError("Profile is not set. Cannot connect to key server.");
+                    ConnectionError("Profile is not set. Cannot connect to key server.");
                     break;
                 }
 
@@ -234,25 +233,25 @@ public class GameConnection
             {
                 m_oReconnectTime = DateTime.Now;
                 string argtext = Utility.GetTimeStamp() + " Attempting to reconnect.";
-                Game.Instance.PrintError(argtext);
+                ConnectionError(argtext);
             }
             else if (m_iConnectAttempts > 10) // After 10 attempts wait 30 seconds
             {
                 m_oReconnectTime = DateTime.Now.AddSeconds(30);
                 string argtext3 = Utility.GetTimeStamp() + " Attempting to reconnect in 30 seconds.";
-                Game.Instance.PrintError(argtext3);
+                ConnectionError(argtext3);
             }
             else if (m_iConnectAttempts > 5) // After 5 attempts wait 15 seconds
             {
                 m_oReconnectTime = DateTime.Now.AddSeconds(15);
                 string argtext2 = Utility.GetTimeStamp() + " Attempting to reconnect in 15 seconds.";
-                Game.Instance.PrintError(argtext2);
+                ConnectionError(argtext2);
             }
             else if (m_iConnectAttempts > 0) // After first attempt wait 5 seconds
             {
                 m_oReconnectTime = DateTime.Now.AddSeconds(5);
                 string argtext1 = Utility.GetTimeStamp() + " Attempting to reconnect in 5 seconds.";
-                Game.Instance.PrintError(argtext1);
+                ConnectionError(argtext1);
             }
         }
         m_bManualDisconnect = false;
@@ -261,6 +260,12 @@ public class GameConnection
 
     public void ParseKeyRow(string sText)
     {
+        if (Connection.IsTesting || AppGlobals.IsLocalServer())
+        {
+            m_oConnectState = ConnectStates.ConnectedGame;
+            GameSocket_EventConnected();
+            return;
+        }
         if (sText.Length == 32)
         {
             // Commented out code that was not used in the original context.
@@ -281,7 +286,7 @@ public class GameConnection
                     case "?":
                         {
                             string argtext = "Unable to get login key.";
-                            Game.Instance.PrintError(argtext);
+                            ConnectionError(argtext);
                             Connection.Instance.Disconnect();
                             break;
                         }
@@ -304,7 +309,7 @@ public class GameConnection
                     //            case "NORECORD":
                     //                {
                     //                    string argtext1 = "Account does not exist.";
-                    //                    Game.Instance.PrintError(argtext1);
+                    //                    ConnectionError(argtext1);
                     //                    Connection.Instance.Disconnect();
                     //                    break;
                     //                }
@@ -312,7 +317,7 @@ public class GameConnection
                     //            case "PASSWORD":
                     //                {
                     //                    string argtext2 = "Invalid password.";
-                    //                    Game.Instance.PrintError(argtext2);
+                    //                    ConnectionError(argtext2);
                     //                    Connection.Instance.Disconnect();
                     //                    break;
                     //                }
@@ -320,7 +325,7 @@ public class GameConnection
                     //            case "REJECT":
                     //                {
                     //                    string argtext3 = "Access rejected.";
-                    //                    Game.Instance.PrintError(argtext3);
+                    //                    ConnectionError(argtext3);
                     //                    Connection.Instance.Disconnect();
                     //                    break;
                     //                }
@@ -341,7 +346,7 @@ public class GameConnection
                             if (Profile.Character.Trim().Length == 0)
                             {
                                 string argtext4 = "Listing characters:";
-                                Game.Instance.PrintError(argtext4);
+                                ConnectionError(argtext4);
                                 string strUserKey = string.Empty;
                                 for (int i = 5, loopTo = oData.Count - 1; i <= loopTo; i++)
                                 {
@@ -350,7 +355,7 @@ public class GameConnection
                                         characterList.Clear();
                                         characterList.Add(oData[i].ToString());
                                         var temp = oData[i].ToString();
-                                        Game.Instance.PrintError(temp);
+                                        ConnectionError(temp);
                                     }
                                     else
                                     {
@@ -399,7 +404,7 @@ public class GameConnection
                                 if (blnFoundMatch == false)
                                 {
                                     string argtext5 = "Character not found.";
-                                    Game.Instance.PrintError(argtext5);
+                                    ConnectionError(argtext5);
                                     Connection.Instance.Disconnect();
                                 }
                             }
@@ -411,7 +416,7 @@ public class GameConnection
                             string[] errorStrings = sText.Split("\t");
                             for (int i = 1; i < errorStrings.Length; i++)
                             {
-                                Game.Instance.PrintError(errorStrings[i]);
+                                ConnectionError(errorStrings[i]);
                             }
                             Connection.Instance.Disconnect();
                             break;
@@ -448,7 +453,7 @@ public class GameConnection
                             else if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(oData[1], "PROBLEM", false)))
                             {
                                 string argtext6 = "There is a problem with your account. Log in to play.net website for more information.";
-                                Game.Instance.PrintError(argtext6);
+                                ConnectionError(argtext6);
                                 Connection.Instance.Disconnect();
                             }
 

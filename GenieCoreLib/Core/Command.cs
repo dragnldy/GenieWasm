@@ -1,5 +1,4 @@
 ﻿using System.Drawing;
-using System.Runtime.InteropServices;
 using System.Text;
 
 namespace GenieCoreLib;
@@ -2626,7 +2625,7 @@ public class Command
         EventEchoColorText?.Invoke(sText, oColor, oBgColor, sWindow);
     }
 
-    private void SendText(string sText, [Optional, DefaultParameterValue(false)] bool bUserInput, [Optional, DefaultParameterValue("")] string sOrigin)
+    private void SendText(string sText, bool bUserInput = false, string sOrigin = "")
     {
         EventSendText?.Invoke(sText, bUserInput, sOrigin);
     }
@@ -2762,7 +2761,7 @@ public class Command
         }
     }
 
-    private void SendTextToGame(string sText, [Optional, DefaultParameterValue(false)] bool bUserInput, [Optional, DefaultParameterValue("")] string sOrigin)
+    private void SendTextToGame(string sText, bool bUserInput = false, string sOrigin = "")
     {
         if (sText.Contains(@"\"))
         {

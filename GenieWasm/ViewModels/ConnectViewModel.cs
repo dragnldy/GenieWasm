@@ -45,7 +45,12 @@ public class ConnectViewModel: INotifyPropertyChanged
             // If already connected, disconnect first
             GameConnection.Instance.Disconnect();
         }
-        GameConnection.Instance.Connect(profile, false, false);
+        
+        if (AppGlobals.IsLocalServer())
+            Connection.Instance.TestConnect();
+        else
+            GameConnection.Instance.Connect(profile, false, false);
+
         if (GameConnection.Instance.IsConnectedToGame)
         {
             // Save the potentially new or updated profile

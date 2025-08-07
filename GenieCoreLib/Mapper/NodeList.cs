@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Diagnostics;
 using System.Drawing;
-using System.Runtime.InteropServices;
 using System.Text;
 
 namespace GenieCoreLib;
@@ -1152,7 +1151,7 @@ public class NodeList : CollectionBase
         }
     }
 
-    public void Arrange([Optional, DefaultParameterValue(null)] Node n)
+    public void Arrange(Node n = null)
     {
         if (Information.IsNothing(n))
         {

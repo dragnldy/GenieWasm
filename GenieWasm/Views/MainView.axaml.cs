@@ -1,98 +1,46 @@
 ﻿using Avalonia.Controls;
-using Avalonia.Threading;
 using Avalonia.VisualTree;
 using GenieCoreLib;
 using GenieCoreLib.Core;
 using GenieWasm.UserControls;
+using GenieWasm.ViewModels;
 using System;
-using System.Drawing;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
-using System.Threading.Tasks;
-using System.Windows.Input;
 
 namespace GenieWasm.Views;
 
 public partial class MainView : UserControl
 {
-    private string _GameWindowText = "This is some plain text, followed by \r\n    <Bold>bold text</Bold>, \r\n    <Italic>italic text</Italic>, \r\n    and even a <Span Foreground=\"Green\">custom green span</Span>.\r\n    You can also use a <Run FontSize=\"24\">Run with a different font size</Run>.";
-    public string GameWindowText
-    {
-        get => _GameWindowText;
-        set => _GameWindowText = value;
-    }
-    #region Command Properties
-    // Add ICommand properties
-    public ICommand ConnectCommand { get; }
     public int HandlePluginException { get; private set; }
-
-    private void OnConnectCommandExecuted(object? parameter)
-    {
-        Task.Run(async () =>
-        {
-            try
-            {
-                await ShowConnectDialogAsync();
-            }
-            catch (Exception ex)
-            {
-                // Handle any exceptions that occur during dialog display
-                TextFunctions.EchoText($"Error showing connect dialog: {ex.Message}", "Game");
-            }
-        });
-    }
-    public async Task ShowConnectDialogAsync()
-    {
-        await Dispatcher.UIThread.InvokeAsync(async () =>
-        {
-            var dialog = new ConnectView();
-            var result = await dialog.ShowDialog<ConnectionRequest>((Window)(Window)this.GetVisualRoot());
-            if (result is not null && result.IsValid && GameConnection.Instance.IsConnectedToGame)
-            {
-                TextFunctions.EchoNewLine("Connected successfully", "Game");
-            }
-            else
-            {
-                // Dialog returned false (e.g., "Cancel" was clicked)
-                // Handle connection failure logic here
-                TextFunctions.EchoNewLine("Connection failed", "Game");
-            }
-        });
-    }
-    #endregion Command Properties
 
 
     public MainView()
     {
-        ConnectCommand = new RelayCommand(OnConnectCommandExecuted);
 
         InitializeComponent();
         Loaded += MainView_Loaded;
-        DataContext = this;
         DoHookups();
+    }
+    public object GetVisualRoot()
+    {
+        return this.VisualRoot;
     }
     private void DoHookups()
     {
         Game.Instance.EventParseXML += Plugin_ParsePluginXML;
         Game.Instance.EventVariableChanged += Game.Instance.ClassCommand_EventVariableChanged;
-        Game.Instance.EventPrintError += ViewManager.Instance.PrintError;
         Game.Instance.EventClearWindow += ViewManager.Instance.Command_EventClearWindow;
-        Game.Instance.EventPrintText += ViewManager.Instance.Simutronics_EventPrintText;
         Game.Instance.EventAddImage += ViewManager.Instance.AddImage;
-        Game.Instance.EventDataRecieveEnd += ViewManager.Instance.Simutronics_EventEndUpdate;
         Game.Instance.EventStreamWindow += ViewManager.Instance.EventStreamWindow;
-        GenieError.EventGenieError += ViewManager.Instance.HandleGenieException;
         //GenieError.EventGeniePluginError += ViewManager.Instance.HandlePluginException;
         Game.Instance.EventTriggerParse += Game.Instance.Game_EventTriggerParse;
-        Game.Instance.EventStatusBarUpdate += Game_EventStatusBarUpdate;
+        Game.Instance.EventStatusBarUpdate += ViewManager.Instance.Game_EventStatusBarUpdate;
         Game.Instance.EventClearSpellTime += ViewManager.Instance.Game_EventClearSpellTime;
         Game.Instance.EventSpellTime += Game_EventSpellTime;
         Game.Instance.EventCastTime += Game_EventCastTime;
         Game.Instance.EventRoundTime += Game_EventRoundtime;
         Game.Instance.EventTriggerPrompt += Game_EventTriggerPrompt;
-        Game.Instance.EventTriggerMove += Game_EventTriggerMove;
-        Game.Instance.EventEchoText += ViewManager.Instance.ClassCommand_EchoText;
         Game.Instance.EventGlobalVariableChanged += ViewManager.Instance.GlobalVariableChanged;
 
         //// Hook up the PlaySoundCommand to the button in the UI
@@ -101,11 +49,6 @@ public partial class MainView : UserControl
         //{
         //    playSoundButton.Command = new RelayCommand(PlaySoundCommand);
         //}
-    }
-
-    private void Game_EventTriggerMove()
-    {
-        throw new NotImplementedException();
     }
 
     private void Game_EventTriggerPrompt()
@@ -128,21 +71,19 @@ public partial class MainView : UserControl
         throw new NotImplementedException();
     }
 
-    private void Game_EventStatusBarUpdate()
-    {
-        throw new NotImplementedException();
-    }
-
     private void Plugin_ParsePluginXML(string xml)
     {
-        throw new NotImplementedException();
+        //TODO: Implement
     }
 
+    private MainViewModel m_MainViewModel = null;
     private void MainView_Loaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         Loaded -= MainView_Loaded; // Unsubscribe after first load
+        m_MainViewModel = this.DataContext as MainViewModel;
+        m_MainViewModel.SetMainView(this);
         // Set the initial text for the GameWindow
-        GameWindowText = "Welcome to the Genie Game!";
+        m_MainViewModel.GameWindowText = "Welcome to the Genie Game!";
         // Optionally, you can set the text block style here if needed
         // SetCustomStyles();
 
@@ -174,7 +115,7 @@ public partial class MainView : UserControl
                 throw new Exception($"ScrollViewer with name Stack{panel} not found.");
             }
             if (gameWindow.GameWindowName.Equals("Game"))
-                gameWindow.BodyContent = GameWindowText + Environment.NewLine;
+                gameWindow.BodyContent = m_MainViewModel.GameWindowText + Environment.NewLine;
             target.Children.Add(gameWindow);
         }
         ViewManager.Instance.StartMessagePump();
@@ -198,4 +139,14 @@ public partial class MainView : UserControl
         return SoundIsOn;
     }
 
+    private void UserInputTextBox_KeyUp(object? sender, Avalonia.Input.KeyEventArgs e)
+    {
+        m_MainViewModel.LastKey = e.Key;
+        if (e.Key == Avalonia.Input.Key.Enter)
+        {
+            // Handle the Enter key press
+            m_MainViewModel.UserInput = this.UserInputTextBox.Text;
+            e.Handled = true; // Mark the event as handled to prevent further processing
+        }
+    }
 }

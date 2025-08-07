@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using System.Drawing;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
@@ -46,15 +45,12 @@ public class Game : IGame
     {
         Connection.Instance.EventParseRow += GameSocket_EventParseRow;
         Connection.Instance.EventParsePartialRow += GameSocket_EventParsePartialRow;
-        Connection.Instance.EventPrintText += GameSocket_EventPrintText;
         Connection.Instance.EventDataRecieveEnd += GameSocket_EventDataRecieveEnd;
-        Connection.Instance.EventPrintError += GameSocket_EventPrintError;
-        Connection.Instance.EventDataRecieveEnd += GameSocket_EventDataRecieveEnd;
+        
     }
     private void GameSocket_EventParseRow(StringBuilder row)
     {
-        var rowVar = row.ToString();
-        ParseRow(rowVar, GameConnection.Instance.ConnectState);
+        ParseRow(row.ToString(), GameConnection.Instance.ConnectState);
     }
     private void GameSocket_EventParsePartialRow(string row)
     {
@@ -63,18 +59,6 @@ public class Game : IGame
             ParseRow(row, GameConnection.Instance.ConnectState);
         }
     }
-    private void GameSocket_EventPrintText(string text)
-    {
-        WindowTarget argoWindowTarget = 0;
-        bool argbIsRoomOutput = false;
-        PrintTextWithParse(text, Color.White, Color.Transparent, oWindowTarget: argoWindowTarget, bIsRoomOutput: argbIsRoomOutput);
-    }
-
-    private void GameSocket_EventPrintError(string text)
-    {
-        Game.Instance.PrintTextToWindow(text, Color.Red, Color.Transparent);
-    }
-
 
     public ConnectStates ParseRow(string sText, ConnectStates connectState)
     {
@@ -92,7 +76,7 @@ public class Game : IGame
 
             case ConnectStates.ConnectedGame:
                 {
-                    Game.Instance.ParseGameRow(sText);
+                    ParseGameRow(sText);
                     return ConnectStates.ConnectedGame;
                 }
 
@@ -109,11 +93,6 @@ public class Game : IGame
     public event EventAddImageEventHandler EventAddImage;
     public delegate void EventAddImageEventHandler(string filename, string window, int width, int height);
 
-    public event EventPrintTextEventHandler EventPrintText;
-        public delegate void EventPrintTextEventHandler(string text, Color color, Color bgcolor, WindowTarget targetwindow, string targetwindowstring, bool mono, bool isprompt, bool isinput);
-
-    public event EventPrintErrorEventHandler EventPrintError;
-        public delegate void EventPrintErrorEventHandler(string text);
 
     public event EventClearWindowEventHandler EventClearWindow;
         public delegate void EventClearWindowEventHandler(string sWindow);
@@ -154,9 +133,6 @@ public class Game : IGame
     public event EventStreamWindowEventHandler EventStreamWindow;
         public delegate void EventStreamWindowEventHandler(object sTitle, object sIfClosed, bool testing=false);
 
-    public event EventEchoTextHandler EventEchoText;
-    public delegate void EventEchoTextHandler(string sText, string window);
-
     public event EventGlobalVariableChangedHandler EventGlobalVariableChanged;
     public delegate void EventGlobalVariableChangedHandler(string variable, object value);
 
@@ -168,6 +144,10 @@ public class Game : IGame
         }
     }
 
+    public void SendGenieError(string section, string message, string exmessage = "")
+    {
+        GenieException.HandleGenieException(section, message, exmessage);
+    }
 
     private bool m_bLastRowWasBlank = false;
     private bool m_bBold = false;
@@ -234,7 +214,7 @@ public class Game : IGame
 
     public void EchoText(string sText, string sWindow)
     {
-        EventEchoText?.Invoke(sText, sWindow);
+        TextFunctions.EchoText(sText, sWindow);
     }
 
     private bool m_bShowRawOutput = false;
@@ -320,7 +300,7 @@ public class Game : IGame
             }
             else
             {
-                GenieError.Error("SendText", "Unable to aquire reader lock.");
+                SendGenieError("SendText", "Unable to aquire reader lock.");
             }
 
             sShowText = "[" + sOrigin + "]: " + sShowText;
@@ -760,7 +740,7 @@ public class Game : IGame
         }
         else
         {
-            GenieError.Error("SetBufferEnd", "Unable to aquire game thread lock.");
+            SendGenieError("SetBufferEnd", "Unable to aquire game thread lock.");
         }
     }
 
@@ -840,7 +820,7 @@ public class Game : IGame
         }
         else
         {
-            GenieError.Error("UpdateRoom", "Unable to aquire game thread lock.");
+            SendGenieError("UpdateRoom", "Unable to aquire game thread lock.");
         }
     }
 
@@ -957,6 +937,7 @@ public class Game : IGame
                         switch (switchExpr2)
                         {
                             case "main":
+                            case "game":
                                 {
                                     break;
                                 }
@@ -1095,6 +1076,7 @@ public class Game : IGame
                                     break;
                                 }
                             case "main":
+                            case "game":
                                 {
                                     m_oTargetWindow = WindowTarget.Main;
                                     break;
@@ -1177,6 +1159,7 @@ public class Game : IGame
                         var switchExpr4 = GetAttributeData(oXmlNode, argstrAttributeName14);
                         switch (switchExpr4)
                         {
+                            case "game":
                             case "main":
                                 {
                                     break;
@@ -2281,7 +2264,7 @@ public class Game : IGame
 
     private MatchCollection m_oMatchCollection;
 
-    public void PrintTextWithParse(string sText, [Optional, DefaultParameterValue(false)] bool bIsPrompt, [Optional, DefaultParameterValue(WindowTarget.Unknown)] WindowTarget oWindowTarget)
+    public void PrintTextWithParse(string sText, bool bIsPrompt = false, WindowTarget oWindowTarget = WindowTarget.Unknown)
     {
         bool argbIsRoomOutput = false;
         PrintTextWithParse(sText, default, default, bIsPrompt, oWindowTarget, bIsRoomOutput: argbIsRoomOutput);
@@ -2366,7 +2349,7 @@ public class Game : IGame
             }
             else
             {
-                GenieError.Error("PrintTextWithParse", "Unable to aquire reader lock.");
+                SendGenieError("PrintTextWithParse", "Unable to aquire reader lock.");
             }
 
             // Line contains
@@ -2414,7 +2397,7 @@ public class Game : IGame
         {
             case WindowTarget.Main:
                 {
-                    sTargetWindowString = "main";
+                    sTargetWindowString = AppGlobals.MainWindow;
                     break;
                 }
 
@@ -2542,7 +2525,7 @@ public class Game : IGame
             }
             else
             {
-                GenieError.Error("PrintTextToWindow", "Unable to aquire reader lock.");
+                SendGenieError("PrintTextToWindow", "Unable to aquire reader lock.");
             }
         }
 
@@ -2583,7 +2566,7 @@ public class Game : IGame
             }
             else
             {
-                GenieError.Error("PrintTextToWindow", "Unable to aquire reader lock.");
+                SendGenieError("PrintTextToWindow", "Unable to aquire reader lock.");
             }
         }
 
@@ -2649,8 +2632,7 @@ public class Game : IGame
             bgcolor = Presets.Instance["familiar"].BgColor;
         }
 
-        var tempVar = false;
-        EventPrintText?.Invoke(text, color, bgcolor, targetwindow, targetwindowstring, m_bMonoOutput, isprompt, tempVar);
+        TextFunctions.EchoFormattedText(text, targetwindowstring, color, bgcolor, isMono: m_bMonoOutput, isItalic: isprompt);
     }
     private String ParseSubstitutions(string text)
     {
@@ -2690,7 +2672,7 @@ public class Game : IGame
             }
             else
             {
-                GenieError.Error("PrintTextToWindow", "Unable to aquire reader lock.");
+                SendGenieError("PrintTextToWindow", "Unable to aquire reader lock.");
             }
         }
 
@@ -2712,18 +2694,7 @@ public class Game : IGame
     // Skip all blank line/prompt checks and just print it
     public void PrintInputText(string sText, Color oColor, Color oBgColor)
     {
-        if (sText.Length == 0)
-        {
-            return;
-        }
-
-        var windowVar = WindowTarget.Main;
-        var emptyVar = "";
-        var trueVar = true;
-        var falseVar = false;
-
-     //   EventPrintText?.Invoke(sText, oColor, oBgColor, windowVar, emptyVar, m_bMonoOutput, trueVar, falseVar);
-        EventPrintText?.Invoke(sText, oColor, oBgColor, windowVar, emptyVar, m_bMonoOutput, falseVar, trueVar);
+        TextFunctions.EchoFormattedText(sText, "Game", oColor, oBgColor);
     }
 
     private void AddImage(string filename, string window = "")
@@ -2758,6 +2729,10 @@ public class Game : IGame
         EventStatusBarUpdate?.Invoke();
     }
 
+    private void GameError(string text, string window="")
+    {
+        TextFunctions.EchoError(text, window);
+    }
     public void PrintError(string text)
     {
         // Honor prompt
@@ -2765,17 +2740,17 @@ public class Game : IGame
         {
             m_bLastRowWasPrompt = false;
             var rowVar = System.Environment.NewLine + text;
-            EventPrintError?.Invoke(rowVar);
+            GameError(rowVar);
         }
         else
         {
-            EventPrintError?.Invoke(text);
+            GameError(text);
         }
     }
 
     public void HandleGenieException(string section, string message, string description = null)
     {
-        GenieError.Error(section, message, description);
+        SendGenieError(section, message, description);
     }
 
     public void Game_EventTriggerParse(string sText)
@@ -3089,8 +3064,22 @@ public class Game : IGame
     }
     private void GameSocket_EventDataRecieveEnd()
     {
-        EventDataRecieveEnd?.Invoke();
+            TextFunctions.EchoText("EndUpdate: Starting...", "Log");
+            EndUpdate();
+            SetBufferEnd();
+            ScriptManager.Instance.EventEndUpdate();
     }
+    private void EndUpdate()
+    {
+        //FormSkin oFormSkin;
+        //var oEnumerator = m_oFormList.GetEnumerator();
+        //while (oEnumerator.MoveNext())
+        //{
+        //    oFormSkin = (FormSkin)oEnumerator.Current;
+        //    oFormSkin.RichTextBoxOutput.EndTextUpdate();
+        //}
+    }
+
 
     private string ParsePluginText(string sText, string sWindow)
     {
