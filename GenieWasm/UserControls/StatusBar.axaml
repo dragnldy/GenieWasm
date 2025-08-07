@@ -7,9 +7,9 @@
              x:Class="GenieWasm.UserControls.StatusBar">
 	<Grid ColumnDefinitions="auto,auto,auto,auto,auto,auto,auto,auto,auto,auto">
 		<StackPanel Grid.Row="0"  Orientation="Horizontal">
-			<Label Content="RT" Margin="10,0,2,0"/>
 			<ProgressBar  Margin="0" Height="15"
                 Minimum="0" Maximum="{Binding MaxRT}" Value="{Binding ValueRT}"
+				ProgressTextFormat="{}{0}/{3} Secs RT"
                 ShowProgressText="True"/>
 			<Image Source="{Binding IconCompass}" Width="15" Height="15"/>
 			<Label Content="L"/>

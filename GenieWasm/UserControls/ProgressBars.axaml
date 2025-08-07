@@ -5,37 +5,32 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
  			 x:CompileBindings="false"
              x:Class="GenieWasm.ProgressBars">
-	<Grid ColumnDefinitions="*,*,*,*,*" RowDefinitions="auto,auto">
-		<StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Background="Red">
-			<Label Content="Health xxx%" Margin="0,0,0,0" HorizontalAlignment="Center"/>
-			<ProgressBar  Margin="0" Height="15"
-                Minimum="0" Maximum="100" Value="{Binding Health}"
+	<Grid ColumnDefinitions="*,*,*,*,*" RowDefinitions="auto,auto" Background="White">
+		<ProgressBar Grid.Column="0"  Margin="0" Height="16" Foreground="Red" HorizontalAlignment="Stretch"
+            Minimum="0" Maximum="100" Value="{Binding Health}"
+            ShowProgressText="False">
+		</ProgressBar>
+		<Label Grid.Column="0" Content="{Binding HealthPercent}" Background="Transparent" Foreground="Black" HorizontalAlignment="Center"/>
+
+			<ProgressBar  Grid.Column="1" Margin="0" Height="16" Foreground="Aqua" HorizontalAlignment="Stretch"
+                Minimum="0" Maximum="100" Value="{Binding Mana}"/>
+		<Label Grid.Column="1" Content="{Binding ManaPercent}" Background="Transparent" Foreground="Black" HorizontalAlignment="Center"/>
+		
+		<ProgressBar  Margin="0" Height="16" Grid.Column="2" Foreground="Gray"
+                Minimum="0" Maximum="100" Value="{Binding Concentration}" HorizontalAlignment="Stretch"
                 ShowProgressText="False"/>
-		</StackPanel>
-		<StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Background="Aqua">
-			<Label Content="Mana xxx%" Margin="0,0,0,0" Foreground="Black"  HorizontalAlignment="Center"/>
-			<ProgressBar  Margin="0" Height="15"
-                Minimum="0" Maximum="100" Value="{Binding Mana}"
-                ShowProgressText="False"/>
-		</StackPanel>
-		<StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal" Background="White">
-			<Label Content="Conc xxx%" Margin="0,0,0,0" Foreground="Black"  HorizontalAlignment="Center"/>
-			<ProgressBar  Margin="0" Height="15"
-                Minimum="0" Maximum="100" Value="{Binding Concentration}"
-                ShowProgressText="False"/>
-		</StackPanel>
-		<StackPanel Grid.Row="0" Grid.Column="3" Orientation="Horizontal" Background="Green">
-			<Label Content="Stamina xxx%" Margin="0,0,0,0"  HorizontalAlignment="Center"/>
-			<ProgressBar  Margin="0" Height="15"
+		<Label Grid.Column="2" Content="{Binding ConcentrationPercent}" Background="Transparent" Foreground="Black" HorizontalAlignment="Center"/>
+		
+		<ProgressBar Grid.Column="3" Margin="0" Height="16" Foreground="Green" HorizontalAlignment="Stretch"
                 Minimum="0" Maximum="100" Value="{Binding Stamina}"
                 ShowProgressText="False"/>
-		</StackPanel>
-		<StackPanel Grid.Row="0" Grid.Column="4" Orientation="Horizontal" Background="Purple">
-			<Label Content="Spirit xxx%" Margin="0,0,0,0"  HorizontalAlignment="Center"/>
-			<ProgressBar  Margin="0" Height="15"
+		<Label Grid.Column="3" Content="{Binding StaminaPercent}" Background="Transparent" Foreground="Black" HorizontalAlignment="Center"/>
+
+		<ProgressBar Grid.Column="4" Margin="0" Height="16" Foreground="Purple" HorizontalAlignment="Stretch"
                 Minimum="0" Maximum="100" Value="{Binding Spirit}"
                 ShowProgressText="False"/>
-		</StackPanel>
-		<Label Content="{Binding GameStatus}" Grid.Row="1" Grid.ColumnSpan="5" HorizontalAlignment="Stretch" Background="Black" Foreground="WhiteSmoke"/>
+		<Label Grid.Column="4" Content="{Binding SpiritPercent}" Background="Transparent" Foreground="Black" HorizontalAlignment="Center"/>
+		
+		<Label Margin="0,2,0,7" Content="{Binding GameStatus}" Grid.Row="1" Grid.ColumnSpan="5" HorizontalAlignment="Stretch" Background="Black" Foreground="WhiteSmoke"/>
 	</Grid>
 </UserControl>
