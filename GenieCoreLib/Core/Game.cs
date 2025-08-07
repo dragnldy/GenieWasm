@@ -136,12 +136,13 @@ public class Game : IGame
     public event EventGlobalVariableChangedHandler EventGlobalVariableChanged;
     public delegate void EventGlobalVariableChangedHandler(string variable, object value);
 
-    public void VariableChanged(string variable, object value = null)
+    public void GlobalVariableChanged(string variable, object value = null)
     {
-        if (EventGlobalVariableChanged != null)
-        {
             EventGlobalVariableChanged?.Invoke(variable, value);
-        }
+    }
+    public void VariableChangedxx(string variable, object value = null)
+    {
+            EventVariableChanged?.Invoke(variable);
     }
 
     public void SendGenieError(string section, string message, string exmessage = "")
@@ -342,7 +343,7 @@ public class Game : IGame
             Connection.Instance.Send(sText + Constants.vbCrLf);
             Variables.Instance["lastcommand"] = sText;
             var lastCommandVar = "lastcommand";
-            EventVariableChanged?.Invoke(lastCommandVar);
+            VariableChanged(lastCommandVar);
         }
 
         if (ConfigSettings.Instance.AutoLog == true)
@@ -1347,49 +1348,21 @@ public class Game : IGame
                             barText += previousCharacter == ' ' ? barTextBase[i].ToString().ToUpper() : barTextBase[i];
                             previousCharacter = barTextBase[i];
                         }
+                        if (barName == "conclevel")
+                            barName = "concentration";
                         switch (barName)
                         {
                             case "health":
-                                {
-                                    Variables.Instance.Add("health", barValue.ToString(), Variables.VariablesType.Reserved);
-                                    Variables.Instance.Add("healthBarText", barText, Variables.VariablesType.Reserved);
-                                    VariableChanged("$health");
-                                    break;
-                                }
-
                             case "mana":
-                                {
-                                    Variables.Instance.Add("mana", barValue.ToString(), Variables.VariablesType.Reserved);
-                                    Variables.Instance.Add("manaBarText", barText, Variables.VariablesType.Reserved);
-                                    VariableChanged("$mana");
-                                    break;
-                                }
-
                             case "spirit":
-                                {
-                                    Variables.Instance.Add("spirit", barValue.ToString(), Variables.VariablesType.Reserved);
-                                    Variables.Instance.Add("spiritBarText", barText, Variables.VariablesType.Reserved);
-                                    VariableChanged("$spirit");
-                                    break;
-                                }
-
                             case "stamina":
-                                {
-                                    Variables.Instance.Add("stamina", barValue.ToString(), Variables.VariablesType.Reserved);
-                                    Variables.Instance.Add("staminaBarText", barText, Variables.VariablesType.Reserved);
-                                    VariableChanged("$stamina");
-                                    break;
-                                }
-
-                            case "conclevel":
                             case "concentration":
                                 {
-                                    Variables.Instance.Add("concentration", barValue.ToString(), Variables.VariablesType.Reserved);
-                                    Variables.Instance.Add("concentrationBarText", barText, Variables.VariablesType.Reserved);
-                                    VariableChanged("$concentration");
+                                    Variables.Instance.Add(barName, barValue.ToString(), Variables.VariablesType.Reserved);
+                                    Variables.Instance.Add(barName + "BarText", barText, Variables.VariablesType.Reserved);
+                                    VariableChanged($"${barName}");
                                     break;
                                 }
-
                             case "encumlevel":
                             case "encumblevel":
                             case "encumbrance":
@@ -1505,165 +1478,10 @@ public class Game : IGame
 
                 case "indicator":
                     {
-                        bool blnActive = false;
-                        string argstrAttributeName22 = "visible";
-                        if ((GetAttributeData(oXmlNode, argstrAttributeName22) ?? "") == "y")
-                        {
-                            blnActive = true;
-                        }
-
-                        string argstrAttributeName23 = "id";
-                        var switchExpr8 = GetAttributeData(oXmlNode, argstrAttributeName23);
-                        switch (switchExpr8)
-                        {
-                            case "IconKNEELING":
-                                {
-                                    m_oIndicatorHash[Indicator.Kneeling] = blnActive;
-                                    string argkey24 = "kneeling";
-                                    var kneelingVar = Utility.BooleanToInteger(blnActive).ToString();
-                                    Variables.Instance.Add(argkey24, kneelingVar, Variables.VariablesType.Reserved);
-                                    string argsVariable22 = "$kneeling";
-                                    VariableChanged(argsVariable22);
-                                    break;
-                                }
-
-                            case "IconPRONE":
-                                {
-                                    m_oIndicatorHash[Indicator.Prone] = blnActive;
-                                    string argkey25 = "prone";
-                                    var proneVar = Utility.BooleanToInteger(blnActive).ToString();
-                                    Variables.Instance.Add(argkey25, proneVar, Variables.VariablesType.Reserved);
-                                    string argsVariable23 = "$prone";
-                                    VariableChanged(argsVariable23);
-                                    break;
-                                }
-
-                            case "IconSITTING":
-                                {
-                                    m_oIndicatorHash[Indicator.Sitting] = blnActive;
-                                    string argkey26 = "sitting";
-                                    var sittingVar = Utility.BooleanToInteger(blnActive).ToString();
-                                    Variables.Instance.Add(argkey26, sittingVar, Variables.VariablesType.Reserved);
-                                    string argsVariable24 = "$sitting";
-                                    VariableChanged(argsVariable24);
-                                    break;
-                                }
-
-                            case "IconSTANDING":
-                                {
-                                    m_oIndicatorHash[Indicator.Standing] = blnActive;
-                                    string argkey27 = "standing";
-                                    var standingVar = Utility.BooleanToInteger(blnActive).ToString();
-                                    Variables.Instance.Add(argkey27, standingVar, Variables.VariablesType.Reserved);
-                                    string argsVariable25 = "$standing";
-                                    VariableChanged(argsVariable25);
-                                    break;
-                                }
-
-                            case "IconSTUNNED":
-                                {
-                                    m_oIndicatorHash[Indicator.Stunned] = blnActive;
-                                    string argkey28 = "stunned";
-                                    var stunnedVar = Utility.BooleanToInteger(blnActive).ToString();
-                                    Variables.Instance.Add(argkey28, stunnedVar, Variables.VariablesType.Reserved);
-                                    string argsVariable26 = "$stunned";
-                                    VariableChanged(argsVariable26);
-                                    break;
-                                }
-
-                            case "IconHIDDEN":
-                                {
-                                    m_oIndicatorHash[Indicator.Hidden] = blnActive;
-                                    string argkey29 = "hidden";
-                                    var hiddenVar = Utility.BooleanToInteger(blnActive).ToString();
-                                    Variables.Instance.Add(argkey29, hiddenVar, Variables.VariablesType.Reserved);
-                                    string argsVariable27 = "$hidden";
-                                    VariableChanged(argsVariable27);
-                                    break;
-                                }
-
-                            case "IconINVISIBLE":
-                                {
-                                    m_oIndicatorHash[Indicator.Invisible] = blnActive;
-                                    string argkey30 = "invisible";
-                                    var invisibleVar = Utility.BooleanToInteger(blnActive).ToString();
-                                    Variables.Instance.Add(argkey30, invisibleVar, Variables.VariablesType.Reserved);
-                                    string argsVariable28 = "$invisible";
-                                    VariableChanged(argsVariable28);
-                                    break;
-                                }
-
-                            case "IconDEAD":
-                                {
-                                    m_oIndicatorHash[Indicator.Dead] = blnActive;
-                                    string argkey31 = "dead";
-                                    var deadVar = Utility.BooleanToInteger(blnActive).ToString();
-                                    Variables.Instance.Add(argkey31, deadVar, Variables.VariablesType.Reserved);
-                                    string argsVariable29 = "$dead";
-                                    VariableChanged(argsVariable29);
-                                    break;
-                                }
-
-                            case "IconWEBBED":
-                                {
-                                    m_oIndicatorHash[Indicator.Webbed] = blnActive;
-                                    string argkey32 = "webbed";
-                                    var webbedVar = Utility.BooleanToInteger(blnActive).ToString();
-                                    Variables.Instance.Add(argkey32, webbedVar, Variables.VariablesType.Reserved);
-                                    string argsVariable30 = "$webbed";
-                                    VariableChanged(argsVariable30);
-                                    break;
-                                }
-
-                            case "IconJOINED":
-                                {
-                                    m_oIndicatorHash[Indicator.Joined] = blnActive;
-                                    string argkey33 = "joined";
-                                    var joinedVar = Utility.BooleanToInteger(blnActive).ToString();
-                                    Variables.Instance.Add(argkey33, joinedVar, Variables.VariablesType.Reserved);
-                                    string argsVariable31 = "$joined";
-                                    VariableChanged(argsVariable31);
-                                    break;
-                                }
-
-                            case "IconBLEEDING":
-                                {
-                                    m_oIndicatorHash[Indicator.Bleeding] = blnActive;
-                                    string argkey34 = "bleeding";
-                                    var bleedingVar = Utility.BooleanToInteger(blnActive).ToString();
-                                    Variables.Instance.Add(argkey34, bleedingVar, Variables.VariablesType.Reserved);
-                                    string argsVariable32 = "$bleeding";
-                                    VariableChanged(argsVariable32);
-                                    break;
-                                }
-
-                            case "IconPOISONED":
-                                {
-                                    string argkey35 = "poisoned";
-                                    var poisonedVar = Utility.BooleanToInteger(blnActive).ToString();
-                                    Variables.Instance.Add(argkey35, poisonedVar, Variables.VariablesType.Reserved);
-                                    string argsVariable33 = "$poisoned";
-                                    VariableChanged(argsVariable33);
-                                    break;
-                                }
-
-                            case "IconDISEASED":
-                                {
-                                    string argkey36 = "diseased";
-                                    var diseasedVar = Utility.BooleanToInteger(blnActive).ToString();
-                                    Variables.Instance.Add(argkey36, diseasedVar, Variables.VariablesType.Reserved);
-                                    string argsVariable34 = "$diseased";
-                                    VariableChanged(argsVariable34);
-                                    break;
-                                }
-
-                            default:
-                                {
-                                    break;
-                                }
-                                /* TODO ERROR: Skipped IfDirectiveTrivia *//* TODO ERROR: Skipped DisabledTextTrivia *//* TODO ERROR: Skipped EndIfDirectiveTrivia */
-                        }
-
+                        // Only send to the UI if it has changed
+                        bool blnActive = (GetAttributeData(oXmlNode, "visible") ?? "") == "y";
+                        var switchExpr8 = GetAttributeData(oXmlNode, "id");
+                        ProcessAnIcon(switchExpr8, blnActive);
                         break;
                     }
 
@@ -1766,53 +1584,53 @@ public class Game : IGame
                                     }
                                 }
                             }
-                            else if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(m_oIndicatorHash[Indicator.Dead], true, false)))
+                            else if (CheckIndicator(m_oIndicatorHash[Indicator.Dead]))
                             {
                                 strBuffer += "DEAD";
                             }
-                            else if (ConfigSettings.Instance.PromptForce == true)
+                            else if (ConfigSettings.Instance.PromptForce)
                             {
-                                if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(m_oIndicatorHash[Indicator.Kneeling], true, false)))
+                                if (CheckIndicator(m_oIndicatorHash[Indicator.Kneeling]))
                                 {
                                     strBuffer += "K";
                                 }
 
-                                if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(m_oIndicatorHash[Indicator.Sitting], true, false)))
+                                if (CheckIndicator(m_oIndicatorHash[Indicator.Sitting]))
                                 {
                                     strBuffer += "s";
                                 }
 
-                                if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(m_oIndicatorHash[Indicator.Prone], true, false)))
+                                if (CheckIndicator(m_oIndicatorHash[Indicator.Prone]))
                                 {
                                     strBuffer += "P";
                                 }
 
-                                if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(m_oIndicatorHash[Indicator.Stunned], true, false)))
+                                if (CheckIndicator(m_oIndicatorHash[Indicator.Stunned]))
                                 {
                                     strBuffer += "S";
                                 }
 
-                                if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(m_oIndicatorHash[Indicator.Hidden], true, false)))
+                                if (CheckIndicator(m_oIndicatorHash[Indicator.Hidden]))
                                 {
                                     strBuffer += "H";
                                 }
 
-                                if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(m_oIndicatorHash[Indicator.Invisible], true, false)))
+                                if (CheckIndicator(m_oIndicatorHash[Indicator.Invisible]))
                                 {
                                     strBuffer += "I";
                                 }
 
-                                if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(m_oIndicatorHash[Indicator.Webbed], true, false)))
+                                if (CheckIndicator(m_oIndicatorHash[Indicator.Webbed]))
                                 {
                                     strBuffer += "W";
                                 }
 
-                                if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(m_oIndicatorHash[Indicator.Bleeding], true, false)))
+                                if (CheckIndicator(m_oIndicatorHash[Indicator.Bleeding]))
                                 {
                                     strBuffer += "!";
                                 }
 
-                                if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(m_oIndicatorHash[Indicator.Joined], true, false)))
+                                if (CheckIndicator(m_oIndicatorHash[Indicator.Joined]))
                                 {
                                     strBuffer += "J";
                                 }
@@ -2118,7 +1936,115 @@ public class Game : IGame
         return sReturn;
     }
 
-     public void ResetIndicators()
+    private bool CheckIndicator(object? v)
+    {
+        return (v is not null && v is bool blnActive && blnActive);
+    }
+
+    private void SaveIcon(string iconId, bool isActive)
+    {
+        var id = iconId.Replace("Icon", "").ToLower();
+        Variables.Instance.Add(id, (isActive? "1" : "0"), Variables.VariablesType.Reserved);
+        VariableChanged($"${id}");
+        return;
+    }
+    private void ProcessAnIcon(string iconId, bool blnActive)
+    {
+        switch (iconId)
+        {
+            case "IconKNEELING":
+                {
+                    m_oIndicatorHash[Indicator.Kneeling] = blnActive;
+                    SaveIcon(iconId, blnActive);
+                    break;
+                }
+
+            case "IconPRONE":
+                {
+                    m_oIndicatorHash[Indicator.Prone] = blnActive;
+                    SaveIcon(iconId, blnActive);
+                    break;
+                }
+
+            case "IconSITTING":
+                {
+                    m_oIndicatorHash[Indicator.Sitting] = blnActive;
+                    SaveIcon(iconId, blnActive);
+                    break;
+                }
+
+            case "IconSTANDING":
+                {
+                    m_oIndicatorHash[Indicator.Standing] = blnActive;
+                    SaveIcon(iconId, blnActive);
+                    break;
+                }
+
+            case "IconSTUNNED":
+                {
+                    m_oIndicatorHash[Indicator.Stunned] = blnActive;
+                    SaveIcon(iconId, blnActive);
+                    break;
+                }
+
+            case "IconHIDDEN":
+                {
+                    m_oIndicatorHash[Indicator.Hidden] = blnActive;
+                    SaveIcon(iconId, blnActive);
+                    break;
+                }
+
+            case "IconINVISIBLE":
+                {
+                    m_oIndicatorHash[Indicator.Invisible] = blnActive;
+                    SaveIcon(iconId, blnActive);
+                    break;
+                }
+
+            case "IconDEAD":
+                {
+                    m_oIndicatorHash[Indicator.Dead] = blnActive;
+                    SaveIcon(iconId, blnActive);
+                    break;
+                }
+
+            case "IconWEBBED":
+                {
+                    m_oIndicatorHash[Indicator.Webbed] = blnActive;
+                    SaveIcon(iconId, blnActive);
+                    break;
+                }
+
+            case "IconJOINED":
+                {
+                    m_oIndicatorHash[Indicator.Joined] = blnActive;
+                    SaveIcon(iconId, blnActive);
+                    break;
+                }
+
+            case "IconBLEEDING":
+                {
+                    m_oIndicatorHash[Indicator.Bleeding] = blnActive;
+                    SaveIcon(iconId, blnActive);
+                    break;
+                }
+
+            // I don't think DR supports these, but leaving them here for now
+            case "IconPOISONED":
+            case "IconDISEASED":
+                {
+                    SaveIcon(iconId, blnActive);
+                    break;
+                }
+
+            default:
+                {
+                    break;
+                }
+        }
+    }
+
+    public void ResetIndicators()
     {
         m_oIndicatorHash[Indicator.Bleeding] = false;
         m_oIndicatorHash[Indicator.Dead] = false;
@@ -2680,7 +2606,71 @@ public class Game : IGame
     }
     public void VariableChanged(string sVariable)
     {
+        switch (sVariable)
+        {
+            case "$connected":
+                {
+                    //string argsValue = Conversions.ToString(m_oGlobals.VariableList["connected"]);
+                    //bool bConnected = Utility.StringToBoolean(argsValue);
+                    //ComponentBarsHealth.IsConnected = bConnected;
+                    //ComponentBarsMana.IsConnected = bConnected;
+                    //ComponentBarsFatigue.IsConnected = bConnected;
+                    //ComponentBarsSpirit.IsConnected = bConnected;
+                    //ComponentBarsConc.IsConnected = bConnected;
+                    //IconBar.IsConnected = bConnected;
+                    //oRTControl.IsConnected = bConnected;
+                    //Castbar.IsConnected = bConnected;
+                    //m_CommandSent = false;
+                    //m_oGlobals.VariableList["charactername"] = m_oGame.AccountCharacter;
+                    //m_oGlobals.VariableList["game"] = m_oGame.AccountGame;
+                    //m_oGlobals.VariableList["gamename"] = m_oGame.AccountGame;
+                    //m_oAutoMapper.CharacterName = m_oGame.AccountCharacter;
+                    //m_sCurrentProfileName = m_oGame.AccountCharacter + m_oGame.AccountGame + ".xml";
+                    //m_oGame.ResetIndicators();
+                    //IconBar.UpdateStatusBox();
+                    //IconBar.UpdateStunned();
+                    //IconBar.UpdateBleeding();
+                    //IconBar.UpdateInvisible();
+                    //IconBar.UpdateHidden();
+                    //IconBar.UpdateJoined();
+                    //IconBar.UpdateWebbed();
+                    //if (m_oGame.IsConnectedToGame)
+                    //{
+                    //    if (!string.IsNullOrWhiteSpace(m_oGlobals.Config.ConnectScript)) ClassCommand_SendText(m_oGlobals.Config.ScriptChar + m_oGlobals.Config.ConnectScript, false, "Connected");
+                    //    if (m_oGlobals.VariableList.ContainsKey("connectscript")) ClassCommand_SendText(m_oGlobals.Config.ScriptChar + m_oGlobals.Config.ConnectScript, false, "Connected");
+                    //}
+                    //SafeUpdateMainWindowTitle();
+                    break;
+                }
+
+            case "$prompt": // Safety
+                {
+                    //                    IconBar.UpdateBleeding();
+                    break;
+                }
+
+            case "$charactername":
+                {
+                    //SafeUpdateMainWindowTitle();
+                    //m_oAutoMapper.CharacterName = m_oGlobals.VariableList["charactername"].ToString();
+                    //m_oGame.AccountCharacter = m_oGlobals.VariableList["charactername"].ToString();
+                    //if (m_oGlobals.VariableList["charactername"].ToString().Length > 0)
+                    //{
+                    //    m_sCurrentProfileName = m_oGame.AccountCharacter + m_oGame.AccountGame + ".xml";
+                    //}
+
+                    break;
+                }
+            /* TODO ERROR: Skipped IfDirectiveTrivia *//* TODO ERROR: Skipped DisabledTextTrivia *//* TODO ERROR: Skipped EndIfDirectiveTrivia */
+            case "$gamename":
+                {
+                    // SafeLoadProfile(oGlobals.VariableList("charactername").ToString & oGlobals.VariableList("gamename").ToString & ".xml", False)
+                    //                   SafeUpdateMainWindowTitle();
+                    break;
+                }
+        }
         EventVariableChanged?.Invoke(sVariable);
+        Command.Instance.TriggerVariableChanged(sVariable);
     }
 
     private void TriggerParse(string sText)
@@ -2859,204 +2849,6 @@ public class Game : IGame
             }
         }
     }
-
-    public void TriggerVariableChanged(string sVariableName) // When variables change
-    {
-        switch (sVariableName)
-        {
-            case "$health":
-                {
-                    //int barValue = Conversions.ToInteger(m_oGlobals.VariableList["health"]);
-                    //string barText = m_oGlobals.VariableList["healthBarText"].ToString();
-                    //var bar = ComponentBarsHealth;
-                    //bar.BarText = barText;
-                    //SetBarValue(barValue, bar);
-                    break;
-                }
-
-            case "$mana":
-                {
-                    //int barValue = Conversions.ToInteger(m_oGlobals.VariableList["mana"]);
-                    //string barText = m_oGlobals.VariableList["manaBarText"].ToString();
-                    //var bar = ComponentBarsMana;
-                    //bar.BarText = barText;
-                    //SetBarValue(barValue, bar);
-                    break;
-                }
-
-            case "$stamina":
-                {
-                    //int barValue = Conversions.ToInteger(m_oGlobals.VariableList["stamina"]);
-                    //string barText = m_oGlobals.VariableList["staminaBarText"].ToString();
-                    //var bar = ComponentBarsFatigue;
-                    //bar.BarText = barText;
-                    //SetBarValue(barValue, bar);
-                    break;
-                }
-
-            case "$spirit":
-                {
-                    //int barValue = Conversions.ToInteger(m_oGlobals.VariableList["spirit"]);
-                    //string barText = m_oGlobals.VariableList["spiritBarText"].ToString();
-                    //var bar = ComponentBarsSpirit;
-                    //bar.BarText = barText;
-                    //SetBarValue(barValue, bar);
-                    break;
-                }
-
-            case "$concentration":
-                {
-                    //int barValue = Conversions.ToInteger(m_oGlobals.VariableList["concentration"]);
-                    //string barText = m_oGlobals.VariableList["concentrationBarText"].ToString();
-                    //var bar = ComponentBarsConc;
-                    //bar.BarText = barText;
-                    //SetBarValue(barValue, bar);
-                    break;
-                }
-
-            case "compass":
-            case "$north":
-            case "$northeast":
-            case "$east":
-            case "$southeast":
-            case "$south":
-            case "$southwest":
-            case "$west":
-            case "$northwest":
-            case "$up":
-            case "$down":
-            case "$out":
-                {
-//                    IconBar.PictureBoxCompass.Invalidate();
-                    return; // Block direction triggers (They clear before changing.)
-                }
-
-            case "$dead":
-            case "$standing":
-            case "$kneeling":
-            case "$sitting":
-            case "$prone":
-                {
-//                    IconBar.UpdateStatusBox();
-                    break;
-                }
-
-            case "$stunned":
-                {
-  //                  IconBar.UpdateStunned();
-                    break;
-                }
-
-            case "$bleeding":
-                {
-    //                IconBar.UpdateBleeding();
-                    break;
-                }
-
-            case "$invisible":
-                {
-      //              IconBar.UpdateInvisible();
-                    break;
-                }
-
-            case "$hidden":
-                {
-//                    IconBar.UpdateHidden();
-                    break;
-                }
-
-            case "$joined":
-                {
- //                   IconBar.UpdateJoined();
-                    break;
-                }
-
-            case "$webbed":
-                {
-   //                 IconBar.UpdateWebbed();
-                    break;
-                }
-
-            case "$connected":
-                {
-                    //string argsValue = Conversions.ToString(m_oGlobals.VariableList["connected"]);
-                    //bool bConnected = Utility.StringToBoolean(argsValue);
-                    //ComponentBarsHealth.IsConnected = bConnected;
-                    //ComponentBarsMana.IsConnected = bConnected;
-                    //ComponentBarsFatigue.IsConnected = bConnected;
-                    //ComponentBarsSpirit.IsConnected = bConnected;
-                    //ComponentBarsConc.IsConnected = bConnected;
-                    //IconBar.IsConnected = bConnected;
-                    //oRTControl.IsConnected = bConnected;
-                    //Castbar.IsConnected = bConnected;
-                    //m_CommandSent = false;
-                    //m_oGlobals.VariableList["charactername"] = m_oGame.AccountCharacter;
-                    //m_oGlobals.VariableList["game"] = m_oGame.AccountGame;
-                    //m_oGlobals.VariableList["gamename"] = m_oGame.AccountGame;
-                    //m_oAutoMapper.CharacterName = m_oGame.AccountCharacter;
-                    //m_sCurrentProfileName = m_oGame.AccountCharacter + m_oGame.AccountGame + ".xml";
-                    //m_oGame.ResetIndicators();
-                    //IconBar.UpdateStatusBox();
-                    //IconBar.UpdateStunned();
-                    //IconBar.UpdateBleeding();
-                    //IconBar.UpdateInvisible();
-                    //IconBar.UpdateHidden();
-                    //IconBar.UpdateJoined();
-                    //IconBar.UpdateWebbed();
-                    //if (m_oGame.IsConnectedToGame)
-                    //{
-                    //    if (!string.IsNullOrWhiteSpace(m_oGlobals.Config.ConnectScript)) ClassCommand_SendText(m_oGlobals.Config.ScriptChar + m_oGlobals.Config.ConnectScript, false, "Connected");
-                    //    if (m_oGlobals.VariableList.ContainsKey("connectscript")) ClassCommand_SendText(m_oGlobals.Config.ScriptChar + m_oGlobals.Config.ConnectScript, false, "Connected");
-                    //}
-                    //SafeUpdateMainWindowTitle();
-                    break;
-                }
-
-            case "$prompt": // Safety
-                {
-//                    IconBar.UpdateBleeding();
-                    break;
-                }
-
-            case "$charactername":
-                {
-                    //SafeUpdateMainWindowTitle();
-                    //m_oAutoMapper.CharacterName = m_oGlobals.VariableList["charactername"].ToString();
-                    //m_oGame.AccountCharacter = m_oGlobals.VariableList["charactername"].ToString();
-                    //if (m_oGlobals.VariableList["charactername"].ToString().Length > 0)
-                    //{
-                    //    m_sCurrentProfileName = m_oGame.AccountCharacter + m_oGame.AccountGame + ".xml";
-                    //}
-
-                    break;
-                }
-            /* TODO ERROR: Skipped IfDirectiveTrivia *//* TODO ERROR: Skipped DisabledTextTrivia *//* TODO ERROR: Skipped EndIfDirectiveTrivia */
-            case "$gamename":
-                {
-                    // SafeLoadProfile(oGlobals.VariableList("charactername").ToString & oGlobals.VariableList("gamename").ToString & ".xml", False)
- //                   SafeUpdateMainWindowTitle();
-                    break;
-                }
-        }
-        Command.Instance.TriggerVariableChanged(sVariableName );
-
-    }
-
-    public void ClassCommand_EventVariableChanged(string sVariable)
-    {
-        try
-        {
-            TriggerVariableChanged(sVariable);
-            // SafeParsePluginVariable(sVariable);
-        }
-        /* TODO ERROR: Skipped IfDirectiveTrivia */
-        catch (Exception ex)
-        {
-            HandleGenieException("VariableChanged", ex.Message, ex.ToString());
-            /* TODO ERROR: Skipped ElseDirectiveTrivia *//* TODO ERROR: Skipped DisabledTextTrivia *//* TODO ERROR: Skipped EndIfDirectiveTrivia */
-        }
-    }
-
 
     private void GameSocket_EventExit()
     {

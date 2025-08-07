@@ -80,7 +80,7 @@
             if (iTime == 0)
                 return;
 
-            Game.Instance.VariableChanged("RoundTime", (int)(iTime + ConfigSettings.Instance.RTOffset));
+            Game.Instance.GlobalVariableChanged("RoundTime", (int)(iTime + ConfigSettings.Instance.RTOffset));
 
             if (ScriptList.Instance.AcquireReaderLock())
             {

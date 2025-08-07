@@ -1,18 +1,74 @@
-using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Markup.Xaml;
+using Avalonia.Threading;
+using GenieCoreLib;
+using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace GenieWasm;
 
-public partial class ProgressBars : UserControl
+public partial class ProgressBars : UserControl, INotifyPropertyChanged
 {
+    // List of variables that are displayed by this control
+    List<String> DynamicVariables = "health,mana,concentration,stamina,spirit".Split(',').ToList();
     public ProgressBars()
     {
         InitializeComponent();
         DataContext = this;
+        ViewManager.Instance.PropertyChanged += ViewManager_PropertyChanged;
+
     }
+    private void ViewManager_PropertyChanged(object sender, PropertyChangedEventArgs e)
+    {
+        // Handle property changes from ViewManager if needed
+        if (DynamicVariables.Contains(e.PropertyName))
+        {
+            SetProgressBarsLabels(e.PropertyName);
+        }
+        NotifyPropertyChanged(e.PropertyName);
+    }
+
+    private void SetProgressBarsLabels(string propertyName)
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            int indicator = GetInt(Variables.Instance[propertyName]?.ToString());
+            switch(propertyName)
+            {
+                case "health":
+                    Health = indicator;
+                    break;
+                case "mana":
+                    Mana = indicator;
+                    break;
+                case "concentration":
+                    Concentration = indicator;
+                    break;
+                case "stamina":
+                    Stamina = indicator;
+                    break;
+                case "spirit":
+                    Spirit = indicator;
+                    break;
+            }
+        });
+    }
+
+    private int GetInt(string? v)
+    {
+        if (string.IsNullOrEmpty(v))
+        {
+            return 0;
+        }
+        if (int.TryParse(v, out int result))
+        {
+            return result;
+        }
+        return 0; // Default value if parsing fails
+    }
+
     private int _health = 100;
     public int Health
     {
@@ -41,7 +97,7 @@ public partial class ProgressBars : UserControl
         get => _spirit;
         set { if (value != _spirit) { _spirit = value; NotifyPropertyChanged(); } }
     }
-    public string SpiritPercent => $"Mana ({Spirit}%)";
+    public string SpiritPercent => $"Spirit ({Spirit}%)";
 
     private int _concentration = 100;
     public int Concentration

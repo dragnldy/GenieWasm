@@ -29,7 +29,8 @@ public partial class MainView : UserControl
     private void DoHookups()
     {
         Game.Instance.EventParseXML += Plugin_ParsePluginXML;
-        Game.Instance.EventVariableChanged += Game.Instance.ClassCommand_EventVariableChanged;
+       
+        Game.Instance.EventVariableChanged += ViewManager.Instance.EventVariableChanged; // Viewmanager will do UI updates
         Game.Instance.EventClearWindow += ViewManager.Instance.Command_EventClearWindow;
         Game.Instance.EventAddImage += ViewManager.Instance.AddImage;
         Game.Instance.EventStreamWindow += ViewManager.Instance.EventStreamWindow;

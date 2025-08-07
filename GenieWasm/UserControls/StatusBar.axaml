@@ -11,13 +11,15 @@
                 Minimum="0" Maximum="{Binding MaxRT}" Value="{Binding ValueRT}"
 				ProgressTextFormat="{}{0}/{3} Secs RT"
                 ShowProgressText="True"/>
-			<Image Source="{Binding IconCompass}" Width="15" Height="15"/>
-			<Label Content="L"/>
-			<Label Content="{Binding LabelLHC}" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="0,0,10,0"/>
-			<Label Content="R"/>
-			<Label Content="{Binding LabelRHC}" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="0"/>
-			<Label Content="S"/>
-			<Label Content="{Binding LabelSpellC}" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="0"/>
+			<Image Source="{Binding IconCompass}" Width="30" Height="30" Margin="2,0,2,0"/>
+			<Image Source="{Binding IconPosition}" Width="30" Height="30" Margin="2,0,2,0"/>
+			<Image Source="{Binding IconCondition}" Width="30" Height="30" Margin="0,0,2,0"/>
+			<Label Content="L" Margin="10,0,0,0"/>
+			<Label Content="{Binding LabelLHC}" MinWidth="60" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="0,0,10,0"/>
+			<Label Content="R" Margin="10,0,0,0"/>
+			<Label Content="{Binding LabelRHC}" MinWidth="60" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="0"/>
+			<Label Content="S" Margin="10,0,0,0"/>
+			<Label Content="{Binding LabelSpellC}" MinWidth="60" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="0"/>
 		</StackPanel>
 	</Grid>
 </UserControl>

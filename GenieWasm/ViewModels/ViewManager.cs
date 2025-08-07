@@ -776,6 +776,107 @@ public class ViewManager: INotifyPropertyChanged
         }
     }
 
+    #region Variables Changed that affect UI
+    public void EventVariableChanged(string sVariableName)
+    {
+        switch (sVariableName)
+        {
+            case "$health":
+            case "$mana":
+            case "$concentration":
+            case "$stamina":
+            case "$spirit":
+            case "compass":
+            case "$north":
+            case "$northeast":
+            case "$east":
+            case "$southeast":
+            case "$south":
+            case "$southwest":
+            case "$west":
+            case "$northwest":
+            case "$up":
+            case "$down":
+            case "$out":
+            case "$dead":
+            case "$standing":
+            case "$kneeling":
+            case "$sitting":
+            case "$prone":
+            case "$stunned":
+            case "$bleeding":
+            case "$invisible":
+            case "$hidden":
+            case "$joined":
+            case "$webbed":
+                NotifyPropertyChanged(sVariableName.TrimStart('$'));
+                break;
+
+            case "$connected":
+                {
+                    //string argsValue = Conversions.ToString(m_oGlobals.VariableList["connected"]);
+                    //bool bConnected = Utility.StringToBoolean(argsValue);
+                    //ComponentBarsHealth.IsConnected = bConnected;
+                    //ComponentBarsMana.IsConnected = bConnected;
+                    //ComponentBarsFatigue.IsConnected = bConnected;
+                    //ComponentBarsSpirit.IsConnected = bConnected;
+                    //ComponentBarsConc.IsConnected = bConnected;
+                    //IconBar.IsConnected = bConnected;
+                    //oRTControl.IsConnected = bConnected;
+                    //Castbar.IsConnected = bConnected;
+                    //m_CommandSent = false;
+                    //m_oGlobals.VariableList["charactername"] = m_oGame.AccountCharacter;
+                    //m_oGlobals.VariableList["game"] = m_oGame.AccountGame;
+                    //m_oGlobals.VariableList["gamename"] = m_oGame.AccountGame;
+                    //m_oAutoMapper.CharacterName = m_oGame.AccountCharacter;
+                    //m_sCurrentProfileName = m_oGame.AccountCharacter + m_oGame.AccountGame + ".xml";
+                    //m_oGame.ResetIndicators();
+                    //IconBar.UpdateStatusBox();
+                    //IconBar.UpdateStunned();
+                    //IconBar.UpdateBleeding();
+                    //IconBar.UpdateInvisible();
+                    //IconBar.UpdateHidden();
+                    //IconBar.UpdateJoined();
+                    //IconBar.UpdateWebbed();
+                    //if (m_oGame.IsConnectedToGame)
+                    //{
+                    //    if (!string.IsNullOrWhiteSpace(m_oGlobals.Config.ConnectScript)) ClassCommand_SendText(m_oGlobals.Config.ScriptChar + m_oGlobals.Config.ConnectScript, false, "Connected");
+                    //    if (m_oGlobals.VariableList.ContainsKey("connectscript")) ClassCommand_SendText(m_oGlobals.Config.ScriptChar + m_oGlobals.Config.ConnectScript, false, "Connected");
+                    //}
+                    //SafeUpdateMainWindowTitle();
+                    break;
+                }
+
+            case "$prompt": // Safety
+                {
+                    //                    IconBar.UpdateBleeding();
+                    break;
+                }
+
+            case "$charactername":
+                {
+                    //SafeUpdateMainWindowTitle();
+                    //m_oAutoMapper.CharacterName = m_oGlobals.VariableList["charactername"].ToString();
+                    //m_oGame.AccountCharacter = m_oGlobals.VariableList["charactername"].ToString();
+                    //if (m_oGlobals.VariableList["charactername"].ToString().Length > 0)
+                    //{
+                    //    m_sCurrentProfileName = m_oGame.AccountCharacter + m_oGame.AccountGame + ".xml";
+                    //}
+
+                    break;
+                }
+            /* TODO ERROR: Skipped IfDirectiveTrivia *//* TODO ERROR: Skipped DisabledTextTrivia *//* TODO ERROR: Skipped EndIfDirectiveTrivia */
+            case "$gamename":
+                {
+                    // SafeLoadProfile(oGlobals.VariableList("charactername").ToString & oGlobals.VariableList("gamename").ToString & ".xml", False)
+                    //                   SafeUpdateMainWindowTitle();
+                    break;
+                }
+        }
+    }
+    #endregion Variables Changed that affect UI
+
+
     #region Property Changed Notification
 
     // This method is called by the Set accessor of each property.

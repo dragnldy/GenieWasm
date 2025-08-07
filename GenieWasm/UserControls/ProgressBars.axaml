@@ -7,27 +7,28 @@
              x:Class="GenieWasm.ProgressBars">
 	<Grid ColumnDefinitions="*,*,*,*,*" RowDefinitions="auto,auto" Background="White">
 		<ProgressBar Grid.Column="0"  Margin="0" Height="16" Foreground="Red" HorizontalAlignment="Stretch"
-            Minimum="0" Maximum="100" Value="{Binding Health}"
+            Minimum="0" Maximum="100" Value="{Binding Health}"  
             ShowProgressText="False">
 		</ProgressBar>
-		<Label Grid.Column="0" Content="{Binding HealthPercent}" Background="Transparent" Foreground="Black" HorizontalAlignment="Center"/>
-
-			<ProgressBar  Grid.Column="1" Margin="0" Height="16" Foreground="Aqua" HorizontalAlignment="Stretch"
-                Minimum="0" Maximum="100" Value="{Binding Mana}"/>
-		<Label Grid.Column="1" Content="{Binding ManaPercent}" Background="Transparent" Foreground="Black" HorizontalAlignment="Center"/>
+		<Label BorderBrush="Red" MinWidth="60" Height="22" VerticalAlignment="Center"
+			Grid.Column="0" Content="{Binding HealthPercent}" Background="Transparent" Foreground="Black" HorizontalAlignment="Center"/>
+		<ProgressBar  Grid.Column="1" Margin="0" Height="16" Foreground="Aqua" HorizontalAlignment="Stretch"
+                Minimum="0" Maximum="100" Value="{Binding Mana}" MinWidth="60" BorderBrush="Aqua"/>
+		<Label BorderBrush="Aqua" MinWidth="60" Height="22" VerticalAlignment="Center"
+			Grid.Column="1" Content="{Binding ManaPercent}" Background="Transparent" Foreground="Black" HorizontalAlignment="Center"/>
 		
 		<ProgressBar  Margin="0" Height="16" Grid.Column="2" Foreground="Gray"
                 Minimum="0" Maximum="100" Value="{Binding Concentration}" HorizontalAlignment="Stretch"
-                ShowProgressText="False"/>
+                ShowProgressText="False" MinWidth="60" BorderBrush="Gray"/>
 		<Label Grid.Column="2" Content="{Binding ConcentrationPercent}" Background="Transparent" Foreground="Black" HorizontalAlignment="Center"/>
 		
 		<ProgressBar Grid.Column="3" Margin="0" Height="16" Foreground="Green" HorizontalAlignment="Stretch"
-                Minimum="0" Maximum="100" Value="{Binding Stamina}"
+                Minimum="0" Maximum="100" Value="{Binding Stamina}" MinWidth="60" BorderBrush="Green"
                 ShowProgressText="False"/>
 		<Label Grid.Column="3" Content="{Binding StaminaPercent}" Background="Transparent" Foreground="Black" HorizontalAlignment="Center"/>
 
 		<ProgressBar Grid.Column="4" Margin="0" Height="16" Foreground="Purple" HorizontalAlignment="Stretch"
-                Minimum="0" Maximum="100" Value="{Binding Spirit}"
+                Minimum="0" Maximum="100" Value="{Binding Spirit}" MinWidth="60" BorderBrush="Purple"
                 ShowProgressText="False"/>
 		<Label Grid.Column="4" Content="{Binding SpiritPercent}" Background="Transparent" Foreground="Black" HorizontalAlignment="Center"/>
 		
