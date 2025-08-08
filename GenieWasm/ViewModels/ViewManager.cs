@@ -36,10 +36,12 @@ public enum DefaultWindows
     ActiveSpells = 302,
     Conversations = 303,
     Whispers = 304,
-    Familiar = 350,
-    Log = 351,
-    Debug = 352,
-    Inventory = 399,
+    Familiar = 305,
+    Log = 306,
+    Debug = 307,
+    Other = 397,
+    Unknown = 398,
+    Inventory = 399
 }
 // Manages information flow between UI windows and core processes
 // Previous logic was based on Windows Forms framework
@@ -129,13 +131,20 @@ public class ViewManager: INotifyPropertyChanged
 
     public GameWindow? GetGameWindow(string id)
     {
-        if (GameWindows.ContainsKey(id)) return GameWindows[id];
-        return null;
+        if (string.IsNullOrEmpty(id)) id = AppGlobals.MainWindow;
+        if (id.Equals("main", StringComparison.OrdinalIgnoreCase))
+        {
+            id = AppGlobals.MainWindow;
+        }
+        string key = GameWindows.Keys.FirstOrDefault(n => n.Equals(id, StringComparison.OrdinalIgnoreCase));
+        if (string.IsNullOrEmpty(key)) return null; // No window found with the given ID
+            return GameWindows[key];
     }
     private bool isRunning = false;
     public void StartMessagePump()
     {
         isRunning = true;
+        string lastPanel = string.Empty;
         Task.Run(() =>
         {
             StringBuilder sb = new();
@@ -146,34 +155,34 @@ public class ViewManager: INotifyPropertyChanged
                 {
                     if (TextFunctions.ConcurrentTextMessageQueue.TryDequeue(out TextMessage textMessage))
                     {
+
+                        if (textMessage is null || string.IsNullOrEmpty(textMessage.Text)) continue;
                         if (textMessage is ExceptionMessage)
                         {
 
                         }
-                        if (textMessage is null || string.IsNullOrEmpty(textMessage.Text)) continue;
-                        if (!string.IsNullOrEmpty(targetPanel) || textMessage.TargetPanel == targetPanel)
-                        {
-                            targetPanel = textMessage.TargetPanel;
-                            sb.Append(textMessage.Text);
-                        }
+                        string testPanel = string.Empty;
+                        if (string.IsNullOrEmpty(textMessage.TargetPanel))
+                            testPanel = lastPanel;
                         else
-                        {
-                            if (!string.IsNullOrEmpty(targetPanel))
-                            {
-                                // Send the accumulated text to the previous target panel
-                                SendText(sb.ToString(), targetPanel);
-                            }
-                            // Clear the StringBuilder and set the new target panel
+                            testPanel = textMessage.TargetPanel;
+
+                        if (testPanel != lastPanel && sb.Length > 0)
+                        { 
+                            // Send the accumulated text to the previous target panel
+                            SendText(sb.ToString(), lastPanel);
                             sb.Clear();
-                            targetPanel = textMessage.TargetPanel;
-                            sb.Append(textMessage.Text);
                         }
+                        sb.Append(textMessage.Text);
+                        if (textMessage.Text.Contains(Environment.NewLine))
+                        {
+                            SendText(sb.ToString(), lastPanel);
+                            sb.Clear();
+                            lastPanel = string.Empty;
+                            continue;
+                        }
+                        lastPanel = testPanel;
                     }
-                }
-                if (sb.Length > 0)
-                {
-                    SendText(sb.ToString(), targetPanel);
-                    sb.Clear();
                 }
                 Thread.Sleep(100); // Wait a second before checking the queue again
             }
@@ -181,15 +190,17 @@ public class ViewManager: INotifyPropertyChanged
 
     }
 
-    StringBuilder sb = new();
     public void SendText(string message, string destWindow)
     {
         GameWindow? game = GetGameWindow(destWindow);
         if (game is null) return;
 
-        sb.Append(message);
         Dispatcher.UIThread.Post(() =>
         {
+            if (game.GameWindowName != AppGlobals.MainWindow && game.GameWindowName != "Log")
+            {
+
+            }
             // Update the UI element (e.g., a TextBlock)
             game.BodyContent += message;
             game.NotifyPropertyChanged("BodyContent");
@@ -445,7 +456,7 @@ public class ViewManager: INotifyPropertyChanged
         //    FormSkin oFormSkin = null;
         //    if (sWindow.Length > 0)
         //    {
-        //        if ((sWindow.ToLower() ?? "") != "game" & (sWindow.ToLower() ?? "") != MainWindow)
+        //        if ((sWindow.ToLower() ?? "") != AppGlobals.MainWindow & (sWindow.ToLower() ?? "") != MainWindow)
         //        {
         //            var oEnumerator = m_oFormList.GetEnumerator();
         //            while (oEnumerator.MoveNext())
@@ -498,7 +509,7 @@ public class ViewManager: INotifyPropertyChanged
         //    FormSkin oFormSkin = null;
         //    if (sWindow.Length > 0)
         //    {
-        //        if ((sWindow.ToLower() ?? "") != "game" & (sWindow.ToLower() ?? "") != MainWindow)
+        //        if ((sWindow.ToLower() ?? "") != AppGlobals.MainWindow & (sWindow.ToLower() ?? "") != MainWindow)
         //        {
         //            var oEnumerator = m_oFormList.GetEnumerator();
         //            while (oEnumerator.MoveNext())
@@ -663,9 +674,9 @@ public class ViewManager: INotifyPropertyChanged
     //    }
     //}
 
-    private GameWindow? FindGameWindow(WindowTarget? eTargetWindow = WindowTarget.Main, string sTargetWindow="")
+    private GameWindow? FindGameWindow(string sTargetWindow="")
     {
-        if (string.IsNullOrEmpty(sTargetWindow)) sTargetWindow = eTargetWindow?.ToString();
+        if (string.IsNullOrEmpty(sTargetWindow)) sTargetWindow = AppGlobals.MainWindow;
         GameWindow? oFormTarget = GetGameWindow(sTargetWindow);
         oFormTarget = oFormTarget ??= GetGameWindow(AppGlobals.MainWindow);
 
@@ -689,7 +700,7 @@ public class ViewManager: INotifyPropertyChanged
 
     public void AddImage(string sImageFileName, string sTargetWindow, int width, int height)
     {
-        GameWindow? oTargetWindow = FindGameWindow(WindowTarget.Portrait, sTargetWindow);
+        GameWindow? oTargetWindow = FindGameWindow("portrait");
         AddImage(sImageFileName, oTargetWindow, width, height);
     }
     //public void AddImage(string sImageFileName, WindowTarget? oTargetWindow = WindowTarget.Portrait,
@@ -701,7 +712,7 @@ public class ViewManager: INotifyPropertyChanged
     public int GetWindowLocation(string sWindow)
     {
         int maxLocation = 0;
-        foreach (var windowLoc in Enum.GetValues(typeof(WindowTarget)))
+        foreach (var windowLoc in Enum.GetValues(typeof(DefaultWindows)))
         {
             if (windowLoc.ToString().Equals(sWindow, StringComparison.OrdinalIgnoreCase))
             {
@@ -734,14 +745,14 @@ public class ViewManager: INotifyPropertyChanged
                     // width=300 , height=200, top=10, left=10, isVisible=false
 
                     string argsText = $"Created new window: {sTitle.ToString()} {System.Environment.NewLine}";
-                    WindowTarget argoTargetWindow = WindowTarget.Main;
-                    TextFunctions.EchoText(argsText, "Game");
+                    string argoTargetWindow = AppGlobals.MainWindow;
+                    TextFunctions.EchoText(argsText, AppGlobals.MainWindow);
                 }
                 else if (Information.IsNothing(fo.IfClosed) & !Information.IsNothing(sIfClosed))
                 {
                     fo.IfClosed = (bool)sIfClosed;
                     string argsText1 = Conversions.ToString("Altered window: " + sTitle + System.Environment.NewLine);
-                    TextFunctions.EchoText(argsText1, "Game");
+                    TextFunctions.EchoText(argsText1, AppGlobals.MainWindow);
                 }
             });
         }
@@ -819,7 +830,7 @@ public class ViewManager: INotifyPropertyChanged
                     //Castbar.IsConnected = bConnected;
                     //m_CommandSent = false;
                     //m_oGlobals.VariableList["charactername"] = m_oGame.AccountCharacter;
-                    //m_oGlobals.VariableList["game"] = m_oGame.AccountGame;
+                    //m_oGlobals.VariableList[AppGlobals.MainWindow] = m_oGame.AccountGame;
                     //m_oGlobals.VariableList["gamename"] = m_oGame.AccountGame;
                     //m_oAutoMapper.CharacterName = m_oGame.AccountCharacter;
                     //m_sCurrentProfileName = m_oGame.AccountCharacter + m_oGame.AccountGame + ".xml";

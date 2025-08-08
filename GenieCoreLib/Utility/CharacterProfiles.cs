@@ -164,7 +164,7 @@ public class CharacterProfiles
             }
             profile.Account = config.GetValue("Genie/Profile", "Account", string.Empty);
             profile.Character = config.GetValue("Genie/Profile", "Character", string.Empty);
-            profile.Game = config.GetValue("Genie/Profile", "Game", string.Empty);
+            profile.Game = config.GetValue("Genie/Profile", AppGlobals.MainWindow, string.Empty);
             profile.EncryptedPassword = config.GetValue("Genie/Profile", "Password", string.Empty);
             profile.Layout = config.GetValue("Genie/Profile/Layout", "FileName", string.Empty);
 

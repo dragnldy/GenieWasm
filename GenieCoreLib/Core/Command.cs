@@ -322,7 +322,7 @@ public class Command
                                             else
                                             {
                                                 string sTargetChar = Conversions.ToString(Variables.Instance["charactername"]);
-                                                string sGameName = Conversions.ToString(Variables.Instance["game"]);
+                                                string sGameName = Conversions.ToString(Variables.Instance[AppGlobals.MainWindow]);
                                                 sLogText = Globals.ParseGlobalVars(ParseAllArgs(oArgs, 1, false));
                                                 Log.LogText(sLogText + System.Environment.NewLine, sTargetChar, sGameName);
                                             }

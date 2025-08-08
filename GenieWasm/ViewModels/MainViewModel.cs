@@ -53,7 +53,7 @@ public partial class MainViewModel : ViewModelBase, INotifyPropertyChanged
             catch (Exception ex)
             {
                 // Handle any exceptions that occur during dialog display
-                TextFunctions.EchoText($"Error showing connect dialog: {ex.Message}", "Game");
+                TextFunctions.EchoText($"Error showing connect dialog: {ex.Message}", AppGlobals.MainWindow);
             }
         });
     }
@@ -92,13 +92,13 @@ public partial class MainViewModel : ViewModelBase, INotifyPropertyChanged
                 var result = await dialog.ShowDialog<ConnectionRequest>((Window)m_MainView.GetVisualRoot());
                 if (result is not null && result.IsValid && GameConnection.Instance.IsConnectedToGame)
                 {
-                    TextFunctions.EchoNewLine("Connected successfully", "Game");
+                    TextFunctions.EchoNewLine("Connected successfully", AppGlobals.MainWindow);
                 }
                 else
                 {
                     // Dialog returned false (e.g., "Cancel" was clicked)
                     // Handle connection failure logic here
-                    TextFunctions.EchoNewLine("Connection failed", "Game");
+                    TextFunctions.EchoNewLine("Connection failed", AppGlobals.MainWindow);
                 }
             });
         }

@@ -6,9 +6,10 @@ using System.Text.RegularExpressions;
 using System.Xml;
 
 namespace GenieCoreLib;
-public enum WindowTarget
+public enum WindowTargetxx
 {
     Unknown,
+    Game,
     Combat,
     Portrait,
     Main,
@@ -151,7 +152,6 @@ public class Game : IGame
     // private Match m_oRegMatch;
     private Hashtable m_oIndicatorHash = new Hashtable();
     private Hashtable m_oCompassHash = new Hashtable();
-    private WindowTarget m_oTargetWindow = WindowTarget.Main;
     private string m_sTargetWindow = string.Empty;
     private bool m_bIgnoreXMLDepth = false;
     private object m_oThreadLock = new object(); // Thread safety
@@ -309,7 +309,7 @@ public class Game : IGame
 
         if (ConfigSettings.Instance.AutoLog == true)
         {
-            Log.LogText(sShowText + System.Environment.NewLine, Conversions.ToString(Variables.Instance["charactername"]), Conversions.ToString(Variables.Instance["game"]));
+            Log.LogText(sShowText + System.Environment.NewLine, Conversions.ToString(Variables.Instance["charactername"]), Conversions.ToString(Variables.Instance[AppGlobals.MainWindow]));
         }
     }
 
@@ -348,7 +348,7 @@ public class Game : IGame
 
         if (m_bShowRawOutput == true)
         {
-            PrintTextToWindow(sText, Color.LightGray, Color.Black, WindowTarget.Raw);
+            PrintTextToWindow(sText, Color.LightGray, Color.Black, "raw");
         }
 
         foreach (char c in sText)
@@ -403,7 +403,7 @@ public class Game : IGame
                                 Globals.Instance.VolatileHighlights.Add(new VolatileHighlight(sTmp, presetLabel, sTextBuffer.Length));
                                 if(presetLabel == "roomdesc")
                                 {
-                                    PrintTextWithParse(sTmp, bIsPrompt: false, oWindowTarget: 0);
+                                    PrintTextWithParse(sTmp, bIsPrompt: false);
                                     sTmp = string.Empty;
                                 }
                             }
@@ -427,8 +427,7 @@ public class Game : IGame
                                     m_bBold = false;
                                     string argsText = sTextBuffer + System.Environment.NewLine;
                                     bool argbIsPrompt = false;
-                                    WindowTarget argoWindowTarget = 0;
-                                    PrintTextWithParse(argsText, bIsPrompt: argbIsPrompt, oWindowTarget: argoWindowTarget);
+                                    PrintTextWithParse(argsText, bIsPrompt: argbIsPrompt);
                                     m_bBold = true;
                                     sTextBuffer = string.Empty;
                                     iBoldIndex = sTextBuffer.Length;
@@ -583,15 +582,15 @@ public class Game : IGame
             // Fix for broke familiar XML
             if (m_bFamiliarLineParse)
             {
-                if (m_oTargetWindow == WindowTarget.Other)
+                if (m_sTargetWindow == "other")
                 {
                     sTextBuffer = "";
                 }
                 else
                 {
-                    if (m_oTargetWindow == WindowTarget.Main)
+                    if (m_sTargetWindow == AppGlobals.MainWindow)
                     {
-                        m_oTargetWindow = WindowTarget.Familiar;
+                        m_sTargetWindow = "familiar";
                     }
 
                     m_bFamiliarLineParse = false;
@@ -715,7 +714,7 @@ public class Game : IGame
                 if (m_bUpdatingRoom == false)
                 {
                     // ClearWindow(WindowTarget.Room)
-                    WindowTarget targetRoom = WindowTarget.Room;
+                    string targetRoom = "room";
                     PrintTextToWindow("@suspend@", Color.Transparent, Color.Transparent, targetRoom, false, true);
                     if (Strings.Len(m_sRoomTitle) > 0)
                     {
@@ -734,7 +733,7 @@ public class Game : IGame
                     {
                         string argsText2 = m_sRoomDesc + System.Environment.NewLine;
                         bool argbIsRoomOutput2 = true;
-                        PrintTextWithParse(argsText2, Presets.Instance["roomdesc"].FgColor, Presets.Instance["roomdesc"].BgColor, false, WindowTarget.Room, argbIsRoomOutput2);
+                        PrintTextWithParse(argsText2, Presets.Instance["roomdesc"].FgColor, Presets.Instance["roomdesc"].BgColor, false, "room", argbIsRoomOutput2);
                     }
 
                     if (Strings.Len(m_sRoomObjs) > 0)
@@ -768,7 +767,7 @@ public class Game : IGame
                         PrintTextWithParse(argsText5, Color.Transparent, Color.Transparent, false, targetRoom, argbIsRoomOutput5);
                     }
 
-                    PrintTextToWindow("@resume@", Color.Transparent, Color.Transparent, WindowTarget.Room, false, true);
+                    PrintTextToWindow("@resume@", Color.Transparent, Color.Transparent, "room", false, true);
                 }
                 else
                 {
@@ -894,70 +893,53 @@ public class Game : IGame
                     }
                 case "streamWindow":	// Window Names
                     {
-                        var switchExpr2 = GetAttributeData(oXmlNode, "id");
-                        switch (switchExpr2)
+                        var id = GetAttributeData(oXmlNode, "id");
+                        if (id == "room")
                         {
-                            case "main":
-                            case "game":
-                            case "inv":
-                            case "familiar":
-                            case "thoughts":
-                            case "logons":
-                            case "death":
-                            case "whispers":
-                            case "assess":
-                            case "room":
+                            m_sRoomUid = "0";
+
+                            string argstrAttributeName4 = "subtitle";
+                            m_sRoomTitle = GetAttributeData(oXmlNode, argstrAttributeName4);
+
+                            // If flag showroomid is off then roomtitle is presented as [xxxx,xxxx]
+                            // if flag showroomid is on and room has a DR applied id number, then roomtitle is presented as [xxxx,xxxx] (ddddd)
+                            // if flag showroomid is on and room has NOT DR applied id number, then roomtitle is presented as [xxxx,xxxx] (**)
+
+                            System.Text.RegularExpressions.Match o_Match = m_RoomNameRegex.Match(m_sRoomTitle);
+                            if (o_Match.Success)
+                            {
+                                m_sRoomTitle = o_Match.Groups["roomname"].Value;
+                                if (o_Match.Groups["roomuid"].Success && !o_Match.Groups["roomuid"].Value.Equals("**"))
                                 {
-                                    m_sRoomUid = "0";
-
-                                    string argstrAttributeName4 = "subtitle";
-                                    m_sRoomTitle = GetAttributeData(oXmlNode, argstrAttributeName4);
-
-                                    // If flag showroomid is off then roomtitle is presented as [xxxx,xxxx]
-                                    // if flag showroomid is on and room has a DR applied id number, then roomtitle is presented as [xxxx,xxxx] (ddddd)
-                                    // if flag showroomid is on and room has NOT DR applied id number, then roomtitle is presented as [xxxx,xxxx] (**)
-
-                                    System.Text.RegularExpressions.Match o_Match = m_RoomNameRegex.Match(m_sRoomTitle);
-                                    if (o_Match.Success)
-                                    {
-                                        m_sRoomTitle = o_Match.Groups["roomname"].Value;
-                                        if (o_Match.Groups["roomuid"].Success && !o_Match.Groups["roomuid"].Value.Equals("**"))
-                                        {
-                                            m_sRoomUid = o_Match.Groups["roomuid"].Value;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        if (m_sRoomTitle.StartsWith(" - "))
-                                        {
-                                            m_sRoomTitle = m_sRoomTitle.Substring(3);
-                                        }
-
-                                        if (m_sRoomTitle.StartsWith("["))
-                                        {
-                                            m_sRoomTitle = m_sRoomTitle.Substring(1, m_sRoomTitle.Length - 2);
-                                        }
-
-                                        m_sRoomTitle = m_sRoomTitle.Trim();
-                                    }
-                                    string argkey1 = "roomname";
-                                    Variables.Instance.Add(argkey1, m_sRoomTitle, Variables.VariablesType.Reserved);
-                                    string argsVariable1 = "$roomname";
-                                    VariableChanged(argsVariable1);
-
-                                    string argkey2 = "uid";
-                                    Variables.Instance.Add(argkey2, m_sRoomUid, Variables.VariablesType.Reserved);
-                                    string argsVariable2 = "$uid";
-                                    VariableChanged(argsVariable2);
-
-                                    m_bUpdatingRoom = true;
-                                    break;
+                                    m_sRoomUid = o_Match.Groups["roomuid"].Value;
+                                }
+                            }
+                            else
+                            {
+                                if (m_sRoomTitle.StartsWith(" - "))
+                                {
+                                    m_sRoomTitle = m_sRoomTitle.Substring(3);
                                 }
 
-                            default:
+                                if (m_sRoomTitle.StartsWith("["))
                                 {
-                                    break;
+                                    m_sRoomTitle = m_sRoomTitle.Substring(1, m_sRoomTitle.Length - 2);
                                 }
+
+                                m_sRoomTitle = m_sRoomTitle.Trim();
+                            }
+                            string argkey1 = "roomname";
+                            Variables.Instance.Add(argkey1, m_sRoomTitle, Variables.VariablesType.Reserved);
+                            string argsVariable1 = "$roomname";
+                            VariableChanged(argsVariable1);
+
+                            string argkey2 = "uid";
+                            Variables.Instance.Add(argkey2, m_sRoomUid, Variables.VariablesType.Reserved);
+                            string argsVariable2 = "$uid";
+                            VariableChanged(argsVariable2);
+
+                            m_bUpdatingRoom = true;
+                            break;
                         }
 
                         string argstrAttributeName10 = "target";
@@ -993,152 +975,49 @@ public class Game : IGame
 
                 case "pushStream": // Output to Window
                     {
-                        m_sTargetWindow = string.Empty;
-                        string argstrAttributeName13 = "id";
-                        var switchExpr3 = GetAttributeData(oXmlNode, argstrAttributeName13);
-                        switch (switchExpr3)
+                        m_sTargetWindow = GetAttributeData(oXmlNode, "id");
+                        // Perform any required translations
+                        switch (m_sTargetWindow)
                         {
-                            case "combat":
-                                {
-                                    m_oTargetWindow = WindowTarget.Combat;
-                                    break;
-                                }
                             case "main":
-                            case "game":
                                 {
-                                    m_oTargetWindow = WindowTarget.Main;
-                                    break;
-                                }
-
-                            case "inv":
-                                {
-                                    m_oTargetWindow = WindowTarget.Inv;
-                                    break;
-                                }
-
-                            case "familiar":
-                                {
-                                    m_oTargetWindow = WindowTarget.Familiar;
-                                    m_bFamiliarLineParse = true;
-                                    break;
-                                }
-
-                            case "thoughts":
-                                {
-                                    m_oTargetWindow = WindowTarget.Thoughts;
-                                    break;
-                                }
-
-                            case "logons":
-                                {
-                                    m_oTargetWindow = WindowTarget.Logons;
-                                    break;
-                                }
-
-                            case "death":
-                                {
-                                    m_oTargetWindow = WindowTarget.Death;
-                                    break;
-                                }
-
-                            case "room":
-                                {
-                                    m_oTargetWindow = WindowTarget.Room;
-                                    break;
-                                }
-                            case "debug":
-                                {
-                                    m_oTargetWindow = WindowTarget.Debug;
+                                    m_sTargetWindow = AppGlobals.MainWindow;
                                     break;
                                 }
 
                             case "percWindow":
                                 {
-                                    m_oTargetWindow = WindowTarget.ActiveSpells;
+                                    m_sTargetWindow = "activespells";
                                     break;
                                 }
 
                             default:
                                 {
-                                    m_oTargetWindow = WindowTarget.Other;
-                                    string argstrAttributeName12 = "id";
-                                    m_sTargetWindow = GetAttributeData(oXmlNode, argstrAttributeName12);
                                     break;
                                 }
                         }
-
                         break;
                     }
 
                 case "popStream": // Output to Default Window
                     {
-                        if (m_oTargetWindow == WindowTarget.Inv)
+                        if (m_sTargetWindow == "inv")
                         {
-                            PrintTextToWindow("@resume@", default, default, WindowTarget.Inv);
+                            PrintTextToWindow("@resume@", default, default, "inv");
                         }
-
-                        m_oTargetWindow = WindowTarget.Main;
+                        m_sTargetWindow = AppGlobals.MainWindow;
                         break;
                     }
 
                 case "stream":
                     {
-                        string argstrAttributeName14 = "id";
-                        var switchExpr4 = GetAttributeData(oXmlNode, argstrAttributeName14);
-                        switch (switchExpr4)
+                        var target = GetAttributeData(oXmlNode, "id");
+                        if (target == "thoughts")
                         {
-                            case "game":
-                            case "main":
-                                {
-                                    break;
-                                }
-
-                            case "inv":
-                                {
-                                    break;
-                                }
-
-                            case "familiar":
-                                {
-                                    break;
-                                }
-
-                            case "thoughts":
-                                {
-                                    string argsText = GetTextFromXML(oXmlNode) + System.Environment.NewLine;
-                                    bool argbIsRoomOutput = false;
-                                    WindowTarget windowTarget = WindowTarget.Thoughts;
-                                    PrintTextWithParse(argsText, Presets.Instance["thoughts"].FgColor, Presets.Instance["thoughts"].BgColor, false, windowTarget, bIsRoomOutput: argbIsRoomOutput);
-                                    break;
-                                }
-
-                            case "logons":
-                                {
-                                    break;
-                                }
-
-                            case "death":
-                                {
-                                    break;
-                                }
-
-                            case "debug":
-                                {
-                                    break;
-                                }
-
-                            case "room":
-                                {
-                                    break;
-                                }
-
-                            default:
-                                {
-                                    break;
-                                }
-                                /* TODO ERROR: Skipped IfDirectiveTrivia *//* TODO ERROR: Skipped DisabledTextTrivia *//* TODO ERROR: Skipped EndIfDirectiveTrivia */
+                            string argsText = GetTextFromXML(oXmlNode) + System.Environment.NewLine;
+                            bool argbIsRoomOutput = false;
+                            PrintTextWithParse(argsText, Presets.Instance["thoughts"].FgColor, Presets.Instance["thoughts"].BgColor, false, "thoughts", bIsRoomOutput: argbIsRoomOutput);
                         }
-
                         break;
                     }
 
@@ -1344,7 +1223,7 @@ public class Game : IGame
                         {
                             Variables.Instance.Add("charactername", temp, Variables.VariablesType.Reserved);
                             VariableChanged("$charactername");
-                            string gameName = GetAttributeData(oXmlNode, "game");
+                            string gameName = GetAttributeData(oXmlNode, AppGlobals.MainWindow);
                             gameName = gameName.Replace(":", "").Replace(" ", "");
                             Variables.Instance.Add("gamename", gameName, Variables.VariablesType.Reserved);
                             VariableChanged("$gamename");
@@ -1558,9 +1437,8 @@ public class Game : IGame
                                 strBuffer = strBuffer.Replace(ConfigSettings.Instance.Prompt.Trim(), "");
                                 strBuffer += ConfigSettings.Instance.Prompt;
                                 bool argbIsPrompt = true;
-                                WindowTarget argoWindowTarget = 0;
                                 //Status prompt set from the XML printing to main/game 
-                                PrintTextWithParse(strBuffer, argbIsPrompt, oWindowTarget: argoWindowTarget);
+                                PrintTextWithParse(strBuffer, argbIsPrompt);
                             }
 
                             Variables.Instance.Add("prompt", strBuffer, Variables.VariablesType.Reserved);
@@ -2053,20 +1931,19 @@ public class Game : IGame
 
     private MatchCollection m_oMatchCollection;
 
-    public void PrintTextWithParse(string sText, bool bIsPrompt = false, WindowTarget oWindowTarget = WindowTarget.Unknown)
+    public void PrintTextWithParse(string sText, bool bIsPrompt = false, string sWindow = "game")
     {
-        bool argbIsRoomOutput = false;
-        PrintTextWithParse(sText, default, default, bIsPrompt, oWindowTarget, bIsRoomOutput: argbIsRoomOutput);
+        PrintTextWithParse(sText, default, default, bIsPrompt, sWindow);
     }
 
-    public void PrintTextWithParse(string sText, Color color, Color bgcolor, bool bIsPrompt = false, WindowTarget oWindowTarget = WindowTarget.Unknown, bool bIsRoomOutput = false)
+    public void PrintTextWithParse(string sText, Color color, Color bgcolor, bool bIsPrompt = false, string sWindowTarget="game", bool bIsRoomOutput = false)
     {
         
         if (sText.Trim().Length > 0)
         {
             if (sText.StartsWith("  You also see"))
             {
-                PrintTextToWindow(Environment.NewLine, color, bgcolor, oWindowTarget, bIsPrompt, true);
+                PrintTextToWindow(Environment.NewLine, color, bgcolor, sWindowTarget, bIsPrompt, true);
                 sText = sText.TrimStart();
             }
 
@@ -2162,111 +2039,24 @@ public class Game : IGame
             }
         }
 
-        if (oWindowTarget == WindowTarget.Unknown)
-        {
-            oWindowTarget = m_oTargetWindow;
-        }
-        PrintTextToWindow(sText, color, bgcolor, oWindowTarget, bIsPrompt, bIsRoomOutput);
+        PrintTextToWindow(sText, color, bgcolor, sWindowTarget, bIsPrompt, bIsRoomOutput);
         
     }
 
     private Color m_oLastFgColor = default;
     private Color m_oEmptyColor = default;
 
-    public void PrintTextToWindow(string text, Color color, Color bgcolor, WindowTarget targetwindow = WindowTarget.Main, bool isprompt = false, bool isroomoutput = false)
+    public void PrintTextToWindow(string text, Color color, Color bgcolor, string stargetwindow = "game", bool isprompt = false, bool isroomoutput = false)
     {
         if (text.Length == 0 || (!isroomoutput && ConfigSettings.Instance.Condensed && text.Trim().Length == 0))
         {
             return;
         }
 
-        string sTargetWindowString = string.Empty;
-        var switchExpr = targetwindow;
-        switch (switchExpr)
+        string sTargetWindowString = stargetwindow?.ToLower() ?? AppGlobals.MainWindow.ToLower();
+        if (sTargetWindowString == "main")
         {
-            case WindowTarget.Main:
-                {
-                    sTargetWindowString = AppGlobals.MainWindow;
-                    break;
-                }
-
-            case WindowTarget.Death:
-                {
-                    sTargetWindowString = "death";
-                    break;
-                }
-
-            case WindowTarget.Combat:
-                {
-                    sTargetWindowString = "combat";
-                    break;
-                }
-            case WindowTarget.Portrait:
-                {
-                    sTargetWindowString = "portrait";
-                    break;
-                }
-            case WindowTarget.Familiar:
-                {
-                    sTargetWindowString = "familiar";
-                    break;
-                }
-
-            case WindowTarget.Inv:
-                {
-                    sTargetWindowString = "inv";
-                    break;
-                }
-
-            case WindowTarget.Log:
-                {
-                    sTargetWindowString = "log";
-                    break;
-                }
-
-            case WindowTarget.Logons:
-                {
-                    sTargetWindowString = "logons";
-                    break;
-                }
-
-            case WindowTarget.Room:
-                {
-                    sTargetWindowString = "room";
-                    break;
-                }
-
-            case WindowTarget.Thoughts:
-                {
-                    sTargetWindowString = "thoughts";
-                    break;
-                }
-
-            case WindowTarget.Raw:
-                {
-                    sTargetWindowString = "raw";
-                    m_sTargetWindow = "raw";
-                    targetwindow = WindowTarget.Other;
-                    break;
-                }
-            case WindowTarget.Debug:
-                {
-                    sTargetWindowString = "debug";
-                    break;
-                }
-
-            case WindowTarget.ActiveSpells:
-                {
-                    sTargetWindowString = "percwindow";
-                    break;
-                }
-
-            case WindowTarget.Other:
-                {
-                   // Debug.Write("Target Window is " + targetwindow.ToString());
-                    sTargetWindowString = m_sTargetWindow.ToLower();
-                    break;
-                }
+            sTargetWindowString = AppGlobals.MainWindow;
         }
 
         text = ParsePluginText(text, sTargetWindowString);
@@ -2275,21 +2065,73 @@ public class Game : IGame
             return;
         }
 
-        if (targetwindow != WindowTarget.Room & targetwindow != WindowTarget.Inv & targetwindow != WindowTarget.Log & text.Trim().Length > 0)
+        if (sTargetWindowString != "room" && sTargetWindowString != "inv" &
+            sTargetWindowString != "log" & text.Trim().Length > 0)
         {
-            if (ConfigSettings.Instance.ParseGameOnly == false | targetwindow == WindowTarget.Main)
+            if (!ConfigSettings.Instance.ParseGameOnly || stargetwindow == AppGlobals.MainWindow)
             {
                 string argsText = Utility.Trim(text);
                 TriggerParse(argsText);
             }
         }
 
-        if (targetwindow == WindowTarget.Room & isroomoutput == false) // Skip all other text to room window
+        if (sTargetWindowString == "room" & isroomoutput == false) // Skip all other text to room window
         {
             return;
         }
+        text = ProcessGags(text, sTargetWindowString);
+        text = ParseSubstitutions(text);
+        text = ParseRegExp(text);
 
-        if (ConfigSettings.Instance.GagsEnabled == true && targetwindow != WindowTarget.Thoughts)
+        if (sTargetWindowString == AppGlobals.MainWindow)
+        {
+            bool isEmpty = text.Trim().Length == 0;
+            if (isEmpty && (m_bLastRowWasBlank || m_bLastRowWasPrompt))
+            {
+                return;
+            }
+            m_bLastRowWasBlank = isEmpty;
+        }
+
+        if (sTargetWindowString == AppGlobals.MainWindow || sTargetWindowString == "thoughts" || sTargetWindowString == "combat")
+        {
+            if (ConfigSettings.Instance.AutoLog == true)
+            {
+                Log.LogText(text, Globals.Instance.CharacterName, Globals.Instance.GameName);
+            }
+        }
+
+        if (text.Trim().StartsWith("Invalid login key."))
+        {
+            GameConnection.Instance.ReconnectTime = default;
+            GameConnection.Instance.ManualDisconnect = true;
+        }
+
+        if (color == m_oEmptyColor | color == Color.Transparent)
+        {
+            if (m_oLastFgColor != m_oEmptyColor)
+            {
+                color = m_oLastFgColor;
+            }
+        }
+
+        if (text.EndsWith(System.Environment.NewLine) | text.StartsWith(System.Environment.NewLine))
+        {
+            m_oLastFgColor = default;
+        }
+
+        if (stargetwindow == "familiar")
+        {
+            color = Presets.Instance["familiar"].FgColor;
+            bgcolor = Presets.Instance["familiar"].BgColor;
+        }
+
+        TextFunctions.EchoFormattedText(text, stargetwindow, color, bgcolor, isMono: m_bMonoOutput, isItalic: isprompt);
+    }
+
+    private string ProcessGags(string text, string targetwindow)
+    {
+        if (ConfigSettings.Instance.GagsEnabled && targetwindow != "thoughts")
         {
             // Gag List
             if (GagRegExp.Instance.AcquireReaderLock())
@@ -2302,7 +2144,7 @@ public class Game : IGame
                         {
                             if (sl.RegexGag.Match(Utility.Trim(text)).Success == true)
                             {
-                                return;
+                                return string.Empty;
                             }
                         }
                     }
@@ -2317,9 +2159,11 @@ public class Game : IGame
                 SendGenieError("PrintTextToWindow", "Unable to aquire reader lock.");
             }
         }
-
-        text = ParseSubstitutions(text);
-        if (0 == 1)//(text.Trim().Length > 0)
+        return text;
+    }
+    private string ParseRegExp(string text)
+    {
+        if (text.Trim().Length > 0)
         {
             // Substitute Lists Switch this to text = ParseSubstrings(text) so theres only one place subs are processed at
             if (SubstituteRegExp.Instance.AcquireReaderLock())
@@ -2359,70 +2203,9 @@ public class Game : IGame
             }
         }
 
-        if (targetwindow == WindowTarget.Main)
-        {
-            if (text.Trim().Length == 0)
-            {
-                if (m_bLastRowWasBlank == true | m_bLastRowWasPrompt == true)
-                {
-                    return;
-                }
-
-                m_bLastRowWasBlank = true;
-            }
-            else
-            {
-                m_bLastRowWasBlank = false;
-            }
-        }
-
-        if (targetwindow == WindowTarget.Main | targetwindow == WindowTarget.Thoughts | targetwindow == WindowTarget.Combat)
-        {
-            if (ConfigSettings.Instance.AutoLog == true)
-            {
-                Log.LogText(text, Conversions.ToString(Variables.Instance["charactername"]), Conversions.ToString(Variables.Instance["game"]));
-                //if (m_bLastRowWasPrompt == true)
-                //{
-                //    Globals.Instance.Log?.LogText(text + System.Environment.NewLine, Conversions.ToString(Variables.Instance["charactername"]), Conversions.ToString(Variables.Instance["game"]));
-                //}
-
-                //     Globals.Instance.Log.LogText(text, Conversions.ToString(Variables.Instance["charactername"]), Conversions.ToString(Variables.Instance["game"]));
-            }
-        }
-
-        if (text.Trim().StartsWith("Invalid login key."))
-        {
-            GameConnection.Instance.ReconnectTime = default;
-            GameConnection.Instance.ManualDisconnect = true;
-        }
-
-        if (color == m_oEmptyColor | color == Color.Transparent)
-        {
-            if (m_oLastFgColor != m_oEmptyColor)
-            {
-                color = m_oLastFgColor;
-            }
-        }
-
-        if (text.EndsWith(System.Environment.NewLine) | text.StartsWith(System.Environment.NewLine))
-        {
-            m_oLastFgColor = default;
-        }
-
-        string targetwindowstring = string.Empty;
-        if (targetwindow == WindowTarget.Other)
-        {
-            targetwindowstring = m_sTargetWindow;
-        }
-
-        if (targetwindow == WindowTarget.Familiar)
-        {
-            color = Presets.Instance["familiar"].FgColor;
-            bgcolor = Presets.Instance["familiar"].BgColor;
-        }
-
-        TextFunctions.EchoFormattedText(text, targetwindowstring, color, bgcolor, isMono: m_bMonoOutput, isItalic: isprompt);
+        return text;
     }
+
     private String ParseSubstitutions(string text)
     {
         if (text.Trim().Length > 0)
@@ -2522,7 +2305,7 @@ public class Game : IGame
     // Skip all blank line/prompt checks and just print it
     public void PrintInputText(string sText, Color oColor, Color oBgColor)
     {
-        TextFunctions.EchoFormattedText(sText, "Game", oColor, oBgColor);
+        TextFunctions.EchoFormattedText(sText, AppGlobals.MainWindow, oColor, oBgColor);
     }
 
     private void AddImage(string filename, string window = "")

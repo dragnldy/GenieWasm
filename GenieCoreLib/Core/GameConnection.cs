@@ -131,7 +131,7 @@ public class GameConnection
         }
         LastUserActivity = DateTime.Now;
         Variables.Instance["charactername"] = Profile.Character;
-        Variables.Instance["game"] = Profile.Game;
+        Variables.Instance[AppGlobals.MainWindow] = Profile.Game;
         Variables.Instance["account"] = Profile.Account.ToUpper();
         IsLich = isLich;
         if (isTesting)

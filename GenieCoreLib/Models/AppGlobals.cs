@@ -16,7 +16,7 @@ public static class AppGlobals
     public static int Port = 0;
     public static string Host = "";
     public static string SourceFile = "";
-    public static string MainWindow = "Game";
+    public static string MainWindow = "game";
     public static bool IsLocalServer() 
         { return Host.Equals("localhost", StringComparison.OrdinalIgnoreCase) || Host.Equals("127.0.0.1"); }
 }

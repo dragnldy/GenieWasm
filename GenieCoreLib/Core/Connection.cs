@@ -645,13 +645,13 @@ public class Connection
 
     private void PrintText(string sText)
     {
-        TextFunctions.EchoNewLine(sText, "Game");
+        TextFunctions.EchoNewLine(sText, AppGlobals.MainWindow);
         EventDataRecieveEnd?.Invoke();
     }
 
     private void PrintError(string sText)
     {
-        TextFunctions.EchoError(sText, "Game");
+        TextFunctions.EchoError(sText, AppGlobals.MainWindow);
         EventDataRecieveEnd?.Invoke();
     }
 

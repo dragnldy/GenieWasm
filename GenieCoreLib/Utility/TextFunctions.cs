@@ -6,12 +6,12 @@ namespace GenieCoreLib;
 public class TextMessage
 {
     public string Text { get; set; } = string.Empty;
-    public string TargetPanel { get; set; } = "Game";
+    public string TargetPanel { get; set; } = AppGlobals.MainWindow;
     public bool IsMono { get; set; } = false; // Indicates if the text should be displayed in monospace font
     public bool IsException { get; set; } = false; // Indicates if this is an exception message
     public bool IsError { get; set; } = false; // Indicates if this is an error message
 
-    public TextMessage(string text, string targetPanel="Game") 
+    public TextMessage(string text, string targetPanel="game") 
     {
         Text = text ?? "Empty Message Text";
         TargetPanel = targetPanel;
