@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Drawing;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -106,12 +107,6 @@ public class Game : IGame
     public event EventCastTimeEventHandler EventCastTime;
         public delegate void EventCastTimeEventHandler();
 
-    public event EventSpellTimeEventHandler EventSpellTime;
-        public delegate void EventSpellTimeEventHandler();
-
-    public event EventClearSpellTimeEventHandler EventClearSpellTime;
-        public delegate void EventClearSpellTimeEventHandler();
-
     public event EventTriggerParseEventHandler EventTriggerParse;
         public delegate void EventTriggerParseEventHandler(string text);
 
@@ -120,9 +115,6 @@ public class Game : IGame
 
     public event EventTriggerPromptEventHandler EventTriggerPrompt;
         public delegate void EventTriggerPromptEventHandler();
-
-    public event EventStatusBarUpdateEventHandler EventStatusBarUpdate;
-        public delegate void EventStatusBarUpdateEventHandler();
 
     public event EventVariableChangedEventHandler EventVariableChanged;
         public delegate void EventVariableChangedEventHandler(string sVariable);
@@ -133,13 +125,6 @@ public class Game : IGame
     public event EventStreamWindowEventHandler EventStreamWindow;
         public delegate void EventStreamWindowEventHandler(object sTitle, object sIfClosed, bool testing=false);
 
-    public event EventGlobalVariableChangedHandler EventGlobalVariableChanged;
-    public delegate void EventGlobalVariableChangedHandler(string variable, object value);
-
-    public void GlobalVariableChanged(string variable, object value = null)
-    {
-            EventGlobalVariableChanged?.Invoke(variable, value);
-    }
     public void VariableChangedxx(string variable, object value = null)
     {
             EventVariableChanged?.Invoke(variable);
@@ -157,16 +142,7 @@ public class Game : IGame
     private string m_sRoomObjs = string.Empty;
     private string m_sRoomPlayers = string.Empty;
     private string m_sRoomExits = string.Empty;
-    private int m_iHealth = 100;
-    private int m_iMana = 100;
-    private int m_iSpirit = 100;
-    private int m_iStamina = 100;
-    private int m_iConcentration = 100;
     private int m_iEncumbrance = 0;
-    private int m_iRoundTime = 0;
-    private int m_iSpellTime = 0;
-    private int m_iCastTime = 0;
-    private int m_iGameTime = 0;
     private string m_sTriggerBuffer = string.Empty;
     private bool m_bUpdatingRoom = false;
     private bool m_bUpdateRoomOnStreamEnd = false;
@@ -237,21 +213,6 @@ public class Game : IGame
     {
         get => m_bStatusPromptEnabled;
         set => m_bStatusPromptEnabled = value;
-    }
-
-    public string Account
-    {
-        get => GameConnection.Instance.Profile?.Account ?? string.Empty;
-    }
-
-    public string Character
-    {
-        get => GameConnection.Instance.Profile?.Character ?? string.Empty;
-    }
-
-    public string AccountGame
-    { 
-        get => GameConnection.Instance.Profile?.Game ?? string.Empty;
     }
 
     public void SendText(string sText, bool bUserInput = false, string sOrigin = "")
@@ -925,7 +886,7 @@ public class Game : IGame
                         {
                             attribute += ".jpg";
                             string gamecode = "DR"; //default DR
-                            if (AccountGame.StartsWith("GS")) gamecode = "GS";
+                            if (Globals.Instance.GameName.StartsWith("GS")) gamecode = "GS";
                             // ToDo: Check if the image exists in the art directory
                             // if (FileHandler.FetchImage(attribute, ConfigSettings.Instance.ArtDir, gamecode).Result) AddImage(Path.Combine(gamecode, attribute), "portrait");
                         }
@@ -933,51 +894,18 @@ public class Game : IGame
                     }
                 case "streamWindow":	// Window Names
                     {
-                        string argstrAttributeName5 = "id";
-                        var switchExpr2 = GetAttributeData(oXmlNode, argstrAttributeName5);
+                        var switchExpr2 = GetAttributeData(oXmlNode, "id");
                         switch (switchExpr2)
                         {
                             case "main":
                             case "game":
-                                {
-                                    break;
-                                }
-
                             case "inv":
-                                {
-                                    break;
-                                }
-
                             case "familiar":
-                                {
-                                    break;
-                                }
-
                             case "thoughts":
-                                {
-                                    break;
-                                }
-
                             case "logons":
-                                {
-                                    break;
-                                }
-
                             case "death":
-                                {
-                                    break;
-                                }
-
                             case "whispers":
-                                {
-                                    break;
-                                }
-
                             case "assess":
-                                {
-                                    break;
-                                }
-
                             case "room":
                                 {
                                     m_sRoomUid = "0";
@@ -1030,7 +958,6 @@ public class Game : IGame
                                 {
                                     break;
                                 }
-                                /* TODO ERROR: Skipped IfDirectiveTrivia *//* TODO ERROR: Skipped DisabledTextTrivia *//* TODO ERROR: Skipped EndIfDirectiveTrivia */
                         }
 
                         string argstrAttributeName10 = "target";
@@ -1336,6 +1263,7 @@ public class Game : IGame
                         break;
                     }
 
+                #region Done
                 case "progressBar":
                     {
                         int barValue = int.Parse(GetAttributeData(oXmlNode, "value"));
@@ -1367,6 +1295,7 @@ public class Game : IGame
                             case "encumblevel":
                             case "encumbrance":
                                 {
+                                    // ToDo: Check if encumbrance is a valid bar
                                     m_iEncumbrance = barValue;
                                     string argkey14 = "encumbrance";
                                     var encumbVar = m_iEncumbrance.ToString();
@@ -1380,7 +1309,6 @@ public class Game : IGame
                                 {
                                     break;
                                 }
-                                /* TODO ERROR: Skipped IfDirectiveTrivia *//* TODO ERROR: Skipped DisabledTextTrivia *//* TODO ERROR: Skipped EndIfDirectiveTrivia */
                         }
 
                         break;
@@ -1393,165 +1321,106 @@ public class Game : IGame
                         {
                             sSpellName = "Unknown";
                         }
-
-                        if ((sSpellName ?? "") == "None")
-                        {
-                            ClearSpellTime();
-                        }
-                        else
-                        {
-                            SetSpellTime();
-                        }
-
-                        string argkey15 = "preparedspell";
-                        Variables.Instance.Add(argkey15, sSpellName, Variables.VariablesType.Reserved);
-                        string argsVariable13 = "$preparedspell";
-                        VariableChanged(argsVariable13);
-                        StatusBarUpdate();
+                        Variables.Instance.Add("preparedspell", sSpellName, Variables.VariablesType.Reserved);
+                        VariableChanged("$preparedspell");
                         break;
                     }
 
                 case "left":
                     {
-                        string argkey16 = "lefthand";
-                        string argvalue7 = GetTextFromXML(oXmlNode);
-                        Variables.Instance.Add(argkey16, argvalue7, Variables.VariablesType.Reserved);
-                        string lefthandnoun = GetAttributeData(oXmlNode, "noun");
-                        string lefthandkey = "lefthandnoun";
-                        Variables.Instance.Add(lefthandkey, lefthandnoun, Variables.VariablesType.Reserved);
-                        string lefthandid = GetAttributeData(oXmlNode, "exist");
-                        string lefthandidkey = "lefthandid";
-                        Variables.Instance.Add(lefthandidkey, lefthandid, Variables.VariablesType.Reserved);
-                        string argsVariable14 = "$lefthand";
-                        VariableChanged(argsVariable14);
-                        string argsVariable15 = "$lefthandnoun";
-                        VariableChanged(argsVariable15);
-                        string argsVariable16 = "$lefthandid";
-                        VariableChanged(argsVariable16);
-                        StatusBarUpdate();
+                        GetHandContents(oXmlNode, "left");
                         break;
                     }
 
                 case "right":
                     {
-                        string argkey19 = "righthand";
-                        string argvalue10 = GetTextFromXML(oXmlNode);
-                        Variables.Instance.Add(argkey19, argvalue10, Variables.VariablesType.Reserved);
-                        string righthandnoun = GetAttributeData(oXmlNode, "noun");
-                        string righthandkey = "righthandnoun";
-                        Variables.Instance.Add(righthandkey, righthandnoun, Variables.VariablesType.Reserved);
-                        string righthandid = GetAttributeData(oXmlNode, "exist");
-                        string righthandidkey = "righthandid";
-                        Variables.Instance.Add(righthandidkey, righthandid, Variables.VariablesType.Reserved);
-
-                        string argsVariable17 = "$righthand";
-                        VariableChanged(argsVariable17);
-                        string argsVariable18 = "$righthandnoun";
-                        VariableChanged(argsVariable18);
-                        string argsVariable19 = "$righthandid";
-                        VariableChanged(argsVariable19);
-                        StatusBarUpdate();
+                        GetHandContents(oXmlNode, "right");
                         break;
                     }
-
                 case "app":
                     {
-                        string argstrAttributeName20 = "char";
-                        string sTemp = GetAttributeData(oXmlNode, argstrAttributeName20);
-                        if (sTemp.Length > 0)
+                        var temp = GetAttributeData(oXmlNode, "char");
+                        if (temp.Length > 0)
                         {
-                            string characterName = sTemp;
-                            string argkey22 = "charactername";
-                            Variables.Instance.Add(argkey22, characterName, Variables.VariablesType.Reserved);
-                            string argsVariable20 = "$charactername";
-                            VariableChanged(argsVariable20);
-                            string argstrAttributeName21 = "game";
-                            string gameName = GetAttributeData(oXmlNode, argstrAttributeName21);
+                            Variables.Instance.Add("charactername", temp, Variables.VariablesType.Reserved);
+                            VariableChanged("$charactername");
+                            string gameName = GetAttributeData(oXmlNode, "game");
                             gameName = gameName.Replace(":", "").Replace(" ", "");
-                            string argkey23 = "gamename";
-                            Variables.Instance.Add(argkey23, gameName, Variables.VariablesType.Reserved);
-                            string argsVariable21 = "$gamename";
-                            VariableChanged(argsVariable21);
+                            Variables.Instance.Add("gamename", gameName, Variables.VariablesType.Reserved);
+                            VariableChanged("$gamename");
                         }
                         break;
                     }
-
                 case "indicator":
                     {
-                        // Only send to the UI if it has changed
                         bool blnActive = (GetAttributeData(oXmlNode, "visible") ?? "") == "y";
-                        var switchExpr8 = GetAttributeData(oXmlNode, "id");
-                        ProcessAnIcon(switchExpr8, blnActive);
+                        var indicator = GetAttributeData(oXmlNode, "id");
+                        ProcessAnIcon(indicator, blnActive);
                         break;
                     }
-
-                case var @case when @case == "spell":
-                    {
-                        break;
-                    }
-
-                case var case1 when case1 == "left":
-                    {
-                        break;
-                    }
-
-                case var case2 when case2 == "right":
-                    {
-                        break;
-                    }
+                #endregion Done
 
                 case "roundTime":
                     {
-                        string argstrAttributeName24 = "value";
-                        m_iRoundTime = int.Parse(GetAttributeData(oXmlNode, argstrAttributeName24));
+                        // This is the time roundtime will end
+                        int roundtime = int.Parse(GetAttributeData(oXmlNode, "value"));
+                        Globals.Instance.GameRTStart = Globals.Instance.GameTime;
+                        Variables.Instance.Add("roundtimestart", Globals.Instance.GameTime.ToString());
+                        VariableChanged("$roundtimestart");
+
+                        Globals.Instance.GameRTEnd = roundtime;
+                        Variables.Instance.Add("roundtime", roundtime.ToString());
+                        VariableChanged("$roundtime");
+                        SetRoundTime(roundtime);
                         break;
                     }
 
                 case "castTime":
                     {
-                        if (Variables.Instance.Contains("casttime"))
+                        var spell = Variables.Instance["preparedspell"]?.ToString() ?? "None";
+                        if (string.IsNullOrEmpty(spell) || spell.Equals("None"))
                         {
-                            Variables.Instance["casttime"] = GetAttributeData(oXmlNode, "value");
+                            // this is the official end of the spell
+                            Globals.Instance.CastTimeLeft = 0;
+                            Variables.Instance.Add("casttime", "0");
+                            VariableChanged("$casttime");
                         }
                         else
                         {
-                            Variables.Instance.Add("casttime", GetAttributeData(oXmlNode, "value"));
+                            // This is the gametime when  the spell will be fully prepared
+                            Variables.Instance["spellstarttime"] = Globals.Instance.GameTime;
+                            VariableChanged("$spellstarttime");
+                            string value = GetAttributeData(oXmlNode, "value");
+                            Globals.Instance.CastTimeEnd = int.Parse(value);
+                            Variables.Instance.Add("casttime", value);
+                            VariableChanged("$casttime");
                         }
-                        VariableChanged("$casttime");
-                        m_iCastTime = int.Parse(GetAttributeData(oXmlNode, "value"));
                         break;
                     }
                 case "spelltime":
                     {
+                        /// I don't think this is in use
+                        // Spelltime is when the spell starts
                         if(Variables.Instance["preparedspell"].ToString() == "None")
                         {
-                            if (Variables.Instance.Contains("spellstarttime"))
-                            {
-                                Variables.Instance["spellstarttime"] = "0";
-                            }
-                            else
-                            {
-                                Variables.Instance.Add("spellstarttime", "0");
-
-                            }
+                            // Note that the 'add' logic checks for previous existence
+                            Variables.Instance.Add("spellstarttime", "0");
                         }
                         else
                         {
-                            if (Variables.Instance.Contains("spellstarttime"))
-                            {
-                                Variables.Instance["spellstarttime"] = GetAttributeData(oXmlNode, "value");
-                            }
-                            else
-                            {
-                                Variables.Instance.Add("spellstarttime", GetAttributeData(oXmlNode, "value"));
-
-                            }
+                            Variables.Instance.Add("spellstarttime", GetAttributeData(oXmlNode, "value"));
                         }
                         VariableChanged("$spellstarttime");
                         break;
                     }
+
+
                 case "prompt":
                     {
+                        if (int.TryParse(GetAttributeData(oXmlNode, "time"), out int igameTime))
+                        {
+                            Globals.Instance.GameTime = igameTime;
+                        }
                         string strBuffer = GetTextFromXML(oXmlNode);
                         if (m_bStatusPromptEnabled == false)
                         {
@@ -1663,43 +1532,26 @@ public class Game : IGame
                                 }
                             }
                         }
-
-                        // Dim strBuffer As String = String.Empty
-
-                        string argstrAttributeName25 = "time";
-                        if (int.TryParse(GetAttributeData(oXmlNode, argstrAttributeName25), out m_iGameTime))
+                        int gameTime = 0;
+                        if (int.TryParse(GetAttributeData(oXmlNode, "time"), out gameTime))
                         {
-                            string argkey41 = "gametime";
-                            string argvalue17 = m_iGameTime.ToString();
-                            Variables.Instance.Add(argkey41, argvalue17, Variables.VariablesType.Reserved);
-                            string argsVariable39 = "$gametime";
-                            VariableChanged(argsVariable39);
-                            int rt = m_iRoundTime - m_iGameTime;
+                            Globals.Instance.GameTime = gameTime;
+                            Variables.Instance.Add("gametime", gameTime.ToString(), Variables.VariablesType.Reserved);
+                            VariableChanged("$gametime");
+                            int roundTime = Globals.Instance.GameRTEnd;
+                            int rt = roundTime - gameTime;
                             if (rt > 0)
                             {
-                                SetRoundTime(rt);
                                 if (m_bStatusPromptEnabled == false && (ConfigSettings.Instance.PromptForce == true))
                                     strBuffer += "R";
                                 rt += Convert.ToInt32(ConfigSettings.Instance.RTOffset);
-                                var rtString = rt.ToString();
-                                string argkey42 = "roundtime";
-                                Variables.Instance.Add(argkey42, rtString, Variables.VariablesType.Reserved);
-                                m_iRoundTime = 0;
+                                Variables.Instance.Add("roundtime", rt.ToString(), Variables.VariablesType.Reserved);
                             }
                             else
                             {
-                                string argkey43 = "roundtime";
-                                string argvalue18 = "0";
-                                Variables.Instance.Add(argkey43, argvalue18, Variables.VariablesType.Reserved);
+                                Variables.Instance.Add("roundtime","0", Variables.VariablesType.Reserved);
                             }
-                            string argsVariable40 = "$roundtime";
-                            VariableChanged(argsVariable40);
-
-                            if (m_iCastTime > 0)
-                            {
-                                EventCastTime?.Invoke();
-                                m_iCastTime = 0;
-                            }
+                            VariableChanged("$roundtime");
 
                             if (ConfigSettings.Instance.Prompt.Length > 0 && !m_bLastRowWasPrompt)
                             {
@@ -1711,10 +1563,8 @@ public class Game : IGame
                                 PrintTextWithParse(strBuffer, argbIsPrompt, oWindowTarget: argoWindowTarget);
                             }
 
-                            string argkey44 = "prompt";
-                            Variables.Instance.Add(argkey44, strBuffer, Variables.VariablesType.Reserved);
-                            string argsVariable41 = "$prompt";
-                            VariableChanged(argsVariable41);
+                            Variables.Instance.Add("prompt", strBuffer, Variables.VariablesType.Reserved);
+                            VariableChanged("$prompt");
                             EventTriggerPrompt?.Invoke();
                         }
 
@@ -1934,6 +1784,19 @@ public class Game : IGame
         }
 
         return sReturn;
+    }
+
+    private void GetHandContents(XmlNode oXmlNode, string v)
+    {
+        string hand = v.ToLower() + "hand";
+        Variables.Instance.Add(hand, GetTextFromXML(oXmlNode), Variables.VariablesType.Reserved);
+        string noun = GetAttributeData(oXmlNode, "noun");
+        Variables.Instance.Add($"{hand}noun", noun, Variables.VariablesType.Reserved);
+        string id = GetAttributeData(oXmlNode, "exist");
+        Variables.Instance.Add($"{hand}id", id, Variables.VariablesType.Reserved);
+        VariableChanged($"${hand}");
+        VariableChanged($"${hand}noun");
+        VariableChanged($"${hand}id");
     }
 
     private bool CheckIndicator(object? v)
@@ -2621,11 +2484,6 @@ public class Game : IGame
                     //oRTControl.IsConnected = bConnected;
                     //Castbar.IsConnected = bConnected;
                     //m_CommandSent = false;
-                    //m_oGlobals.VariableList["charactername"] = m_oGame.AccountCharacter;
-                    //m_oGlobals.VariableList["game"] = m_oGame.AccountGame;
-                    //m_oGlobals.VariableList["gamename"] = m_oGame.AccountGame;
-                    //m_oAutoMapper.CharacterName = m_oGame.AccountCharacter;
-                    //m_sCurrentProfileName = m_oGame.AccountCharacter + m_oGame.AccountGame + ".xml";
                     //m_oGame.ResetIndicators();
                     //IconBar.UpdateStatusBox();
                     //IconBar.UpdateStunned();
@@ -2646,26 +2504,6 @@ public class Game : IGame
             case "$prompt": // Safety
                 {
                     //                    IconBar.UpdateBleeding();
-                    break;
-                }
-
-            case "$charactername":
-                {
-                    //SafeUpdateMainWindowTitle();
-                    //m_oAutoMapper.CharacterName = m_oGlobals.VariableList["charactername"].ToString();
-                    //m_oGame.AccountCharacter = m_oGlobals.VariableList["charactername"].ToString();
-                    //if (m_oGlobals.VariableList["charactername"].ToString().Length > 0)
-                    //{
-                    //    m_sCurrentProfileName = m_oGame.AccountCharacter + m_oGame.AccountGame + ".xml";
-                    //}
-
-                    break;
-                }
-            /* TODO ERROR: Skipped IfDirectiveTrivia *//* TODO ERROR: Skipped DisabledTextTrivia *//* TODO ERROR: Skipped EndIfDirectiveTrivia */
-            case "$gamename":
-                {
-                    // SafeLoadProfile(oGlobals.VariableList("charactername").ToString & oGlobals.VariableList("gamename").ToString & ".xml", False)
-                    //                   SafeUpdateMainWindowTitle();
                     break;
                 }
         }
@@ -2699,24 +2537,8 @@ public class Game : IGame
     // Round Time
     private void SetRoundTime(int iTime)
     {
+        // Have the UI do its thing
         EventRoundTime?.Invoke(iTime);
-    }
-
-    // Reset Spell Time
-    private void SetSpellTime()
-    {
-        EventSpellTime?.Invoke();
-    }
-
-    // Clear Spell Time
-    private void ClearSpellTime()
-    {
-        EventClearSpellTime?.Invoke();
-    }
-
-    private void StatusBarUpdate()
-    {
-        EventStatusBarUpdate?.Invoke();
     }
 
     private void GameError(string text, string window="")

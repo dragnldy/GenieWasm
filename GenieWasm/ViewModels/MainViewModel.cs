@@ -10,7 +10,7 @@ using System.Windows.Input;
 
 namespace GenieWasm.ViewModels;
 
-public partial class MainViewModel : ViewModelBase
+public partial class MainViewModel : ViewModelBase, INotifyPropertyChanged
 {
     public ConfigSettings ConfigSettings { get; set; }
 
@@ -104,6 +104,19 @@ public partial class MainViewModel : ViewModelBase
         }
     }
 
+    private string _mainWindowTitle = "Login to Connect >>";
+    public string MainWindowTitle
+    {
+        get => _mainWindowTitle;
+        set
+        {
+            if (_mainWindowTitle != value)
+            {
+                _mainWindowTitle = value;
+                NotifyPropertyChanged();
+            }
+        }
+    }
 
     private string _gameWindowText = "This is some plain text, followed by \r\n    <Bold>bold text</Bold>, \r\n    <Italic>italic text</Italic>, \r\n    and even a <Span Foreground=\"Green\">custom green span</Span>.\r\n    You can also use a <Run FontSize=\"24\">Run with a different font size</Run>.";
     public string GameWindowText
@@ -142,13 +155,33 @@ public partial class MainViewModel : ViewModelBase
         m_MainView = mainView;
     }
 
+    #region Code for a blinking textbox
+    private DispatcherTimer _timer;
+    private bool _isVisible;
+
+    public void BlinkingTextBlock()
+    {
+        _timer = new DispatcherTimer();
+        _timer.Interval = TimeSpan.FromMilliseconds(500); // Adjust blink speed
+        _timer.Tick += Timer_Tick;
+        _isVisible = true;
+        _timer.Start();
+    }
+
+    private void Timer_Tick(object sender, EventArgs e)
+    {
+        _isVisible = !_isVisible;
+     //   this.IsVisible = _isVisible;
+    }
+    #endregion
+
+    #region Property Changed Notification
     public void ViewManager_PropertyChanged(object sender, PropertyChangedEventArgs e)
     {
         // Handle property changes from ViewManager if needed
         NotifyPropertyChanged(e.PropertyName);
     }
 
-    #region Property Changed Notification
     public event PropertyChangedEventHandler PropertyChanged;
 
     // This method is called by the Set accessor of each property.

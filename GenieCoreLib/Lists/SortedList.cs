@@ -97,7 +97,10 @@ public class SortedList : System.Collections.SortedList
         {
             try
             {
-                base.Add(key, value);
+                if (base.ContainsKey(key))
+                    base[key] = value;
+                else
+                    base.Add(key, value);
             }
             finally
             {

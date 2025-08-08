@@ -8,6 +8,7 @@
         {
             m_ScriptManager = this;
             Game.Instance.EventTriggerMove += EventTriggerMove;
+            Game.Instance.EventRoundTime += SetRoundTime;
         }
         public void Game_EventTriggerPrompt()
         {
@@ -66,22 +67,8 @@
                 GenieException.HandleGenieException($"TriggerMove: {ex.Message} {ex.ToString()}", "Log");
             }
         }
-
-        private bool HasRoundTime
-        {
-            get
-            {
-                return DateTime.Now < Globals.Instance.RoundTimeEnd;
-            }
-        }
-
         public void SetRoundTime(int iTime)
         {
-            if (iTime == 0)
-                return;
-
-            Game.Instance.GlobalVariableChanged("RoundTime", (int)(iTime + ConfigSettings.Instance.RTOffset));
-
             if (ScriptList.Instance.AcquireReaderLock())
             {
                 try
@@ -98,8 +85,6 @@
             {
                 EchoText($"SetRoundTime: Unable to acquire reader lock.", "Log");
             }
-
-            Globals.Instance.RoundTimeEnd = DateTime.Now.AddMilliseconds(iTime * 1000 + ConfigSettings.Instance.RTOffset * 1000);
         }
 
         public void EventEndUpdate()

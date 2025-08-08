@@ -8,7 +8,7 @@
 	<Grid ColumnDefinitions="auto,auto,auto,auto,auto,auto,auto,auto,auto,auto">
 		<StackPanel Grid.Row="0"  Orientation="Horizontal">
 			<ProgressBar  Margin="0" Height="15"
-                Minimum="0" Maximum="{Binding MaxRT}" Value="{Binding ValueRT}"
+                Minimum="0" Maximum="{Binding MaxRT}" Value="{Binding RT}"
 				ProgressTextFormat="{}{0}/{3} Secs RT"
                 ShowProgressText="True"/>
 			<Image Source="{Binding IconCompass}" Width="30" Height="30" Margin="2,0,2,0"/>
@@ -20,7 +20,11 @@
 			<Label Content="{Binding LabelRHC}" MinWidth="60" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="0"/>
 			<Label Content="S" Margin="10,0,0,0"/>
 			<Label Content="{Binding LabelSpellC}" MinWidth="60" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="0"/>
-		</StackPanel>
+				<ProgressBar  Margin="0" Height="15"
+					Minimum="0" Maximum="{Binding MaxCastRT}" Value="{Binding CastRT}"
+					ProgressTextFormat="{}{0}/{3} Secs"
+					ShowProgressText="True"/>
+			</StackPanel>
 	</Grid>
 </UserControl>
 

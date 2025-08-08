@@ -1,5 +1,7 @@
 ﻿using System.Collections;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -10,7 +12,7 @@ public interface IGlobals
     void UpdateMonsterListRegEx();
 }
 
-public class Globals : IGlobals
+public class Globals : IGlobals, INotifyPropertyChanged
 {
     public static Globals GetInstance() => _m_oGlobals ?? new Globals();
     public static Globals Instance => GetInstance();
@@ -18,44 +20,128 @@ public class Globals : IGlobals
 
     public List<VolatileHighlight> VolatileHighlights = new List<VolatileHighlight>();
     public List<VolatileHighlight> RoomObjects = new List<VolatileHighlight>();
-    public DateTime SpellTimeStart;
-    public DateTime RoundTimeEnd;
-    private static DateTime m_oBlankTimer = DateTime.Parse("0001-01-01");
+
+    #region GameTime
+    private int gameTime = 0;
+    public int GameTime
+    {
+        get => gameTime;
+        set
+        {
+            if (gameTime != value) { gameTime = value; NotifyPropertyChanged(); NotifyPropertyChanged("All"); }
+        }
+    }
+    #endregion GameTime
+
+    #region CastTime
+    private int castTimeStart = 0;
+    public int CastTimeStart //"spellstarttime
+    {
+        get => castTimeStart;
+        set
+        {
+            if (castTimeStart != value) { castTimeStart = value; NotifyPropertyChanged(); }
+        }
+    }
+    private int castTimeEnd = 0;
+    public int CastTimeEnd // "casttime"
+    {
+        get => castTimeEnd;
+        set
+        {
+            if (castTimeEnd != value) { castTimeEnd = value; NotifyPropertyChanged(); NotifyPropertyChanged("CastTimeLeft"); }
+        }
+    }
+    public int CastTimeLeft
+    {
+        get => CastTimeEnd > gameTime ? CastTimeEnd - gameTime : 0;
+        set
+        {
+            if (value == 0 && gameTime != CastTimeEnd)
+            {
+                castTimeStart = 0;
+                castTimeEnd = 0;
+            }
+            NotifyPropertyChanged("CastTimeLeft");
+        }
+    }
+    public int CastTimeLapsed => GameTime - CastTimeStart;
+    #endregion CastTime
+
+    #region GameRT
+    private int gameRTStart = 0;
+    public int GameRTStart
+    {
+        get => gameRTStart;
+        set
+        {
+            if (gameRTStart != value) { gameRTStart = value; NotifyPropertyChanged("gameRTLeft"); }
+        }
+    }
+
+    private int gameRTEnd = 0;
+    public int GameRTEnd
+    {
+        get => gameRTEnd;
+        set
+        {
+            if (gameRTEnd != value) { gameRTEnd = value; NotifyPropertyChanged("gameRTLeft"); }
+        }
+    }
+    public int GameRTLeft
+    {
+        get => GameRTStart > 0? GameTime - GameRTStart : 0;
+        set
+        {
+            if (value == 0 && gameTime != gameRTEnd)
+            {
+                gameRTStart = 0;
+                gameRTEnd = 0;
+            }
+            NotifyPropertyChanged("gamertleft");
+        }
+    }
+    public int GameRTTLapsed => GameTime - GameRTStart;
+    #endregion GameRT
 
 
-    //public Presets PresetList = Presets.Instance;
-    //public Aliases AliasList = Aliases.Instance;
-    //public Names NameList = Names.Instance;
-    //public Macros MacroList = Macros.Instance;
-    //public Classes ClassList = Classes.Instance;
-    //public Triggers TriggerList = Triggers.Instance;
-    //public Variables Variables.Instance = Variables.Instance;
-    //public Highlights HighlightList = Highlights.Instance;
-    //public SubstituteRegExp SubstituteList = SubstituteRegExp.Instance;
-    //public GagRegExp GagList = GagRegExp.Instance;
-    //public QueueList Events = QueueList.Instance;
+
+    private string _characterName = string.Empty;
+    public string CharacterName
+    {
+        get => _characterName;
+        set
+        {
+            _characterName = value ?? string.Empty;
+        }
+    }
+    private string _gameName = string.Empty;
+    public string GameName
+    {
+        get => _gameName;
+        set
+        {
+            _gameName = value ?? string.Empty;
+        }
+    }
+    public string CurrentProfileName
+    {
+        get => $"{CharacterName}{GameName}.xml";
+    }
 
     public Globals()
     {
         _m_oGlobals = this;
+        FileDirectory.CheckUserDirectory();
+        //m_oLegacyPluginHost = new LegacyPluginHost(this, ref _m_oGlobals);
+        //m_oPluginHost = new PluginHost(this, ref _m_oGlobals);
+        //m_PluginDialog = new FormPlugins(ref _m_oGlobals.PluginList);
+        // This call is required by the Windows Form Designer.
+        //MapperSettings = new FormMapperSettings(ref _m_oGlobals) { MdiParent = this };
+        //MapperSettings.EventVariableChanged += ClassCommand_EventVariableChanged;
+        //MapperSettings.EventClassChange += Command_EventClassChange;
 
-    //m_oOutputMain = new FormSkin(AppGlobals.MainWindow, "Game", ref _m_oGlobals);
-    //m_oLegacyPluginHost = new LegacyPluginHost(this, ref _m_oGlobals);
-    //m_oPluginHost = new PluginHost(this, ref _m_oGlobals);
-    //m_PluginDialog = new FormPlugins(ref _m_oGlobals.PluginList);
-    // This call is required by the Windows Form Designer.
-    //InitializeComponent();
-    //RecolorUI();
-    //MapperSettings = new FormMapperSettings(ref _m_oGlobals) { MdiParent = this };
-    //MapperSettings.EventVariableChanged += ClassCommand_EventVariableChanged;
-    //MapperSettings.EventClassChange += Command_EventClassChange;
-
-    // Add any initialization after the InitializeComponent() call.
-    FileDirectory.CheckUserDirectory();
-        //bool bCustomConfigFile = false;
-
-
-        //        AppendText("Loading Presets...");
+        // Add any initialization after the InitializeComponent() call.
     }
 
     public CommandQueue CommandQueue = new CommandQueue();
@@ -148,14 +234,21 @@ public class Globals : IGlobals
 
     public static string ParseSpecialVariables(string sText)
     {
-        var argoDateEnd = DateTime.Now;
-        double d = Utility.GetTimeDiffInMilliseconds(Globals.Instance.SpellTimeStart, argoDateEnd);
-        if (d > 0 & Globals.Instance.SpellTimeStart != m_oBlankTimer)
+        int spelltime = Globals.Instance.GameTime - Globals.Instance.CastTimeStart;
+        if (spelltime > 0 & Globals.Instance.CastTimeStart != 0)
         {
-            sText = sText.Replace("@spelltime@", (d / 1000).ToString());
-            double spelllength = int.Parse(Variables.Instance["casttime"].ToString()) - int.Parse(Variables.Instance["spellstarttime"].ToString());
-            sText = sText.Replace("@spellpreptime@", spelllength.ToString());
-            double casttimeremaining = spelllength - (d / 1000);
+            // Spelltime is the amount of time that has elapsed since the spell started
+            sText = sText.Replace("@spelltime@", spelltime.ToString());
+
+            // Casttime is game time when spell will be complete
+            // Spellstartime is game time when spell started
+            int castTime = int.Parse(Variables.Instance["casttime"].ToString());
+            int spellStartTime = int.Parse(Variables.Instance["spellstarttime"].ToString());
+            int spellpreptime =(castTime = spellStartTime);
+
+            // The amount of time needs to cast
+            sText = sText.Replace("@spellpreptime@", spellpreptime.ToString());
+            int casttimeremaining = spellpreptime - spelltime;
             sText = sText.Replace("@casttimeremaining@", casttimeremaining > 0 ? casttimeremaining.ToString() : "0");
         }
         else
@@ -256,4 +349,31 @@ public class Globals : IGlobals
             return Comparer.Default.Compare(y, x);
         }
     }
+    #region Property Changed Notification
+    public event PropertyChangedEventHandler PropertyChanged;
+
+    // This method is called by the Set accessor of each property.
+    // The CallerMemberName attribute that is applied to the optional propertyName
+    // parameter causes the property name of the caller to be substituted as an argument.
+    public void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
+    {
+        if (propertyName.Equals("All"))
+        {
+            NotifyPropertyChanged("CastTimeLeft");
+            // When game time updates we have to check everything
+            if (CastTimeLeft == 0)
+            {
+                castTimeEnd = 0;
+                castTimeStart = 0;
+            }
+            NotifyPropertyChanged("GameRTLeft");
+            if (GameRTLeft == 0)
+            {
+                gameRTEnd = 0;
+                gameRTStart = 0;
+            }
+        }
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+    #endregion Property Changed Notification
 }

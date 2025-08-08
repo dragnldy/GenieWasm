@@ -16,7 +16,8 @@
   </Design.DataContext>
 	<DockPanel VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
 		<StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
-			<Button HorizontalAlignment = "Left" VerticalAlignment="Top" Content="Account" Command="{Binding ConnectCommand}">
+			<Label Content="{Binding MainWindowTitle}" Margin="0,0,5,0" VerticalAlignment="Center"/>
+			<Button HorizontalAlignment = "Left" VerticalAlignment="Center" Content="Account" Command="{Binding ConnectCommand}">
 				<PathIcon Data = "{StaticResource person_accounts_regular}" />
 			</Button>
 			<uc:MainMenu HorizontalAlignment="Left"/>

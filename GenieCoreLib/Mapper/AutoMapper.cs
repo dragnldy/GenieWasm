@@ -17,8 +17,9 @@ public interface Automapper
 }
 public class AutoMapper
 {
-    public static AutoMapper GetInstance() => _m_oAutoMapper ?? new AutoMapper();
+    public static AutoMapper Instance => _m_oAutoMapper ?? new AutoMapper();
     private static AutoMapper _m_oAutoMapper;
+
     Globals m_oGlobals = Globals.Instance;    
     Config m_oConfig = Config.Instance;
     ConfigSettings m_oConfigSettings = ConfigSettings.Instance;
@@ -102,30 +103,6 @@ public class AutoMapper
             return "AutoMapper";
         }
     }
-
-    //public string CharacterName
-    //{
-    //    get
-    //    {
-    //        if (!Information.IsNothing(m_Form))
-    //        {
-    //            return m_Form.CharacterName;
-    //        }
-    //        else
-    //        {
-    //            return string.Empty;
-    //        }
-    //    }
-
-    //    set
-    //    {
-    //        if (!Information.IsNothing(m_Form))
-    //        {
-    //            m_Form.CharacterName = value;
-    //        }
-    //    }
-    //}
-
     //private FormMain m_ParentForm = null;
 
     //private void CreateMapForm()

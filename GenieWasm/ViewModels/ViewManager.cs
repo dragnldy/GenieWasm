@@ -51,7 +51,22 @@ public class ViewManager: INotifyPropertyChanged
     public ViewManager()
     {
         _m_oViewManager = this;
-        // Initialize any required components or settings here
+        Globals.Instance.PropertyChanged += Global_PropertyChanged;
+    }
+
+    private void Global_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName.Equals(nameof(Globals.Instance.GameRTLeft)))
+        {
+            Variables.Instance.Add("gamertleft", Globals.Instance.GameRTLeft.ToString());
+            EventVariableChanged("gamertleft");
+        }
+
+        if (e.PropertyName.Equals(nameof(Globals.Instance.CastTimeLeft)))
+        {
+            Variables.Instance.Add("casttimeleft", Globals.Instance.CastTimeLeft.ToString());
+            EventVariableChanged("casttimelft");
+        }
     }
 
     public MainViewModel m_MainViewModel = null;
@@ -610,35 +625,6 @@ public class ViewManager: INotifyPropertyChanged
         GameConnection.Instance.Disconnect(true);
     }
 
-    public delegate void ClearSpellTimeDelegate();
-
-    public void GlobalVariableChanged(string variableName, object value)
-    {
-        // Handle global variable changes here
-        // This method can be used to update UI or perform actions based on global variable changes
-        // For example, you can update a specific GameWindow or notify other components
-        Console.WriteLine($"Global variable '{variableName}' changed to '{value}'");
-    }
-    public void Game_EventClearSpellTime()
-    {
-        try
-        {
-            //if (InvokeRequired == true)
-            //{
-            //    Invoke(new ClearSpellTimeDelegate(ClearSpellTime));
-            //}
-            //else
-            //{
-            //    ClearSpellTime();
-            //}
-        }
-        /* TODO ERROR: Skipped IfDirectiveTrivia */
-        catch (Exception ex)
-        {
-            //            HandleGenieException("ClearSpellTime", ex.Message, ex.ToString());
-            /* TODO ERROR: Skipped ElseDirectiveTrivia *//* TODO ERROR: Skipped DisabledTextTrivia *//* TODO ERROR: Skipped EndIfDirectiveTrivia */
-        }
-    }
     public void Command_EventClearWindow(string sWindow)
     {
         GameWindow? oFormSkin = GetGameWindow(sWindow);
@@ -764,17 +750,6 @@ public class ViewManager: INotifyPropertyChanged
             HandleGenieException("EventStreamWindow", ex.Message, ex.ToString());
         }
     }
-    public void Game_EventStatusBarUpdate()
-    {
-        try
-        {
-            NotifyPropertyChanged("StatusBar");
-        }
-        catch (Exception ex)
-        {
-            HandleGenieException("StatusBarUpdate", ex.Message, ex.ToString());
-        }
-    }
 
     #region Variables Changed that affect UI
     public void EventVariableChanged(string sVariableName)
@@ -809,6 +784,24 @@ public class ViewManager: INotifyPropertyChanged
             case "$hidden":
             case "$joined":
             case "$webbed":
+                NotifyPropertyChanged(sVariableName.TrimStart('$'));
+                break;
+
+            case "$preparedspell":
+            case "casttimeend":
+            case "casttimeleft":
+            case "gamertleft":
+            case "gamertend":
+            case "$roundtime":
+            case "$casttime":
+            case "$lefthand":
+            case "$righthand":
+                NotifyPropertyChanged(sVariableName.TrimStart('$'));
+                break;
+
+            case "$charactername":
+            case "$gamename":
+            case "$prompt": // Use prompt as a heartbeat for progress bar updates
                 NotifyPropertyChanged(sVariableName.TrimStart('$'));
                 break;
 
@@ -847,31 +840,7 @@ public class ViewManager: INotifyPropertyChanged
                     break;
                 }
 
-            case "$prompt": // Safety
-                {
-                    //                    IconBar.UpdateBleeding();
-                    break;
-                }
 
-            case "$charactername":
-                {
-                    //SafeUpdateMainWindowTitle();
-                    //m_oAutoMapper.CharacterName = m_oGlobals.VariableList["charactername"].ToString();
-                    //m_oGame.AccountCharacter = m_oGlobals.VariableList["charactername"].ToString();
-                    //if (m_oGlobals.VariableList["charactername"].ToString().Length > 0)
-                    //{
-                    //    m_sCurrentProfileName = m_oGame.AccountCharacter + m_oGame.AccountGame + ".xml";
-                    //}
-
-                    break;
-                }
-            /* TODO ERROR: Skipped IfDirectiveTrivia *//* TODO ERROR: Skipped DisabledTextTrivia *//* TODO ERROR: Skipped EndIfDirectiveTrivia */
-            case "$gamename":
-                {
-                    // SafeLoadProfile(oGlobals.VariableList("charactername").ToString & oGlobals.VariableList("gamename").ToString & ".xml", False)
-                    //                   SafeUpdateMainWindowTitle();
-                    break;
-                }
         }
     }
     #endregion Variables Changed that affect UI

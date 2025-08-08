@@ -22,12 +22,16 @@ public partial class StatusBar : UserControl,INotifyPropertyChanged
     string[] directions = "compass north northeast east southeast south southwest west northwest up down out".Split(' ');
     string[] positions = "dead standing kneeling sitting prone".Split(' ');
     string[] conditions = "stunned bleeding invisible hidden joined webbed".Split(' ');
+    string[] baritems = "roundtime gamertend gamertleft lefthand righthand".Split(' ');
+    string[] spells = "preparedspell casttime casttimeend casttimeleft".Split(' ');
 
     public StatusBar()
     {
         DynamicVariables.AddRange(directions);
         DynamicVariables.AddRange(positions);
         DynamicVariables.AddRange(conditions);
+        DynamicVariables.AddRange(baritems);
+        DynamicVariables.AddRange(spells);
 
         InitializeComponent();
         DataContext = this;
@@ -37,14 +41,26 @@ public partial class StatusBar : UserControl,INotifyPropertyChanged
     private void ViewManager_PropertyChanged(object sender, PropertyChangedEventArgs e)
     {
         // Handle property changes from ViewManager if needed
-        if (e.PropertyName.Equals("StatusBar",StringComparison.OrdinalIgnoreCase))
-        {
-            SetStatusBarLabels();
-            return;
-        }
         string pname = e.PropertyName.TrimStart('$').ToLower();
+        if (pname == "prompt")
+        {
+            // Use this as a heartbeat to update the progress bars
+            UpdatePreparedSpellLabel("prompt");
+            UpdateSpellCastBar("prompt");
+            UpdateRoundTime("prompt");
+        }
         if (DynamicVariables.Contains(pname))
         {
+            if (baritems.Contains(pname))
+            {
+                UpdateBarItemLabels(pname);
+                return;
+            }
+            if (spells.Contains(pname))
+            {
+                UpdateSpells(pname);
+                return; // No need to update icons for prepared spell
+            }
             int iActive = 0;
             object status = Variables.Instance[pname]?.ToString();
             if (status is not null && int.TryParse(status.ToString(), out iActive))
@@ -62,6 +78,117 @@ public partial class StatusBar : UserControl,INotifyPropertyChanged
         }
         NotifyPropertyChanged(e.PropertyName);
     }
+
+    private void UpdateSpellCastBar(string pname)
+    {
+        if (Globals.Instance.CastTimeStart == 0)
+            return;
+
+        var spell = Variables.Instance["preparedspell"]?.ToString() ?? "None";
+        if (spell.Equals("None", StringComparison.OrdinalIgnoreCase))
+        {
+            // If the spell is None, reset the cast time
+            Globals.Instance.CastTimeLeft = 0; // Reset the cast time left
+            return;
+        }
+        CastRT = Globals.Instance.GameTime - Globals.Instance.CastTimeStart;
+        UpdateSpellLabel();
+    }
+
+    private void UpdateSpells(string pname)
+    {
+        if (pname.Equals("preparedspell", StringComparison.OrdinalIgnoreCase))
+        {
+            UpdatePreparedSpellLabel(pname);
+            return;
+        }
+
+        if (pname.Equals("casttime", StringComparison.OrdinalIgnoreCase) ||
+                pname.Equals("casttimeend", StringComparison.OrdinalIgnoreCase))
+        {
+            MaxCastRT = Globals.Instance.CastTimeEnd - Globals.Instance.CastTimeStart;
+            CastRT = MaxCastRT;
+        } 
+        else if (pname.Equals("casttimeleft"))
+        {
+            CastRT = Globals.Instance.CastTimeLeft;
+            // Need to update the title spell has been held
+            UpdatePreparedSpellLabel(pname);
+        }
+    }
+
+    private void UpdatePreparedSpellLabel(string pname)
+    {
+        int timeSpellHeld = 0;
+        LabelSpellC = Variables.Instance["preparedspell"]?.ToString() ?? "None";
+        if (LabelSpellC.Equals("None"))
+        {
+            Globals.Instance.CastTimeStart = 0; // Reset the cast time start
+            Globals.Instance.CastTimeEnd = 0; // Reset the cast time end
+        }
+        else
+        {
+            if (Globals.Instance.CastTimeStart == 0)
+                Globals.Instance.CastTimeStart = Globals.Instance.GameTime; // Reset the cast time start
+
+            UpdateSpellLabel();
+            timeSpellHeld = Globals.Instance.GameTime - Globals.Instance.CastTimeStart;
+            if (ConfigSettings.Instance.ShowSpellTimer)
+                LabelSpellC = $"({timeSpellHeld}) {Variables.Instance["preparedspell"].ToString()}";
+        }
+    }
+
+    private void UpdateSpellLabel()
+    {
+        int timeSpellHeld = Globals.Instance.GameTime - Globals.Instance.CastTimeStart;
+        if (ConfigSettings.Instance.ShowSpellTimer)
+            LabelSpellC = $"({timeSpellHeld}) {Variables.Instance["preparedspell"].ToString()}";
+    }
+
+    private void UpdateRoundTime(string pname)
+    {
+        if (pname.Equals("roundtime", StringComparison.OrdinalIgnoreCase) ||
+                pname.Equals("gamertend", StringComparison.OrdinalIgnoreCase))
+        {
+            if (Globals.Instance.GameRTStart == 0)
+            {
+                MaxRT = 0;
+                RT = 0;
+            }
+            else
+            {
+                MaxRT = Globals.Instance.GameRTEnd - Globals.Instance.GameRTStart;
+                RT = MaxRT;
+            }
+        }
+        else if (pname.Equals("prompt"))
+        {
+            if (RT != Globals.Instance.GameRTLeft)
+            {
+                // Update the round time if it has changed
+                RT = Globals.Instance.GameRTLeft;
+            }
+        }
+    }
+    private void UpdateBarItemLabels(string pname)
+    {
+        if (pname.Equals("roundtime") || pname.Equals("gamertend") || pname.Equals("gamertleft"))
+        {
+            UpdateRoundTime(pname);
+            return;
+        }
+        var results = Variables.Instance[pname]?.ToString() ?? "Empty";
+        if (pname.Equals("lefthand", StringComparison.OrdinalIgnoreCase))
+        {
+            LabelLHC = results;
+        }
+        else if (pname.Equals("righthand", StringComparison.OrdinalIgnoreCase))
+        {
+            LabelRHC = results;
+        }
+        return;
+    }
+
     private void UpdateDirectionIcons(string propertyName,int iActive)
     {
         // Update the compass icon
@@ -138,30 +265,24 @@ public partial class StatusBar : UserControl,INotifyPropertyChanged
         get => _maxRT;
         set { if (value != _maxRT) { _maxRT = value; NotifyPropertyChanged(); } }
     }
-    private int _valueRT = 0;
-    public int ValueRT
+    private int _currentRT = 0;
+    public int RT
     {
-        get => _valueRT;
-        set { if (value != _valueRT) { _valueRT = value; NotifyPropertyChanged(); } }
+        get => _currentRT;
+        set { if (value != _currentRT) { _currentRT = value; NotifyPropertyChanged(); } }
     }
 
-    private void SetStatusBarLabels()
+    private int _castRT = 0;
+    public int CastRT
     {
-        Dispatcher.UIThread.Post(() =>
-        {
-            LabelLHC = Variables.Instance["lefthand"]?.ToString();
-            LabelRHC = Variables.Instance["righthand"]?.ToString();
-
-            if (ConfigSettings.Instance.ShowSpellTimer && Globals.Instance.SpellTimeStart != DateTime.MinValue)
-            {
-                var argoDateEnd = DateTime.Now;
-                LabelSpellC = Conversions.ToString("(" + GenieCoreLib.Utility.GetTimeDiffInSeconds(Globals.Instance.SpellTimeStart, argoDateEnd) + ") " + Variables.Instance["preparedspell"]);
-            }
-            else
-            {
-                LabelSpellC = Conversions.ToString(Variables.Instance["preparedspell"]);
-            }
-        });
+        get => _castRT;
+        set { if (value != _castRT) { _castRT = value; NotifyPropertyChanged(); } }
+    }
+    private int _maxCastRT = 0;
+    public int MaxCastRT
+    {
+        get => _maxCastRT;
+        set { if (value != _maxCastRT) { _maxCastRT = value; NotifyPropertyChanged(); } }
     }
 
     private string tempassembly = "GenieWasm";

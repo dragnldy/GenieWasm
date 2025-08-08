@@ -4,20 +4,25 @@ using GenieCoreLib;
 using GenieCoreLib.Core;
 using GenieWasm.UserControls;
 using GenieWasm.ViewModels;
+using LibVLCSharp.Shared;
 using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
+using System.Reflection.Metadata;
+using System.Runtime.CompilerServices;
 using System.Threading;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace GenieWasm.Views;
 
-public partial class MainView : UserControl
+public partial class MainView : UserControl, INotifyPropertyChanged
 {
     public int HandlePluginException { get; private set; }
 
 
     public MainView()
     {
-
         InitializeComponent();
         Loaded += MainView_Loaded;
         DoHookups();
@@ -28,6 +33,7 @@ public partial class MainView : UserControl
     }
     private void DoHookups()
     {
+        ViewManager.Instance.PropertyChanged += ViewManager_PropertyChanged;
         Game.Instance.EventParseXML += Plugin_ParsePluginXML;
        
         Game.Instance.EventVariableChanged += ViewManager.Instance.EventVariableChanged; // Viewmanager will do UI updates
@@ -36,13 +42,7 @@ public partial class MainView : UserControl
         Game.Instance.EventStreamWindow += ViewManager.Instance.EventStreamWindow;
         //GenieError.EventGeniePluginError += ViewManager.Instance.HandlePluginException;
         Game.Instance.EventTriggerParse += Game.Instance.Game_EventTriggerParse;
-        Game.Instance.EventStatusBarUpdate += ViewManager.Instance.Game_EventStatusBarUpdate;
-        Game.Instance.EventClearSpellTime += ViewManager.Instance.Game_EventClearSpellTime;
-        Game.Instance.EventSpellTime += Game_EventSpellTime;
-        Game.Instance.EventCastTime += Game_EventCastTime;
-        Game.Instance.EventRoundTime += Game_EventRoundtime;
         Game.Instance.EventTriggerPrompt += Game_EventTriggerPrompt;
-        Game.Instance.EventGlobalVariableChanged += ViewManager.Instance.GlobalVariableChanged;
 
         //// Hook up the PlaySoundCommand to the button in the UI
         //var playSoundButton = this.FindControl<Button>("PlaySoundButton");
@@ -54,22 +54,7 @@ public partial class MainView : UserControl
 
     private void Game_EventTriggerPrompt()
     {
-        throw new NotImplementedException();
-    }
-
-    private void Game_EventRoundtime(int time)
-    {
-        throw new NotImplementedException();
-    }
-
-    private void Game_EventCastTime()
-    {
-        throw new NotImplementedException();
-    }
-
-    private void Game_EventSpellTime()
-    {
-        throw new NotImplementedException();
+     //   throw new NotImplementedException();
     }
 
     private void Plugin_ParsePluginXML(string xml)
@@ -124,7 +109,50 @@ public partial class MainView : UserControl
         Thread.Sleep(500); // Give time for the settings to load
         TextFunctions.EchoText("Initialization Complete", "Game");
     }
+    private void ViewManager_PropertyChanged(object sender, PropertyChangedEventArgs e)
+    {
+        List<string> DynamicVariables = new List<string>
+        {
+            "charactername", "gamename"
+        };
+        // Handle property changes from ViewManager if needed
+        string pname = e.PropertyName.TrimStart('$').ToLower();
+        if (DynamicVariables.Contains(pname))
+        {
+            if (pname == "charactername" || pname == "gamename")
+            {
+                UpdateWindowTitle();
+            }
+        }
+        NotifyPropertyChanged(e.PropertyName);
+    }
+
+    private void UpdateWindowTitle()
+    {
+        var characterName = Variables.Instance["charactername"]?.ToString() ?? "None";
+        var gameName = Variables.Instance["gamename"]?.ToString() ?? "None";
+        var title = $"{gameName}: {characterName}";
+
+        Globals.Instance.CharacterName = characterName;
+        Globals.Instance.GameName = gameName;
+
+        Variables.Instance["charactername"] = characterName;
+        Variables.Instance["game"] = gameName;
+        Variables.Instance["gamename"] = gameName;
+
+        if (string.IsNullOrEmpty(characterName) || string.IsNullOrEmpty(gameName))
+        {
+            title = "Login to Connect >>";
+        }
+        m_MainViewModel.MainWindowTitle = title;
+
+        NotifyPropertyChanged("MainWindowTitle");
+
+        //SafeLoadProfile(oGlobals.VariableList("charactername").ToString & oGlobals.VariableList("gamename").ToString & ".xml", False)
+    }
+
     private static bool SoundIsOn = false;
+
     public bool PlaySoundCommand()
     {
         if (!SoundIsOn)
@@ -150,4 +178,16 @@ public partial class MainView : UserControl
             e.Handled = true; // Mark the event as handled to prevent further processing
         }
     }
+
+    #region Property Changed Notification
+    public event PropertyChangedEventHandler PropertyChanged;
+
+    // This method is called by the Set accessor of each property.
+    // The CallerMemberName attribute that is applied to the optional propertyName
+    // parameter causes the property name of the caller to be substituted as an argument.
+    public void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+    #endregion Property Changed Notification
 }
